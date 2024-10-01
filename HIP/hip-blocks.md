@@ -1,0 +1,1727 @@
+---
+hip: NNN
+title: Block Streams
+author: Jasper Potts <@jasperpotts>, Richard Bair <@rbair23>, Nana Essilfie-Conduah <@Nana-EC>, Mark Blackman <mark@swirldslabs.com>
+working-group: Jasper Potts <@jasperpotts>, Richard Bair <@rbair23>, Nana Essilfie-Conduah <@Nana-EC>, Mark Blackman <mark@swirldslabs.com>, Leemon Baird, Joseph Sinclair<@jsync-swirlds>, Nick Poorman <@nickpoorman>
+type: Standards Track
+category: Core, Service, Mirror Node, Block Node
+needs-council-approval: Yes
+status: Draft
+created: 2023-03-20
+discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/1055
+updated: 2024-10-01
+---
+
+## Abstract
+
+This HIP introduces a new output data format for consensus nodes, called Block Streams, that _replaces_ the existing
+event streams, record streams, state files, and signature files. Each block within the block stream is a self-contained
+entity, including every event and all transactions that were part of the block, the state changes as a result of those
+transactions, and a _network signature_ (using a BLS threshold signature scheme we call TSS) that proves the block was
+signed by a threshold of the network.
+
+By including state changes, downstream services can seamlessly maintain and verify state alongside consensus nodes. This
+enhancement fosters greater transparency and trust within the Hedera network. Any downstream service can independently
+rebuild and verify the state of consensus nodes at the time of the block, verified by the TSS network signature. Using
+this state, they can provide additional services such as state proofs, state snapshots, and more.
+
+With the event information within blocks, downstream services can be reconstructed and the hashgraph algorithm replayed,
+permitting anyone to verify the correct execution of the consensus algorithm and removes the need for the extra event
+stream.
+
+A key design criteria is for the block stream to be easily consumed by any programming language, and with minimal
+complexity or dependencies. For example, state data can be utilized for basic queries without having to reconstruct a
+merkle tree.
+
+Block streams are an upgrade to the existing RecordStream V6.  Block streams restructure and aggregate the multiple
+record types in record streams, including `EventStream`, `RecordStream`, and Hedera state data to produce a single
+unified stream of `items`.
+
+The key enhancements offered by block streams include:
+
+- **Unified Data Stream**: Block stream consolidates event streams, record streams, sidecars, and signature files into a
+  single cohesive data stream.
+- **State Change Data**: Each block will include state change data for the given round of consensus.
+- **Verifiable Proof:** Each block will be independently verifiable, containing a full proof of transactions, network
+  consensus and state changes.
+- **Comprehensive Protobuf specification**  By defining blocks in protobuf, the inputs, outputs, and state changes of
+  consensus nodes are clearly specified, paving the way for future implementations and greater client diversity.
+
+With the adoption of block streams, data output by Hedera consensus nodes will be consolidated into a single, verifiable
+chronicle of the network, thereby strengthening the integrity and transparency of the Hedera ecosystem.
+
+**NOTE:** This HIP also introduces the concepts of a Block Node and TSS Signatures.
+
+Block Nodes are a new proposed node type designed to consume block streams, maintain state, store history, and provide
+additional block and state APIs that benefit the Hedera community (e.g., state proofs). They are one type of
+"downstream service" that can consume block streams.
+
+TSS signatures refer to a single, aggregated TSS-BLS signature that verifies a block has been signed by a threshold of
+Hedera consensus nodes. Each block will include TSS signatures, offering verifiable assurance that the block was
+produced by a configured threshold of the network.
+
+Subsequent HIPs, to be introduced at a later date, will provide details on Block Nodes and TSS Signatures.
+
+## Context
+
+Today, consensus nodes produce 2 streams - the event stream (ordered collection of events post consensus) and the record
+stream (ordered collection of transaction body input pre-execution and transaction record results post-execution):
+
+![Record Stream and Event Stream](../assets/hip-blocks/record-stream-event-stream.svg)
+
+With block streams, we will produce only one. It will contain all the data from the previous two without duplication and
+with state changes added.
+
+![Block Stream](../assets/hip-blocks/block-stream.svg)
+
+## Motivation
+
+Block streams resolve many issues with the previous Record Stream v6 specification from [HIP 435](https://hips.hedera.com/hip/hip-435)
+currently deployed on mainnet. Below are some key issues along with the potential resolutions that block streams
+provide:
+
+- **Mixed Serialization Formats**: The record stream mixes protobuf with other serialization formats instead of using
+  pure protobuf serialization. Block streams will use only protobuf definitions, making it much easier to consume and
+  validate.
+- **Data Duplication**: Transaction data was redundantly duplicated between event streams and record streams, resulting
+  in wasted space and bandwidth. Block streams aim to reduce this duplication by being more explicit about the data
+  being serialized, and streamlining the format.
+- **Event Stream Documentation**: Currently, the Event stream is not in a publicly documented protobuf format. Block
+  streams integrate Event Stream data in protobuf which increases the transparency of consensus logic. Event streams
+  data can be used to validate how consensus was reached and that it was fair. They can also be used for event replay in
+  crash recovery and node restart operations.
+- **Signature Files**: Each node currently produces a v6 record stream with a corresponding signature file for
+  verification. Mirror nodes must download a strong minority (1/3 of consensus weight) worth of these signature files,
+  along with the record file, to verify v6 records. This frequent access to cloud storage (GCS/S3) is costly. To reduce
+  this expense and complexity, blocks include a TSS signature from the majority weight of consensus nodes.
+- **File Naming and Retrieval**: v6 record stream files are named after the consensus timestamp of the first transaction
+  they contain, requiring Mirror Nodes to perform frequent and costly LIST operations on cloud storage (GCS/S3) to find
+  new files. The new block streams use sequential block numbers, eliminating the need for these expensive LIST
+  operations. Mirror Nodes will read the stream from a block node that manages its own storage at a lower cost and won’t
+  need to deal with cloud storage buckets.
+- **Sidecar Data Integration**: In v6 record streams, sidecar files are created to serialize extra data such as smart
+  contract logs outside the main record stream. Block streams will incorporate sidecar data into the unified stream.
+- **Subset Support**: Any block node operator will be able to decide individually which data in the block stream to
+  retain on disk, without breaking the cryptographic integrity of the block stream. Different block node operators in
+  different legal jurisdictions can make different decisions about what data to retain. Or, block node operators may
+  subset the stream to retain minimal data and minimize storage costs.
+- **Errata Handling**: Errata refers to software bugs where a node executed the transaction correctly but did not record
+  the correct output in the stream. The block stream format will allow for signed errata transactions from the council
+  to correct stream history, providing transparency, while maintaining the original proof and integrity of the chain.
+
+Another key motivation for introducing block streams is their ability to enable downstream services to maintain and
+verify the merkle tree state of consensus nodes as each block reaches consensus. This capability allows critical but
+resource-intensive services to be offloaded from consensus nodes to other servers that can now maintain the merkle state
+alongside the consensus nodes. By offloading these services, consensus nodes can dedicate more resources to processing
+transactions, thereby increasing network scalability.
+
+Specific examples of services that can be moved to a Block Node include:
+
+- **State Snapshots**: Consensus nodes are currently required to periodically upload snapshots of the saved state for
+  backup purposes. Since block streams contain all state changes, block nodes can now provide this service.
+- **Reconnect Services**: Reconnect enables nodes that have fallen behind other nodes on the network to request data
+  from nodes that are in sync. This process requires significant complexity and resources. We can enhance stability and
+  simplify node software by allowing nodes to reconnect with a block node, instead of another consensus node. This
+  is a significant and important enhancement to reconnect that is needed for permissionless nodes.
+- **Query Endpoints:** As Block Nodes or other consumers of the Block Stream can maintain a live state in sync with the
+  consensus nodes, they can answer any queries against state. They can also produce cryptograph state proofs to prove
+  any data in stat (a `state proof`) or any data was part of a block (a `block proof`). For example, they can provide a
+  `state proof` that says a particular account has a specific balance, or they can provide a `block proof` that a
+  given HCS message was part of a specific block.
+
+## Rationale
+
+As mentioned in the motivation section above, the design rationale of Block Streams is driven by the following goals:
+
+**Consolidation of Streams**: Block streams should efficiently consolidate all information across event, state, and
+record streams, optimizing data size to reduce network storage costs over time.
+
+**Verifiability**: Each block must be self-contained and independently verifiable. Block streams will provide the data
+to enable verification of hashgraph consensus as well as verification of transaction execution.
+
+**State Update Data:** Block streams will include all state changes to enable downstream services to maintain merkle
+state alongside mainnet nodes. Prior to block streams the contents of consensus state was not directly visible from
+outside the consensus network.
+
+**Easy consumption**: The Block stream is designed to be easy to consume by users. Where trade-offs exist between a
+small amount of extra work on consensus nodes or a large amount of work or complex understanding needed on consumers,
+we have chosen to perform extra work on consensus nodes to produce clean block streams.
+
+**Designed for Streaming or as Block files:** The stream is designed to both be packaged up as self-contained block
+files and to be streamed as individual items with low latency.
+
+#### Design for Consolidation
+
+The block stream is designed to be a continuous stream of items. This allows for continuous streaming over gRPC. The
+order of items is significant, for example all items between and inclusive of a `BlockHeader` and `BlockProof` represent
+contents of one block. All items following an `EventTransaction` before the next `EventTransaction` are related to that
+first transaction. Block items for one block can also be packaged in a `Block` message so they can be stored in a
+protobuf file and served as a single entity if desired.
+
+![Block Stream Items](../assets/hip-blocks/block-stream-items.svg)
+
+```
+NOTE: Update: Add missing Round header after Block Header to image
+```
+
+The Block Item design promotes granular stream processing ensuring all items in a block prior to the proof can be sent
+out immediately after processing. The result is reduced end-to-end latency for use cases prioritizing speed (e.g.
+high-frequency trading). Additionally, this means a following block will not be sent until a block proof is pushed out
+over the stream.
+
+#### Design for Input & Output streams
+
+The block stream items are split into two types: input and output. The input items are those known after consensus but
+before transaction execution and are the input to transaction execution. Output items are those produced during
+transaction execution. These are hashed separately into two different *block stream* merkle sub-trees. This is done so
+we can subset a historical block just be input items, or just output items. That subset block stream could then be used
+for transaction replay or transaction execution verification, for example.
+
+![Block Stream Merkle Tree](../assets/hip-blocks/block-stream-merkle.png)
+
+Consensus nodes have a `state merkle tree`, which is a merkle tree containing the current state of the consensus node.
+The block stream has a separate `block stream merkle tree` which is a merkle tree of all the items in the block stream
+over the entire history of the stream. Of course, older blocks can be represented by their hash rather than the actual
+full contents, so it is possible to have a very large block stream merkle tree *in concept* that is still very efficient
+to use.
+
+#### Design for Verifiability
+
+Existing record files contain the following cryptographic properties.
+
+Record files are streams in a blockchain, with the hash of previous file included in the next record file, ensuring
+immutability. Additionally, each consensus node on the Hedera mainnet signs a hash of the record files as they are
+produced, enabling mirror nodes and other downstream services to verify that the record file was produced and attested
+by a majority weight of the network nodes. A major drawback of the current design is that multiple signature files and
+the address book with network weight must be collected and verified before a record file can be verified. This design
+challenge makes it difficult to support a "dynamic address book", which is a hard requirement for permissionless nodes.
+
+To make each block within a block stream independently verifiable, the use of an aggregated signature is leveraged.
+Aggregated signatures allow the verification of multiple node signatures to be processed using a single public key.
+Therefore, a user can verify that a block was signed by a sufficient weight within the network by verifying a single
+aggregated signature. TSS-BLS signatures were selected because of their ability to support partial share signatures
+assigned on a weighted number of shares per node with a threshold value required for verification. Additionally,
+adopting TSS-BLS allows the network to utilize a single semi-permanent public ledger id to verify the signature. This
+offers a valuable system optimization as no matter how much the network node membership changes, the same ledger id can
+be used to verify the aggregated signature. TSS-BLS signatures are also reasonably efficient when used within smart
+contracts. A state proof based on this signature can be verified by a smart contract on another ledger for little cost.
+
+A subsequent HIP will be created to outline the changes and justification required for implementing Hedera TSS-BLS
+signatures.
+
+#### Design for State Changes
+
+Including state changes within the block stream is a significant foundational step towards enhancing the
+decentralization of the network. This inclusion allows for the development of alternative node implementations and
+enables downstream state-related services such as state proofs, state snapshots, and reconnect services. It also
+provides a low latency feed of the contents of state as it changes to applications. This can open doors to exciting new
+latency critical application ideas and concepts that could not be built before.
+
+To enable this, state in the consensus node will be restructured into simple named states. This allows for state changes
+to be expressed as simple CRUD operations on named states. This is so downstream consumers do not have to understand the
+full complexity of the merkle state tree.
+
+## Personas and User Stories
+
+**Personas:**
+- _Downstream Developer_: A provider of value-added services utilizing block streams
+- _Verifier_: Any person or service required to verify the integrity of a block or the information contained within a
+  block.
+
+**User Stories:**
+1. As a downstream developer, I want a streamlined feed that contains all event, transactional, and state details of
+   the network so that I can offer value-added services to the ecosystem.
+2. As a downstream developer, I want each block of data to be verifiable with a single, aggregated signature, so that I
+   can authenticate transactional data without the cost and complexity of downloading multiple signature files for
+   verification.
+3. As a verifier for a network, I want a single, self-contained stream of data with aggregated signature signed by a
+   threshold weight of nodes, so that I can cost-effectively confirm that the stream represents the consensus output of
+   the network.
+4. As a downstream developer, I want a low latency feed that provides the state changes associated with transaction(s)
+   within a block, so that I can interact with state changes with the smallest possible delay.
+
+## Specification
+
+The Block Stream will be defined by the continuous transmission of Block information defined as follows.
+- Each `Block` represents all inputs and outputs of the consensus network for zero or more whole `Rounds`. The maximum
+  number of rounds per block will be configurable and start at 1 round per block. It could be increased later if
+  necessary for performance reasons or if round become very frequent and small.
+    - A block *may* be zero rounds because the last block prior to a network "freeze" must communicate the state hash
+      (via a block proof) of the state immediately prior to network shutdown. This is only possible with an extra empty
+      block because the state hash in each block proof is the state hash at the *beginning* of that block/round. This
+      delay of state hash communication is required to simultaneously meet Hedera performance goals and also meet EVM
+      expectations for immediate access to recent (the last 256) block hash values.
+- A `Round` is a sequence of zero or more `Events` that have reached consensus at the same time. Round length in real
+  world time depends on internet latency and event creation rate. In Hedera mainnet today it is around 1 round per
+  second. In the future this could be shorter to lower latency, but would never make sense to be less than ping time.
+- An `Event` is a sequence of zero or more `EventTransactions` submitted by a single node.
+- Each `EventTransaction` is either a `SignedTransaction` or a system transaction.
+- A `SignedTransaction` is transmitted as a byte array, contains the signed transaction bytes of a user-submitted
+  transaction exactly as processed by the network, and is followed by transaction outputs and state changes resulting
+  from that transaction.
+- System transactions are represented by explicitly defined protobuf messages and used for consensus node to consensus
+  node communication.
+
+These concepts are core to the Hashgraph consensus mechanism and have direct impacts on the structure of data in the 
+streams.
+
+Block streams are built out of Items. Those items can be delivered in a continuous stream containing one or more blocks.
+Or they can be delivered as a single block using the `Block` message type container. If a single block is delivered as
+a file it expected to be either a raw protobuf `Block` message with file name of `<BLOCK_NUMBER>.blk` e.g.
+`0000000000000000001.blk` . With total of 19 digits to allow for 2^63 blocks. Or a compressed file e.g.
+`0000000000000000001.blk.gz` or `0000000000000000001.blk.ztsd` .
+
+### Important Note Regarding Map Fields
+
+The network will never add a `map` to a protobuf message in the Block Stream, and will not use a `map` for any value in
+state. The protocol buffer implementations across different languages do not, and cannot, guarantee iteration order for
+map entries and some implementations deliberately randomize the iteration order to "aggressively" prevent any code
+from depending on map iteration order.
+
+This unreliable iteration order has the consequence that block validation would fail non-deterministically when
+encountering a different iteration order because the serialized bytes would not be in the same sequence and would not
+generate the same hash. All implementations of block validation would be required to use custom protobuf libraries,
+which would be required to use *the same* deterministic iteration order when serializing bytes, so that the generated
+hash value would match every other implementation. The network values the freedom to implement a compliant Block Stream
+consumer using any valid protocol buffer library and any computing language of choice, and therefore chooses not to use
+the `map` type in protobuf messages.
+
+### Protobuf Definitions
+
+The following protobuf specification defines a `Block` and it’s components. Notably, the protobufs in this HIP have
+partial comments for brevity and where they depend on existing message types defined in HAPI specification they are not
+repeated here. The full and detailed specification is present in the public
+[hedera-protobufs github](https://github.com/hashgraph/hedera-protobufs/tree/main/block) repository.
+
+#### Block
+
+A collection of block items that represent a single block of transactions on the network.
+
+```protobuf
+/**
+ * Block is used to serialize all the data for a block into record stream of
+ * block files. This structure represents a block on Hedera.
+ */
+message Block {
+    /**
+     * The items contained in the block that make up the running hash.
+     */
+    repeated BlockItem items = 1;
+}
+```
+
+The order of block items in a block stream is important in some cases it designates useful positions in the stream that
+a client may make inferences on. Particularly the start of a `Block`, `Event` and `Transaction` are useful
+considerations, in addition to the end of a `Block` or `Transaction`.
+
+#### BlockItem
+
+A block item is a logical separation of components that together make up a block. A Block item may be one of the 9 types
+noted below.
+
+```protobuf
+message BlockItem {
+    oneof item {
+        /**
+         * An header for the block, marking the start of a new block.
+         */
+        BlockHeader block_header = 1;
+
+        /**
+         * An header emitted at the start of a new network "event".
+         */
+        EventHeader event_header = 2;
+
+        /**
+         * An header emitted at the start of a new consensus "round".
+         * <p>
+         * This item SHALL contain the properties relevant to a single
+         * consensus round.
+         */
+        com.hedera.hapi.block.stream.input.RoundHeader round_header = 3;
+
+        /**
+         * A single transaction.
+         */
+        com.hedera.hapi.platform.event.EventTransaction event_transaction = 4;
+
+        /**
+         * The result of running a transaction.
+         */
+        com.hedera.hapi.block.stream.output.TransactionResult transaction_result = 5;
+
+        /**
+         * A transaction output.
+         */
+        com.hedera.hapi.block.stream.output.TransactionOutput transaction_output = 6;
+
+        /**
+         * A set of state changes.
+         */
+        com.hedera.hapi.block.stream.output.StateChanges state_changes = 7;
+
+        /**
+         * Verification data for an item filtered from the stream.<br/>
+         * This is a hash for a merkle tree node where the contents of that
+         * part of the merkle tree have been removed from this stream.
+         */
+        FilteredItemHash filtered_item_hash = 8;
+
+        /**
+         * A signed block proof.<br/>
+         * The signed merkle proof for this block. This will validate
+         * a "virtual" merkle tree containing the previous block "virtual"
+         * root, an "input" subtree, an "output" subtree, and
+         * a "state changes" subtree.
+         */
+        BlockProof block_proof = 9;
+
+        /**
+         * A record file and associated data.
+         */
+        RecordFileItem record_file = 10;
+    }
+}
+
+```
+
+All items in the block other than the final `BlockProof` and `FilteredItemHash` are either Input or Output items. This
+separation is important as they are hashed into two different sub-merkle-trees in the final proof. We did not want to
+carry in each block item data representing which tree it was hashed in as that would waste a lot of bytes. So which tree
+is defined by the protobuf package that message type is in. The reason they are split into input and output item sets is
+this opens the door for using the block stream format to describe the data passed from consensus to transaction
+processing.
+
+The division into block items also enables filtering of data based on data type. For example a downstream services could
+filter for only transactional data if there is no requirement for event or state information. Another service could
+filter on only accounts they are interested in. Block items removed from a filtered stream are represented by one or
+more `FilteredItemHash`’s which provide the missing hashes required to validate the filtered stream with the same block
+proof as the full stream.
+
+#### BlockHeader
+
+### BlockHeader
+
+A `BlockHeader` is one type of `output` BlockItem and will always be the first element in a Block. It contains Block
+metadata which describes a block’s identifying information such as its number and HAPI specification version
+
+```protobuf
+message BlockHeader {
+    /**
+     * Version of the HAPI specification that was used to serialize the block.
+     */
+    proto.SemanticVersion hapi_proto_version = 1;
+
+    /**
+     * The software version used to execute transactions in this block.
+     */
+    proto.SemanticVersion software_version = 2;
+
+    /**
+     * The block number of this block.
+     * <p>
+     * This value MUST be exactly `1` more than the previous block.<br/>
+     * Client systems SHOULD optimistically reject any block with a gap or
+     * reverse in `number` sequence, and MAY assume the block stream has
+     * encountered data loss, data corruption, or unauthorized modification.
+     */
+    uint64 number = 3;
+
+    /**
+     * The block hash of the previous block.
+     * This is here so a client parsing the BlockHeader can optimistically reject
+     * a block if this hash does not match the root hash of the previous block.
+     */
+    bytes previous_block_hash = 4;
+
+    /**
+     * A consensus timestamp for the start of this block.
+     * <p>
+     * This SHALL be the timestamp assigned by the hashgraph consensus
+     * algorithm to the first transaction of this block.
+     */
+    proto.Timestamp first_transaction_consensus_time = 5;
+
+    /**
+     * The hash algorithm used in this block.
+     */
+    proto.BlockHashAlgorithm hash_algorithm = 6;
+
+    /**
+     * Version of the active address book of the network at the time relating to the network public key
+     */
+    proto.SemanticVersion address_book_version = 7;
+}
+
+// This definition is in basic_types.proto.
+/**
+ * A specific hash algorithm used within a block.
+ *
+ * We did not reuse HashAlgorithm here because in all cases for now it will be SHA2_384 and if that's the default value
+ * then we can save space by not serializing it, whereas HASH_ALGORITHM_UNKNOWN = 0; is the default for HashAlgorithm.
+ */
+enum BlockHashAlgorithm {
+    SHA2_384 = 0;
+}
+```
+
+<aside>
+🚨 **Open Detail:** How do we define the `first_transaction_consensus_time` of a block with no transactions? Can it be
+first event consensus time if no transactions? what about empty block with no events?
+</aside>
+
+#### EventHeader
+
+The event header depicts the beginning of an event. All items after this and before the next `EventHeader` or
+`BlockProof` are part of this event or results of execution of this event’s contents. It is designed so that it is easy
+to reconstruct `GossipEvent`’s as needed for hashgraph reconstruction from the contents in the block stream. To make
+that easy `EventHeader` includes `EventCore` that is part of `GossipEvent` and all transactions are defined as
+`EventTransaction` which can be used unchanged to construct the original `GossipEvent`.
+
+```protobuf
+/**
+ * Contains information about an event and its parents.
+ */
+message EventHeader {
+    /**
+     * An event core value.<br/>
+     * This contains information about the event creator and the event
+     * "parents". Event "parents" includes the "self parent" if any.
+     */
+    com.hedera.hapi.platform.event.EventCore event_core = 1;
+    
+    /**
+     * A single node event signature.<br/>
+     * This is the event creator's signature for this event.
+     */
+    bytes signature = 2;
+}
+```
+
+#### Round Header
+
+The round header describes the beginning of a round. A block may contain zero or more rounds, although the initial
+release is expected to be 1 block containing 1 round. There is some fixed cost to each block, so batching multiple
+rounds into a single block increases efficiency. However, the more rounds that are batched, the longer the end-to-end
+latency for a transaction. So it is generally expected that the number of rounds per block will be kept low.
+
+```protobuf
+/**
+ * A header for a single round.<br/>
+ * This message delivers information about a consensus round.
+ */
+message RoundHeader {
+    /**
+     * A round number.<br/>
+     * This is the number assigned to the round for consensus.
+     */
+    uint64 round_number = 1;
+}
+```
+
+#### EventTransactions
+
+A user transaction submitted to create a state change or query node state information. This message unifies the concepts
+of user and system transactions, and matches the structure of Events within the hashgraph algorithm. A state signature
+system transaction is a non-user transaction internally created to carry out a state change in conformance with network
+hashgraph logic. This transaction does not count towards network TPS and can only be issued internally via the consensus
+platform.
+
+```protobuf
+message EventTransaction {
+    oneof transaction {
+        /**
+         * SignedTransaction serialized into bytes.
+         * SignedTransaction is specified by the existing HAPI API.
+         */
+        bytes signedTransactionBytes = 1;
+
+        /**
+         * A single state signature.
+         */
+        StateSignatureSystemTransaction state_signature = 2;
+    }
+}
+```
+
+#### Reconstructing GossipEvents for Consensus Validation
+
+The block stream supports complete reconstruction of the consensus event stream in a simple and secure manner. Any
+entity wishing to reconstruct the event stream may begin with the `EventHeader` and append each following
+`EventTransaction` *in order* as it appears in the Block Stream. The event ends when the next `EventHeader` or
+`Block Proof` is encountered in the stream.
+
+Once the event data is gathered, the event may be rebuilt as a `GossipEvent` protocol buffer message. Gossiped events
+can then be fed into the Hashgraph consensus algorithm. The new resulting rounds and event order can be compared to the
+original order in the block stream to validate that consensus was executed correctly.
+
+Event contents can also be validated by computing the SHA384 hash of the `EventCore` encoded bytes followed by the
+SHA384 hashes of each `EventTransaction` in order. The resulting hash can be checked against the signature originally
+present in the `EventHeader`.
+
+#### Transaction Result
+
+`TransactionResult` captures the impacts and network metadata of an individual transaction at the time the network
+processes it.
+
+```protobuf
+message TransactionResult {
+    /**
+     * The response code that indicates the current status of the transaction.
+     */
+    proto.ResponseCodeEnum status = 1;
+
+    /**
+     * The consensus timestamp of the transaction.
+     */
+    proto.Timestamp consensus_timestamp = 2;
+
+    /**
+     * In the record of an internal transaction, the consensus timestamp of the
+     * user transaction that spawned it.
+     */
+    proto.Timestamp parent_consensus_timestamp = 3;
+
+    /**
+     * The exchange rates in effect when the transaction reached consensus.
+     */
+    proto.ExchangeRateSet exchange_rate = 4;
+
+    /**
+     * A schedule that executed this transaction, if this transaction
+     * was scheduled.
+     * <p>
+     * This value SHALL NOT be set unless this transaction result represents
+     * the result of a _scheduled_ child transaction.
+     */
+    proto.ScheduleID schedule_ref = 5;
+
+    /**
+     * The actual transaction fee charged, not the original transactionFee value
+     * from TransactionBody.
+     */
+    uint64 transaction_fee_charged = 6;
+
+    /**
+     * All hbar transfers as a result of this transaction, such as fees, or
+     * transfers performed by the transaction, or by a smart contract it calls, or
+     * by the creation of threshold records that it triggers.
+     */
+    proto.TransferList transfer_list = 7;
+
+    /**
+     * All Token transfers as a result of this transaction.
+     */
+    repeated proto.TokenTransferList token_transfer_lists = 8;
+
+    /**
+     * All token associations implicitly created while handling this transaction.
+     */
+    repeated proto.TokenAssociation automatic_token_associations = 9;
+
+    /**
+     * List of accounts with the corresponding staking rewards paid as a result of
+     * a transaction.
+     */
+    repeated proto.AccountAmount paid_staking_rewards = 10;
+
+    /**
+     * Congestion pricing multiplier at the time the transaction was executed.
+     */
+    uint64 congestion_pricing_multiplier = 11;
+
+    /**
+     * A [string, code] to indicate what, specifically, produced
+     * a non-success response code.
+     */
+    //  bytes error_message = 12;
+    // Alternative
+    //  uint16 detail_error_code = 12;
+}
+```
+
+<aside>
+🚨 **Open Decision**: Decide on string error message or a integer detailed error code?
+
+</aside>
+
+<aside>
+🚨 **Open Question**: We discussed if TransferList should be included or not here. I don’t remember exactly why it has
+to be. We should double check if it has to be and can not be removed and if it has to be here then document why.
+ - The Mirror Node MAPI exposes the transfer list, and it’s used by clients of mirror node.
+ - There are some transfers only exposed in the transfer list currently.
+</aside>
+
+#### Transaction Output
+
+Output data from a transaction data that is neither present in the transaction nor stored in state. Not all transactions
+have output, each one that does has a corresponding output message type with any data it needs to include.
+
+<aside>
+🚨 **Open Task: Update section with missing TransactionOutput objects**.
+</aside>
+
+```protobuf
+message TransactionOutput {
+    oneof transaction {
+        /**
+         * Output from a crypto transfer transaction.
+         */
+        CryptoTransferOutput crypto_transfer = 1;
+
+        /**
+         * Output from a utilPrng transaction to request a
+         * deterministic pseudo-random number.
+         */
+        UtilPrngOutput util_prng = 2;
+
+        /**
+         * Output from a contract call transaction.
+         */
+        CallContractOutput contract_call = 3;
+
+        /**
+         * Output from an ethereum call transaction.
+         */
+        EthereumOutput ethereum_call = 4;
+
+        /**
+         * Output from a contract create transaction.
+         */
+        CreateContractOutput contract_create = 5;
+
+        /**
+         * Output from a schedule create transaction that executed
+         * immediately on creation.
+         */
+        CreateScheduleOutput create_schedule = 6;
+
+        /**
+         * Output from a schedule sign transaction that resulted in
+         * executing the scheduled transaction.
+         */
+        SignScheduleOutput sign_schedule = 7;
+    }
+}
+```
+
+```protobuf
+message CryptoTransferOutput {
+    /**
+     * Custom fees assessed during a CryptoTransfer.
+     * <p>
+     * These fees SHALL be present in the full transfer list for the transaction.
+     */
+    repeated proto.AssessedCustomFee assessed_custom_fees = 1;
+}
+```
+
+```protobuf
+message UtilPrngOutput {
+    oneof entropy {
+        /**
+         * A deterministic pseudo-random sequence of 48 bytes.
+         */
+        bytes prng_bytes = 1;
+
+        /**
+         * A deterministic pseudo-random number generated within a
+         * specified range.
+         */
+        uint32 prng_number = 2;
+    }
+}
+```
+
+```protobuf
+message CallContractOutput {
+    repeated proto.TransactionSidecarRecord sidecars = 1;
+
+    /**
+     * An EVM contract call result.
+     */
+    proto.ContractFunctionResult contract_call_result = 2;
+}
+```
+
+```protobuf
+message EthereumOutput {
+    /**
+     * A list of additional outputs.
+     */
+    repeated proto.TransactionSidecarRecord sidecars = 1;
+
+    /**
+     * An ethereum hash value.
+     */
+    bytes ethereum_hash = 2;
+}
+```
+
+```protobuf
+message CreateContractOutput {
+    repeated proto.TransactionSidecarRecord sidecars = 1;
+
+    /**
+     * An EVM contract call result.
+     * <p>
+     * This field SHALL contain all of the data produced by the contract
+     * create transaction as well as basic accounting results.
+     */
+    proto.ContractFunctionResult contract_create_result = 2;
+}
+```
+
+```protobuf
+message CreateScheduleOutput {
+    /**
+     * A scheduled transaction identifier.
+     */
+    proto.TransactionID scheduled_transaction_id = 2;
+}
+```
+
+```protobuf
+message SignScheduleOutput {
+    /**
+     * A scheduled transaction identifier.
+     */
+    proto.TransactionID scheduled_transaction_id = 1;
+}
+```
+
+#### State Changes
+
+The state changes to the merkle tree for a given transaction or outside a transaction as part of executing a round.
+
+The aim of state changes in the block stream is two fold:
+
+1. To give low latency visibility to state contents for apps and to allow external construction of a merkle tree state
+   matching that in the consensus node.
+2. To make it easy to use for apps the state is expressed at the high conceptual level of names states(like named
+   database tables).
+
+There are 3 types of named states supported in the first version of block streams: Maps, Queue’s and Singleton Objects.
+The algorithm for how states are translated into a merkle tree will be provided. The block proof will contain a signed
+root hash of the state merkle tree allowing those reconstructing a merkle tree outside the consensus node to have
+complete cryptographic trust of its contents. The granularity for state changes will support the ability to understand
+the changes made by an individual transaction.
+
+<aside>
+🚨 **Open Task:** Document the algorithm for how states are translated into a merkle tree, here or referenced from here.
+
+This has a few parts:
+
+- Document that all state changes result into key/values in a single huge binary merkle tree.
+- Document the VirtualMap algorithm for insertion and deletion of leaves
+- Document how internal hashes are computed
+
+</aside>
+
+<aside>
+🚨 **Open Question:** Splitting accounts - in the current design accounts are stored in complete form in the state
+change any time any field changes like balance. This makes it easy for the consumer but expensive in bytes, especially
+for accounts with large numbers of keys like those owned by the council. We have considered 3 options:
+
+1. Keep in full and hope compression will be good enough. The concern is this might not be good enough.
+2. Split big objects in map states like account into two map states. One for frequent and one for infrequent changing
+   fields. The problem with this is it doubles the number of entities stored in state. Which means twice the RAM but
+   even worse is every account used in a transaction becomes 2 map reads doubling the IOPs needed.
+3. Make each leaf value in the accounts map a mini merkle tree with two leaves and a internal node. One leaf for
+   frequent changing fields and one for infrequent. This has the advantage that state changes could be granular to sub
+   part of a leaf. State proofs could still be produced for the sub-leaves. There is no doubling of IOPS as the whole
+   mini tree is read at the same time stored in a single place on disk. This has promise but is a big change to virtual
+   map implementation.
+4. Store the account *in state* as a message containing two sub-messages and use the same message in Block Stream.
+   Specify explicit presence for both sub-messages ([using proto3 `optional`](https://protobuf.dev/programming-guides/field_presence/#presence-in-proto3-apis)),
+   and send only the part(s) that changed in the block stream (using the same message and *clear* the part not being
+   sent, if any).  This leaves the same number of entities in state, and the same amount of RAM and disk (modulo a few
+   bytes for the extra tags).  It has the disadvantage of requiring more careful processing for Account updates in the
+   Block stream (if one of the two values is not set, it *must* be read from a pre-existing copy to get a full Account),
+   but also has the advantage of being able to further split the message quite easily, if needed, in the future. This
+   *may* also require an [update to PBJ](https://github.com/hashgraph/pbj/issues/225) to handle proto3 `optional` and
+   explicit presence information.
+</aside>
+
+```protobuf
+message StateChanges {
+    /**
+     * The consensus timestamp of this set of changes.
+     * See the full specification above for how this value is determined.
+     * <p>
+     * This value SHALL be deterministic.
+     */
+    proto.Timestamp consensus_timestamp = 1;
+
+    /**
+     * An ordered list of individual changes.
+     * <p>
+     * These changes MUST be applied in the order listed to produce
+     * a correct modified state.
+     */
+    repeated StateChange state_changes = 2;
+}
+```
+
+State changes are expressed in terms of changes to named states at the high level conceptual model of the state type
+like map key/values or queue appends. To determine which state each change affects we will include an `integer` number
+in place of a state name. This is done for performance and efficiency as there will be 10s of thousands of state changes
+in a block.
+
+- If we have an extra 8-10 bytes per state change, then at 40-50K state changes per second that is an extra 3-4Mbits of
+  bandwidth. Compression should help a lot but that is not guaranteed.
+- When the state name is used as part of a complex key in the big state merkle map. The smaller the key is, in bytes,
+  the more efficient the database is because more keys can fit in a single disk page.
+- When parsing keys, parsing a UTF8 string to a Java String is a many times more expensive than parsing an integer from
+  a `varint`.
+
+For convenience, an `enum` will be included in the HAPI spec for each known state and the integer value will always
+match the `enum` ordinal. The reason we use an integer field instead of an `enum` field is to function better for
+forwards compatibility. This is where a block node with HAPI version 1 wants to process blocks from HAPI version 2, for
+example. If we use a protobuf enum, then when that is mapped to a language like Java or Rust it can cause errors because
+those languages do not support unknown `enum` values. ProtoC has a workaround for this but it is super ugly and creates
+more issues than it solves in this specific situation. We believe that the integer field with a separate `enum` useable
+to map that integer to a well-defined value in code is the best compromise.
+
+```protobuf
+/**
+ * A change to any item in the merkle tree.
+ */
+message StateChange {
+    /**
+     * A state identifier.
+     * The "mapping" for these values is available as an _informational_ enum
+     * named `StateIdentifier`.
+     */
+    uint32 state_id = 1;
+
+		// StateAdded and StateRemoved were requested. Can they not be inferred by the below? Do we need an add version for Singleton, Map and Queue?
+    oneof change_operation {
+        /**
+         * Addition of a new state.
+         */
+        NewStateChange state_add = 2;
+
+        /**
+         * Removal of an existing state.
+         */
+        RemovedStateChange state_remove = 3;
+
+        /**
+         * An add or update to a `Singleton` state.
+         */
+        SingletonUpdateChange singleton_update = 4;
+
+        /**
+         * An add or update to a single item in a `VirtualMap`.
+         */
+        MapUpdateChange map_update = 5;
+
+        /**
+         * A removal of a single item from a `VirtualMap`.
+         */
+        MapDeleteChange map_delete = 6;
+
+        /**
+         * Addition of an item to a `Queue` state.
+         */
+        QueuePushChange queue_push = 7;
+
+        /**
+         * Removal of an item from a `Queue` state.
+         */
+        QueuePopChange queue_pop = 8;
+    }
+}
+```
+
+```protobuf
+/**
+ * An informational enumeration of all known states.
+ * This enumeration is included here So that people know the mapping from
+ * integer to state "name".
+ *
+ * Note: This enumeration is never transmitted directly in the block stream.
+ * This enumeration is provided for clients to _interpret_ the value
+ * of the `StateChange`.`state_id` field.
+ */
+enum StateIdentifier {
+    /**
+     * A state identifier for the Topics state.
+     */
+    STATE_ID_TOPICS = 0;
+
+// many other enumerated values omitted for brevity.
+// Full detail is available in the hedera-protobuf github repo.
+
+    /**
+     * A state for the `159` upgrade file data
+     */
+    STATE_ID_UPGRADE_DATA_159 = 10010;
+}
+```
+
+```protobuf
+/**
+ * An addition of a new named state.
+ */
+message NewStateChange {
+    /**
+     * The type (e.g. Singleton, Virtual Map, Queue) of state to add.
+     */
+    NewStateType state_type = 1;    
+}
+
+/**
+ * An enumeration of the types of named states.
+ */
+enum NewStateType {
+    SINGLETON = 0;
+    VIRTUAL_MAP = 1;
+    QUEUE = 2;
+}
+```
+
+```protobuf
+/**
+ * A removal of a named state.
+ */
+message RemovedStateChange {
+}
+```
+
+```protobuf
+/**
+ * An update to a `Singleton` state.
+ */
+message SingletonUpdateChange {
+		oneof new_value {
+				/**
+		     * A change to the block info singleton.
+		     */
+		    proto.BlockInfo block_info_value = 1;
+
+		    /**
+		     * A change to the congestion level starts singleton.
+		     */
+		    proto.CongestionLevelStarts congestion_level_starts_value = 2;
+
+		    /**
+		     * A change to the Entity Identifier singleton.
+		     */
+		    google.protobuf.UInt64Value entity_number_value = 3;
+
+		    /**
+		     * A change to the exchange rates singleton.
+		     */
+		    proto.ExchangeRateSet exchange_rate_set_value = 4;
+
+		    /**
+		     * A change to the network staking rewards singleton.
+		     */
+		    proto.NetworkStakingRewards network_staking_rewards_value = 5;
+
+		    /**
+		     * A change to a raw byte array singleton.
+		     */
+		    google.protobuf.BytesValue bytes_value = 6;
+
+		    /**
+		     * A change to a raw string singleton.
+		     */
+		    google.protobuf.StringValue string_value = 7;
+
+		    /**
+		     * A change to the running hashes singleton.
+		     */
+		    proto.RunningHashes running_hashes_value = 8;
+
+				/**
+         * A change to the throttle usage snapshots singleton.
+         * <p>
+         * Throttle usage snapshots SHALL be updated for _every transaction_
+         * to reflect the amount used for each tps throttle and
+         * for the gas throttle.
+         */
+		    proto.ThrottleUsageSnapshots throttle_usage_snapshots_value = 9;
+
+				/**
+         * A change to a raw `Timestamp` singleton.<br/>
+         * An example of a raw `Timestamp` singleton is the
+         * "network freeze time" singleton state, which, if set, stores
+         * the time for the next scheduled freeze.
+         */
+        proto.Timestamp timestamp_value = 10;
+
+        /**
+         * A change to the block stream status singleton.
+         */
+        com.hedera.hapi.node.state.blockstream.BlockStreamInfo block_stream_info_value = 11;
+
+        /**
+         * A change to the platform state singleton.
+         */
+        com.hedera.hapi.platform.state.PlatformState platform_state_value = 12;
+
+        /**
+         * A change to the roster state singleton.
+         */
+        com.hedera.hapi.node.state.roster.RosterState roster_state_value = 13;
+		}
+}
+```
+
+```protobuf
+/**
+ * An update to a single item in a `VirtualMap`.<br/>
+ * Each update consists of a "key" and a "value".
+ * Keys are often identifiers or scalar values.
+ * Values are generally full messages or byte arrays.
+ */
+message MapUpdateChange {
+    /**
+     * A key in a virtual map.
+     * <p>
+     * This key MUST be mapped to the value added or updated.<br/>
+     * This field is REQUIRED.
+     */
+    MapChangeKey key = 1;
+
+    /**
+     * A value in a virtual map.
+     * <p>
+     * This value MUST correctly represent the state of the map entry
+     * _after_ the asserted update.<br/>
+     * This value MAY be reduced to only transmit fields that differ
+     * from the prior state.<br/>
+     * This field is REQUIRED.
+     */
+    MapChangeValue value = 2;
+}
+```
+
+Possible items for splitting Account messages to reduce the need to duplicate very large key sets on every balance
+change.
+
+```protobuf
+// NOTES BELOW ARE NOT FINAL:
+
+// Option 3, Alternative 1
+// modify the MapUpdateChange to support a partial change value
+message MapUpdateChange {
+    MapChangeKey key = 1;
+    oneof {
+        MapChangeValue value = 2;
+        MapChangePartialValue value = 2;
+    }
+}
+
+// Ordinal is part of the merkle key for the sub-tree
+// only send the one part that is needed, to update both send two map update changes.
+// This is added to the `MapUpdateChange` message.
+message MapChangePartialValue {
+    uint32 partOrdinal = 1;
+    oneof account_parts {
+        AccountPartA account_part_a = 2;
+        AccountPartB account_part_b = 3;
+    }
+}
+
+// Option 3, Alternative 2
+// Similar to `MapPartialValue`, but at the `MapChangeValue` level where we already have many fields, instead
+// of adding a completely divergent field to `MapUpdateChange` and adding complexity there
+message MapChangeValue {
+    ...
+    AccountChange account_change = 14;
+}
+
+// Use this account change entry, and only set the part that changed.
+// Changing both parts requires two account change block items.
+message AccountChange {
+    oneof account_parts {
+        AccountPartA account_part_a = 1;
+        AccountPartB account_part_b = 2;
+    }
+    // This may or may not be needed, depending on how the account is stored in state
+    uint32 partOrdinal = 3;
+}
+////////// End Option 3 //////////
+
+// Option 4, use a single message with two sub-messages in state **and** in the block stream
+// Recipients must check presence (e.g. accountValue.isAccountPartBSet() ) and fill in any un-set sub-message from prior state if needed.
+message Account {
+    optional AccountPartA account_part_a = 1;
+    optional AccountPartB account_part_b = 2;
+}
+////////// End Option 4 //////////
+
+// Both Option 3 and Option 4 use these two sub-messages.
+message AccountPartA {}
+message AccountPartB {}
+
+```
+
+```protobuf
+/**
+ * A removal of a single item from a `VirtualMap`.
+ */
+message MapDeleteChange {
+    /**
+     * A key in a virtual map.
+     * <p>
+     * This key SHALL be removed.<br/>
+     * The mapped value SHALL also be removed.<br/>
+     * This field is REQUIRED.
+     */
+    MapChangeKey key = 1;
+}
+```
+
+```protobuf
+/**
+ * A key identifying a specific entry in a key-value "virtual map".
+ */
+message MapChangeKey {
+    oneof key_choice {
+        /**
+         * A key for a change affecting a map keyed by an Account identifier.
+         */
+        proto.AccountID account_id_key = 1;
+
+        /**
+         * A change to the token relationships virtual map.<br/>
+         * This map is keyed by the pair of account identifier and
+         * token identifier.
+         */
+        proto.TokenAssociation token_relationship_key = 2;
+
+        /**
+         * A change to a map keyed by an EntityNumber (which is a whole number).
+         */
+        google.protobuf.UInt64Value entity_number_key = 3;
+
+        /**
+         * A change to a virtual map keyed by File identifier.
+         */
+        proto.FileID file_id_key = 4;
+
+        /**
+         * A change to a virtual map keyed by NFT identifier.
+         */
+        proto.NftID nft_id_key = 5;
+
+        /**
+         * A change to a virtual map keyed by a byte array.
+         */
+        google.protobuf.BytesValue proto_bytes_key = 6;
+
+        /**
+         * A change to a virtual map keyed by an int64 value.
+         */
+        google.protobuf.Int64Value proto_long_key = 7;
+
+        /**
+         * A change to a virtual map keyed by a string value.
+         */
+        google.protobuf.StringValue proto_string_key = 8;
+
+        /**
+         * A change to a virtual map keyed by a Schedule identifier.
+         */
+        proto.ScheduleID schedule_id_key = 9;
+
+        /**
+         * A change to the EVM storage "slot" virtual map.
+         */
+        proto.SlotKey slot_key_key = 10;
+
+        /**
+         * A change to a virtual map keyed by a Token identifier.
+         */
+        proto.TokenID token_id_key = 11;
+
+        /**
+         * A change to a virtual map keyed by a Topic identifier.
+         */
+        proto.TopicID topic_id_key = 12;
+
+        /**
+         * A change to a virtual map keyed by contract id identifier.
+         */
+        proto.ContractID contract_id_key = 13;
+
+        /**
+         * A change to a virtual map keyed by pending airdrop id identifier.
+         */
+        proto.PendingAirdropId pending_airdrop_id_key = 14;
+    }
+}
+```
+
+```protobuf
+/**
+ * A value updated in, or added to, a virtual map.
+ */
+message MapChangeValue {
+    oneof value_choice {
+        /**
+         * An account value.
+         */
+        proto.Account account_value = 1;
+
+        /**
+         * An account identifier.<br/>
+         * In some cases a map is used to connect a value or identifier
+         * to another identifier.
+         */
+        proto.AccountID account_id_value = 2;
+
+        /**
+         * Compiled EVM bytecode.
+         */
+        proto.Bytecode bytecode_value = 3;
+
+        /**
+         * An Hedera "file" value.
+         */
+        proto.File file_value = 4;
+
+        /**
+         * A non-fungible/unique token value.
+         */
+        proto.Nft nft_value = 5;
+
+        /**
+         * A string value.
+         */
+        google.protobuf.StringValue proto_string_value = 6;
+
+        /**
+         * A scheduled transaction value.
+         */
+        proto.Schedule schedule_value = 7;
+
+        /**
+         * A list of scheduled transactions.<br/>
+         * An example for this value is the map of consensus second to
+         * scheduled transactions that expire at that consensus time.
+         */
+        proto.ScheduleList schedule_list_value = 8;
+
+        /**
+         * An EVM storage slot value.
+         */
+        proto.SlotValue slot_value_value = 9;
+
+        /**
+         * An updated set of staking information for all nodes in
+         * the address book.
+         */
+        proto.StakingNodeInfo staking_node_info_value = 10;
+
+        /**
+         * An HTS token value.
+         */
+        proto.Token token_value = 11;
+
+        /**
+         * A token relationship value.<br/>
+         * These values track which accounts are willing to transact
+         * in specific HTS tokens.
+         */
+        proto.TokenRelation token_relation_value = 12;
+
+        /**
+         * An HCS topic value.
+         */
+        proto.Topic topic_value = 13;
+
+        /**
+         * An network node value.
+        */
+        com.hedera.hapi.node.state.addressbook.Node node_value = 14;
+
+        /**
+         * A pending airdrop value.
+         */
+        proto.AccountPendingAirdrop account_pending_airdrop_value = 15;
+
+        /**
+         * A roster value.
+         */
+        com.hedera.hapi.node.state.roster.Roster roster_value = 16;
+    }
+}
+```
+
+```protobuf
+
+/**
+ * Addition of an item to a `Queue` state.
+ */
+message QueuePushChange {
+    oneof value {
+        /**
+         * A byte array added to the queue state.
+         */
+        google.protobuf.BytesValue proto_bytes_element = 1;
+
+        /**
+         * A string added to the queue state.
+         */
+        google.protobuf.StringValue proto_string_element = 2;
+
+        /**
+         * All transaction receipts for a round added to queue state.
+         */
+        proto.TransactionReceiptEntries transaction_receipt_entries_element = 3;
+    }
+}
+```
+
+```protobuf
+/**
+ * Removal of an item from a `Queue` state.<br/>
+ */
+message QueuePopChange {
+}
+```
+
+#### FilteredBlockItem
+
+The block stream will support the ability to omit `BlockItem`s from the stream while retaining full verification of the
+block proof. This is possible because all items are double hashed. Their hash is hashed into the parent node not the raw
+contents of the item. The block proof is based on the signing of the root hash of a block merkle tree, therefore any
+item or subtree in the proof can be replaced by a `FilteredItemHash`. Notably, the replacement of an item with a hash
+will not impact the ability for downstream services to validate block proofs.
+
+<aside>
+🚨 **TODO**: Need to document subsetting and errata and how FilteredBlockItem can be used to achieve them
+</aside>
+
+```protobuf
+message FilteredItemHash {
+    /**
+     * A hash of an item filtered from the stream.
+     *
+     * The hash algorithm used MUST match the hash algorithm specified in
+     * the block header for the containing block.
+     */
+    bytes item_hash = 1;
+    
+    /**
+     * A binary tree path to the tree node that is missing and replaced by the hash above.
+     */
+    uint64 filtered_path = 3;
+}
+```
+
+<aside>
+💡 *Sidebar: Subsetting and Errata for Block Stream.*
+Block stream supports subsetting the block stream through the use of a `FilteredItemHash` to
+replace any item that has been removed. The removed item is thus replaced by its hash and the path that was filtered
+(some removals may require simultaneous removal of a small subtree), which preserves the ability to verify the
+integrity of the block stream and block proof.  Errata are handled similarly for removed items. Adding items *after the
+fact* or replacing an erroneous item requires potentially removing a prior item, and adding the correction (errata) as a
+new item in the block stream at the point of the “errata” transaction, which is then part of the block proof for the
+block where the “errata” was processed.
+</aside>
+
+#### Block Proof
+
+The block proof carries the trust of the consensus network to the contents of the block. A block can conceptually be
+represented as a binary merkle tree with 4 sub-trees at depth 2 which create the block proof and tree when hashed to
+obtain a merkle root.
+
+![Root Hashes](../assets/hip-blocks/root_hashes.png)
+
+The 4 leaves represent
+
+1. Previous block proof hash - the root of previous blocks merkle tree, this forms a blockchain
+2. Merkle root of transaction inputs tree - root hash of input item merkle tree
+3. Merkle root of transaction outputs tree - root hash of output item merkle tree
+4. Merkle root of state tree  - root hash of consensus node state merkle tree at the beginning before the state changes
+   of the block are applied
+
+The root hash of the block merkle tree is signed by the aggregate signature of the consensus network nodes. Thus proving
+the supermajority of consensus nodes agree on the contents of this block, the state and all previous blocks. Consensus
+nodes will sign the root hash at the end of executing a block of transactions then gossip its signature fragments. It
+will then listen on gossip till it receives enough signature fragments from other nodes to produce an aggregate
+signature. The block proof item will not be produced and sent until that aggregate signature is created. This also means
+a consensus node will not begin to emit block items for future blocks until the current block can be proved.
+
+**Q: Why is the state hash taken at the beginning of the block and not the end?**
+
+This is a very important decision, it was made to solve the performance/timing issue. This is because smart contracts
+have an EVM opcode for getting the hash of the last 256 blocks including the immediately preceding block. That opcode
+could be the first instruction of the first transaction in a block. This means we need to be able to compute the
+block hash of previous block very quickly at the start of a block. The problem is because of the high TPS and large
+state size of Hedera the amount of work to compute the updated state hash can take a whole round/block. By having the
+hash of state at beginning of block stored  in the `BlockProof` item at the end of the block it gives us one block’s
+worth of time to compute that state hash.
+
+<aside>
+💡 This amazing thing from this is we can have one “Block Hash” and use the same one everywhere, in Block Nodes, Mirror
+Nodes, JSON-RPC relays, EVM etc. That “Block Hash” is the root hash of the block merkle tree.
+
+</aside>
+
+There is one downside of this choice which is when a stream consumer is applying state changes to a local merkle tree it
+cannot verify that they were applied correctly until the start of the next block. Block Nodes can still trust the
+changes, however, as the changes are part of the block hash and signed. So it is only a small added latency for the
+extra reliability.
+
+There is also one edge case, which is when shutting down a consensus node after a freeze for the final state hash to be
+signed and saved one extra empty block is need to be created containing just a `BlockHeader` and `BlockProof` items.
+
+**Q: What happens if signature fragments are slow to arrive?**
+
+If there was an issue causing a consensus node to not see enough signature fragments for block 1 before it has finished
+executing block 2 and received all the signature fragments for block 2. It can use the signature for block 2’s root hash
+to create a block proof for block 1 based on its root hash being present in block 2’s merkle tree. This allows the
+stream to continue even if the extremely unlikely case happens where it can not gather enough signature fragments to
+produce an aggregate signature for a block. The `sibling_hashes` field will be zero length in all cases other than this
+rare case where it must be used to create a merkle proof for the root hash of the block.
+
+<aside>
+🗒️ **Side note:** Today the root hash of state is signed and gossiped by consensus nodes. After we move to block streams
+the state root hash will not be signed directly but included in the block and then the block root hash is signed. This
+is much more powerful as a single signature proves all of state(prior to the current block) as well as the contents of
+the block and all previous blocks. Details:
+
+- We will collect signatures pre-consensus.
+- This means each consensus node may collect a different majority of fragments and therefore have a different but
+  equally valid signature bytes on a block.
+- We could end up with out of order arrival of block signatures. Block 2 signature could arrive before block 1. This is
+  fine we will construct a proof item for block 1 based on its hash being in block 2 then send out both blocks and their
+  proofs in order to the block node. This should be very rare as long as rounds are many times longer than ping times.
+- We accept that blocks items will be identical and deterministic but the proofs could differ from one block node to
+  another. But all proofs are equally valid. It is possible one block node’s proof will be bigger than another block
+  node’s. That is ok.
+- In the future block nodes could be clever and collect the signature fragments themselves from the system transactions
+  in events. They could use those to go back and create and store more concise proofs for earlier blocks.
+- There are cases were we could be missing a majority of signature fragments for a few blocks in a row. This can happen
+  around address book changes. They can be buffered until we get a good block with a valid signature then we can create
+  proofs for the blocks missing signatures and send all those blocks to a block node.
+- Consensus nodes need to handle back pressure from block nodes. If the consensus node cannot send its blocks to a block
+  node it can buffer them for a period of time. After which it has to stop handling transactions. This is because a
+  consensus node can not safely determine if other consensus nodes are successfully storing blocks on their block nodes.
+  So it has to assume the worst, ie. it is the last man standing. So it must stop producing blocks when it can no longer
+  store them. As it is bad for the network to carry on executing transactions if the record of execution has nowhere to
+  go.
+- A block node will confirm each block it successfully receives, verifies, and stores back to the consensus nodes it is
+  connected to. This allows the consensus node to delete its pre-consensus event stream up to that point. The
+  confirmation will be by a GRPC message on the back channel of the bidirectional streaming connection between consensus
+  node and block node.
+- Block nodes will be able to receive blocks from more than one consensus node.
+    - For direct streaming consumers they will pick one and just use that to send items directly.
+    - For storing blocks they will collect all the items from all of them, though they may deduplicate them to reduce
+      memory cost. Each node will pick one stream it is hashing as it goes. As soon as it gets a valid proof on any of
+      the received streams it can use that to verify the hash it computed and store the verified block, with its proof,
+      on disk.
+    - They could hash more than one stream to lower latency in the case where the chosen source node is bad but that
+      will waste a lot of CPU for a rare case and is probably unwise.
+</aside>
+
+```protobuf
+message BlockProof {
+    /**
+     * The block this proof secures.<br/>
+     * We provide this because a proof for a future block can be used to prove
+     * the state of the ledger at that block and the blocks before it.
+     */
+    uint64 block = 1;
+
+    /**
+     * A merkle root hash of the previous block.
+     */
+    bytes previous_block_root_hash = 2;
+
+    /**
+     * The hash of the merkle tree root for the network state at the start of
+     * this block.
+     */
+    bytes start_of_block_state_root_hash = 3;
+
+    /**
+     * A network signature.
+     */
+    bytes block_signature = 4;
+
+    /**
+     * BlockProof's can be in two forms either the root of the block merkle tree is directly signed in which case there is
+     * zero repeated proof_merkle_path fields. Or the BlockProof is proven based on the existance of this blocks root hash
+     * in a future block. This allows for cases where for some reason a block signature for this block could not be
+     * produced. If this is true then this will contain MerkleSiblingHash's starting from the root hash of the signed block
+     * down to and including the sibling of this blocks root hash.
+     */
+    repeated MerkleSiblingHash sibling_hashs = 5;
+}
+
+message MerkleSiblingHash {
+    /**
+     * True if this MerkleSiblingHash is the first hash in a pair of siblings, false if it is the second hash.
+     */
+    bool is_first = 1;
+
+    /**
+     * BlockHashType(SHA_384) hash for the sibling at this level of the merkle tree.
+     */
+    bytes sibling_hash = 2;
+}
+```
+
+The following diagram illustrates what the 4 sub trees contain and how blocks are chained.
+
+![Block Stream Merkle](../assets/hip-blocks/block-stream-merkle.png)
+
+The input and output item merkle trees are balanced base 2 size binary trees. The leaves across the bottom are the items in the order they occur in the block. If the total number of input or output items contained in the block is less than a power of 2 then the empty leaves are assumed to be `null` (zero length bytes). The nature of the merkle tree creation logic allows for the consensus node or block validator to calculate the input and output tree merkle hashes as items are received in a streaming way.
+
+In summary a consensus node can calculate the merkle hashes of the transaction inputs and outputs in real time and need only calculate the state merkle root at the end of a block.
+
+**Example Pseudo Code for computing streaming merkle tree root hash**
+
+```jsx
+elements = [ ... ] // array of the leaves to be streamed and hashed. Items may be transaction inputs, transaction outputs or state
+hashList = [] // a new empty list of hashes
+
+// loop over each element received and create a list of all the root hashes of the leaves of the tree 
+for (int i=0, i<elements.size(), i++) {
+    write elements[i] // output elemen to stream
+    e = hash(elements[i]) // SHA 384 item data
+    hashList.add(e) // add hash to end of list
+    
+    // for every odd located element remove and hash the last 2 hashes (representing the hash leaves) and shift right per loop to pick up the hash root
+    for (int n=i, (n & 1 == 1), n>>=1) {
+        y = hashList.getAndRemove(hashList.size() – 1); // remove last element of hashList
+        x = hashList.getAndRemove(hashList.size() – 1); // remove last element of hashList
+        hashList.add(hash(x, y)); // add the new hash root of the two hashes
+    }    
+}
+
+merkleRootHash = hashList.get(hashList.size() – 1)
+
+for (int i=hashList.size() – 2, i>=0, i--) {
+    merkleRootHash = hash(hashList.get(i), merkleRootHash)
+}
+
+write merkleRootHash; // output
+```
+
+<aside>
+🚨 **TODO**: Need to verify algorithm
+</aside>
+
+#### RecordFileItem
+
+A `RecordFileItem` block stream item is added to act as a wrapper around the contents of a legacy block. This allows
+block nodes and other handlers of the block stream to have single standardized APIs and handling code for blocks before
+and after the switch to block streams. It is not possible to change the format because it is signed by the consensus
+nodes in the original format. As a result of this a reader will still have to understand record file formats version 2,
+3, 5 and 6 that existed prior to block streams. Each block of record style will have just one item: a `RecordFileItem`.
+
+```protobuf
+/**
+ * A Block Item for record files.
+ */
+message RecordFileItem {
+    /**
+     * The block number of this block.
+     */
+    uint64 number = 1;
+
+    /**
+     * The consensus time the record file was produced for.<br/>
+     * This comes from the record file name.
+     */
+    proto.Timestamp creation_time = 2;
+
+    /**
+     * The contents of a record file.<br/>
+     * The first 4 bytes are a 32bit int little endian version number.
+     * The versions that existed are 2,3,5 and 6.
+     */
+    bytes record_file_contents = 3;
+
+    /**
+     * The contents of sidecar files for this block.<br/>
+     * Each block can have zero or more sidecar files.
+     */
+    repeated bytes sidecar_file_contents = 4;
+
+    /**
+     * A hash algorithm.<br/>
+     * This is the algorithm used to hash the block.
+     * <p>
+     * This SHOULD always be `SHA2_384`.
+     */
+    proto.BlockHashAlgorithm hash_algorithm = 5;
+
+    /**
+     * A collection of RSA signatures from consensus nodes.<br/>
+     * These signatures validate the hash of the record_file_contents field.
+     */
+    repeated bytes record_file_hash_signatures = 6;
+}
+
+```
+
+## Backwards Compatibility
+
+**Mirror Node Operators**
+
+The Block Streams format is a new format and is not an iteration on previous record, event, balance or state stream
+format. It is designed to be the continuation of the existing record stream.
+
+This is achieved in two ways
+
+1. The previous block hash of the first block stream block will be the hash of the previous record stream block. This
+   continues the blockchain unbroken from genesis.
+2. The block stream can contain wrapped record stream blocks. This allows for a single standard container and streaming
+   format for blocks in all formats since genesis.
+
+All current users of the record streams like the Mirror Node product will need to be updated to support the new block 
+stream format when the block stream is produced otherwise they may experience a gap in data, and will, eventually,
+cease to receive record stream data.
+
+We plan to conduct a preview release which will produce Block Stream *alongside* the Record Stream for a short time. 
+The Block Stream will be packaged into files stored in buckets, similar to the Record Stream files. This preview period
+will permit applications to process both data sources side-by-side; ensuring that the Block Stream continues to provide
+all of the needed information and that applications are able to process Block Stream data effectively.
+
+**Developers**
+<mark add section on mirror node endpoints/node GRPC not changing>
+maybe add section for node operators
+
+## Security Implications
+
+The Blocks Stream provides many improvements in the ability for machines outside the consensus network to validate what
+was done in the consensus network. This opens the door for increased trust. Also much more information is made available
+like state, which will increase transparency of the networks operation.
+
+One notable consideration is the increased size of a Block in comparison to a Record. To support state proof a Block
+contains more data than a record, however, it also removes duplication previously found in the streams between events,
+records, balances and side cars. Collectively a net reduction in combined stream size is expected.
+
+As always the costs of the contents of a transaction and its effect on state are captured in transaction costs and in
+the future state rent.
+
+## How to Teach This
+
+To effectively educate and inform users about block streams, comprehensive technical documentation, blogs, and webinars
+will be essential. Technical documentation will provide detailed and in-depth explanations of block stream format,
+usage, and best practices, ensuring that developers and mirror node operators can fully understand and transition to
+block streams.
+
+Blogs will offer more accessible and engaging content, highlighting use cases, real-world applications, and the benefits
+of block streams, catering to a broader audience of Hedera stakeholders. Webinars will serve as interactive platforms
+for live demonstrations, Q&A sessions, and expert insights, enabling participants to gain a deeper understanding through
+direct engagement with subject matter experts.
+
+Additionally, a block stream producer simulator will be provided to the community to allow viewing and testing as
+clients consuming a block stream.
+
+## Copyright/license
+
+This document is licensed under the Apache License, Version 2.0 -- see [LICENSE](../LICENSE)
+or (https://www.apache.org/licenses/LICENSE-2.0)
