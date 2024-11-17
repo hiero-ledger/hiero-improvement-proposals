@@ -25,7 +25,7 @@ querying and verification of state.
 
 A block node will primarily sit in between a consensus node and a mirror node to serve as a decentralized source of
 verifiable network state and transaction information. As an emergent feature a block node will introduce a new node
-economy through independent community  operations. Anyone will be able to independently run a block node or block
+economy through independent community operations. Anyone will be able to independently run a block node or block
 stream parsing product that provides value added services to users e.g. aggregated data insights, data availability.
 
 Block Nodes will have a rich API, allowing consumers to receive a subset of the stream, or the full stream. Block Nodes
@@ -49,15 +49,31 @@ support the verification of the consensus outputs
 
 ## Rationale
 
-The rationale fleshes out the specification by describing why particular design decisions were made. It should describe
-alternate designs that were considered and related work, e.g. how the feature is supported in other languages.
+The block node has goals to reduce costs of operation to network operators, increase data availability, push the bar
+on decentralization and promote client diversity.
 
-The rationale should provide evidence of consensus within the community and discuss important objections or concerns
-raised during the discussion.
+As such open, easy, performant and extensible communication is needed.
+The block node will utilize gRPC framework over the HTTP/2 protocol for communication. 
+gRPC was chosen due to the HTTP/2 suport, cross language and platform communitcation support (client diversity), high
+performance streaming, use of protobufs (continued committment to simple and clean API specification) via protobufs and
+flexibility with microservice pluggable options.
+
+As such consumers will utilzie gRPC clients to communicate.
+This matches the communication protocol with the CN but differs from other web3 nodes which often utilize JSON RPC APIs over HTTP.
+In the future it may be valuable to explore and add additonal protocol such as WS and HTTP (REST API, graphQL) based on community needs.
+
+<aside>
+🚨 **Open Task:** Flesh out design decisions approach
+</aside>
+
+<aside>
+🚨 **Open Task:** Add diagram showing BN system location in overall Hedera architecture
+Highlight CN(s) -> BN -> MN + block stream clients
+</aside>
 
 ## User stories
 
-Personas
+### Personas
 
 - Council consensus node operators
 - Independent community node operators
@@ -68,7 +84,7 @@ Personas
     - Low Trust, here, implies the dApp does not trust the block data without independently verifying authenticity and
     integrity.
 
-User Stories
+### User Stories
 
 1. As a block node operator I want to collect all the information in form of block streams, produced by consensus
 nodes.
@@ -113,6 +129,9 @@ determine, in software, the best choice(s) of block node(s) to use.
   
 ## Specification
 
+The block node at its simplest will be another node server that offers APIs to consumers to obtain needed network information and insights.
+Clean extendable schemas and easy to consume APIs are important to reach this goal
+
 ### Block Stream Schema
 
 The Block node will support the streaming and parsing of Block Stream messages in protocol buffer format, as specified
@@ -128,7 +147,7 @@ in the [hedera-protobuf repository](https://github.com/hashgraph/hedera-protobuf
 </aside>
 
 ### Services
-To achieve the above the block node will offer multiple modular services which can be enabled by node operators.
+To achieve the above the block node will offer multiple pluggable modular services which can be enabled by node operators.
 
 #### Block Node Service
 The block node service will provide ancillary services to inform users of node readiness and configuration
@@ -180,9 +199,12 @@ service BlockStreamService {
 }
 ```
 
+Notably, a block node may consume a block stream from multiple sources e.g. multiple CNs.
+This approach can be used to increase the reliability and availability of network data
+
 #### Block Service
 
-As the block stream is ongoing and items are sent out in real time, it is valuable to be able to request an historical
+As the block stream is ongoing and items are sent out in real time, it is valuable to be able to request a historical
 block in its entirety.
 
 ```protobuf
@@ -214,18 +236,32 @@ service StateService {
 }
 ```
 
+<aside>
+🚨 **Open Task:** Flesh out 4 different state related query endpoints
+1. Live state querying i.e. what is the latest state
+2. Historical state snapshot e.g. what was state at block number x
+3. State changes e.g. what state changes occured in block x, this is a subset of the block query and avoid the transmission of extra block information beyond state
+4. Single entity state query e.g. return account 0.0.x 
+
+</aside>
+
 #### Reconnect Service
 Support CN connecting to BN to be taught about latest stake instead of another CN
 
 <aside>
 🚨 **Open Task:** Expand
-
+1. Speak to the need and value of BN provided reconnect vs CN
+2. Highlight BN -> BN reconnect
+3. Note details of what reconnect will provide i.e. latest state + x
 </aside>
 
 #### Proof Service
 <aside>
-🚨 **Open Task:** Flesh out
-
+🚨 **Open Task:** Flesh out repsonse components
+Noting the 3 different proof types
+1. Block Proof
+2. Block Item Proof 
+3. State Proof
 </aside>
 
 ### Discovery
