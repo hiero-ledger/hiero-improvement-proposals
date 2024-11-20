@@ -1,0 +1,100 @@
+---
+hip: <HIP number (assigned by the HIP editor), usually the PR number>
+title: Jumbo EthereumTransaction
+author: Nana Essilfie-Conduah <@Nana-EC>, Richard Bair <@rbair>
+working-group: Richard Bair <@rbair>, Atul Mahamuni <@atul-hedera>, Joseph Sinclair<@jsync-swirlds>
+requested-by: Relay operators
+type: Standards Track
+category: Core, Service
+needs-council-approval: Yes
+status: Draft
+created: 2024-11-20
+discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/1085
+updated: 2024-11-20
+requires: 1084
+---
+
+## Abstract
+
+Hedera enforces a 6kb transaction limit which requires additional network complexity to support large callData
+scenarios. This often means only about ~5kb is left for the transaction callData (1kb is used by signatures)
+However, EVM type transactions on other EVM networks support callData sizes of up to 128kb.
+This is partly because the cost of work is fully captured by `gas * gasPrice` on the network.
+
+This HIP proposes to support `EthereumTransaction` submissions with `~5kb > callData > 128kb` for increased EVM
+equivalence.
+
+## Motivation
+
+Hedera has a 6kb limit on transaction size.
+It was initially thought that larger than 6kb transaction sizes would have an impact on fairness. This resulted in
+`EthereumTransaction`s that contain large call data having to utilize Hedera File Service (HFS) to create a temporary
+file (1 FileCreate and x number of FileAppends) to store the callData for use in a follow up EthereumTransaction. 
+
+The additional HFS logic introduces complexity and latency. Additionally, relay operators have to cover the cost of the
+HFS fees as there's no reliable way to include the HAPI fees of separate transactions in gas costs. This again breaks
+the business model of many cross chain relay operators and makes access to cheap relays difficult.
+
+## Rationale
+
+Today a Hashgraph `Event` contains a sequence of zero or more `EventTransactions` submitted by a single node.
+As such the space consideration is more greatly defined than the Event than the Transaction.
+In that regard so far as a transaction can fit in an event it should be able to come to consensus.
+
+Thus allowing for jumbo transactions and allowing for up to 128kb transaction should not theoretically affect
+transmission as the same number of bytes are being transferred in the case of a full event. availability
+
+## User stories
+
+1. As an EOA submitting a transaction with large call data I expect the network to accept my transaction and charge me
+the appropriate amount of gas.
+  
+## Specification
+
+### Services
+
+The maximum transaction size should be such that a Hashgraph Event can carry it (within the bounds of the event's
+maximum size).
+Have an additional throttle bucket that represents the max bytes-per-second of the network, such that each node gets
+1/N of that throttle bucket (using our existing throttle system).
+Maybe consider congestion pricing to incentivize smaller transaction sizes where possible.
+Maintain other current limits as they are today.
+
+### SDK
+With the support of large callData in the HIP, the SDK no longer requires logic to create and append a file that
+represents the contents of the callData.
+
+### Mirror Node
+With the support of large callData in the HIP, the Mirror Node no longer requires logic to connect a contract to the
+file that temporarily held initial contracts.
+
+### Relay
+With the support of large callData in the HIP, the relay no longer requires logic to create, append and delete a file
+that represents the contents of the callData.
+
+## Backwards Compatibility
+
+
+## Security Implications
+
+## How to Teach This
+
+SDK, tutorials and docs Hedera sent. Thanks
+
+## Reference Implementation
+
+## Rejected Ideas
+
+
+## Open Issues
+
+- [ ] Q: Why `EthereumTransaction` only? What about `ContractCreate` and `ContractCall`
+
+## References
+
+A collections of URLs used as references through the HIP.
+
+## Copyright/license
+
+This document is licensed under the Apache License, Version 2.0 -- see [LICENSE](../LICENSE) or
+(https://www.apache.org/licenses/LICENSE-2.0)
