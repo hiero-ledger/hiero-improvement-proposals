@@ -3,12 +3,6 @@
  * Block stream messages that report the results of transactions handled
  * by the `smart contract` service.
  *
- * > REVIEW NOTE
- * >> The use of sidecar records is a bit odd here. We may find it more
- * >> effective to extract the actual changes into proper output messages
- * >> and fields included in the ethereum call output and/or related state
- * >> changes items, and remove the whole sidecar concept going forward.
- *
  * ### Keywords
  * The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
  * "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
@@ -41,7 +35,6 @@ option java_package = "com.hedera.hapi.block.stream.output.protoc";
 option java_multiple_files = true;
 
 import "contract_call_local.proto";
-import "sidecar_file.proto";
 
 /**
  * Block Stream data for a `contractCallMethod` transaction.
@@ -49,7 +42,7 @@ import "sidecar_file.proto";
  * This message SHALL NOT duplicate information already contained in
  * the original transaction.
  */
-message CallContractOutput {
+message ContractCallOutput {
      /**
      * A result for a Contract Call Transaction execution, either a create or call.
      * <p>
@@ -64,7 +57,7 @@ message CallContractOutput {
      repeated ContractStateChange state_changes = 2;
  
      /**
-     * The inter contract interaction details. This represents teh internal EVM message frames.
+     * The inter contract interaction details. This represents the internal EVM message frames.
      */
      repeated ContractAction contract_actions = 3;
 }
@@ -75,7 +68,7 @@ message CallContractOutput {
  * This message SHALL NOT duplicate information already contained in
  * the original transaction.
  */
-message CreateContractOutput { 
+message ContractCreateOutput { 
      /**
      * Contract bytecode during deployment
      */
@@ -100,19 +93,10 @@ message CreateContractOutput {
      repeated proto.ContractStateChange state_changes = 4;
  
      /**
-     * The inter contract interaction details. This represents teh internal EVM message frames.
+     * The inter contract interaction details. This represents the internal EVM message frames.
      */
      repeated proto.ContractAction contract_actions = 5;
 }
-
-// no evm exec, only modified entity
-/**
- * Block Stream data for a `updateContract` transaction.
- *
- * This message SHALL NOT duplicate information already contained in
- * the original transaction.
- */
-message UpdateContractOutput {}
 
 // no evm exec, only modified entity
 /**
@@ -121,7 +105,7 @@ message UpdateContractOutput {}
  * This message SHALL NOT duplicate information already contained in
  * the original transaction.
  */
-message DeleteContractOutput {}
+message ContractDeleteOutput {}
 
 /**
  * Block Stream data for a contract `systemUndelete` transaction.
@@ -129,7 +113,7 @@ message DeleteContractOutput {}
  * This message SHALL NOT duplicate information already contained in
  * the original transaction.
  */
-message SystemUnDeleteContractOutput {}
+message ContractSystemUnDeleteOutput {}
 
 /**
  * Block Stream data for a contract `systemDelete` transaction.
@@ -137,8 +121,17 @@ message SystemUnDeleteContractOutput {}
  * This message SHALL NOT duplicate information already contained in
  * the original transaction.
  */
-message SystemDeleteContractOutput {}
+message ContractSystemDeleteOutput {}
 
+// no evm exec, only modified entity
+/**
+ * Block Stream data for a `updateContract` transaction.
+ *
+ * This message SHALL NOT duplicate information already contained in
+ * the original transaction.
+ */
+ message ContractUpdateOutput {}
+ 
 /**
  * Block Stream data for a `callEthereum` transaction.
  *
@@ -177,7 +170,7 @@ message EthereumOutput {
     repeated ContractStateChange state_changes = 5;
 
     /**
-    * The inter contract interaction details. This represents teh internal EVM message frames.
+    * The inter contract interaction details. This represents the internal EVM message frames.
     */
     repeated ContractAction contract_actions = 6;
 }

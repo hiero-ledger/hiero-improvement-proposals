@@ -114,46 +114,46 @@ import "stream/output/smart_contract_service.proto";
 message TransactionOutput {
     oneof transaction {
         /**
-         * Output from a crypto transfer transaction.
-         */
-        CryptoTransferOutput crypto_transfer = 1;
-
-        /**
-         * Output from a utilPrng transaction to request a
-         * deterministic pseudo-random number.
-         */
-        UtilPrngOutput util_prng = 2;
-
-        /**
          * Output from a contract call transaction.
          */
-        CallContractOutput contract_call = 3;
-
-        /**
-         * Output from an ethereum call transaction.
-         */
-        EthereumOutput ethereum_call = 4;
+        ContractCallOutput contract_call = 1;
 
         /**
          * Output from a contract create transaction.
          */
-        CreateContractOutput contract_create = 5;
+        ContractCreateOutput contract_create = 2;
+
+        /**
+         * Output from a crypto transfer transaction.
+         */
+        CryptoTransferOutput crypto_transfer = 3;
+
+        /**
+         * Output from an ethereum transaction.
+         */
+        EthereumOutput ethereum = 4;
 
         /**
          * Output from a schedule create transaction that executed
          * immediately on creation.
          */
-        CreateScheduleOutput create_schedule = 6;
+        ScheduleCreateOutput schedule_create = 5;
 
         /**
          * Output from a schedule sign transaction that resulted in
          * executing the scheduled transaction.
          */
-        SignScheduleOutput sign_schedule = 7;
+        ScheduleSignOutput schedule_sign = 6;
 
         /**
          * Output from a token airdrop transaction.
          */
-        TokenAirdropOutput token_airdrop = 8;
+        TokenAirdropOutput token_airdrop = 7;
+
+        /**
+         * Output from a utilPrng transaction to request a
+         * deterministic pseudo-random number.
+         */
+        UtilPrngOutput util_prng = 8;
     }
 }
