@@ -79,12 +79,35 @@ message DeleteAccountOutput {}
  * the original transaction.
  */
 message CryptoTransferOutput {
-  /**
-   * Custom fees assessed during a CryptoTransfer.
-   * <p>
-   * These fees SHALL be present in the full transfer list for the transaction.
-   */
-  repeated proto.AssessedCustomFee assessed_custom_fees = 1;
+    /**
+    * Custom fees assessed during a CryptoTransfer.
+    * <p>
+    * These fees SHALL be present in the full transfer list for the transaction.
+    */
+    repeated proto.AssessedCustomFee assessed_custom_fees = 1;
+
+    /**
+     * A list of token associations.
+     * <p>
+     * This field SHALL list all token associations created automatically
+     * while handling this transaction.
+     */
+     repeated proto.TokenAssociation automatic_token_associations = 2;
+
+     /**
+      * A list of _non-HBAR_ token transfers, in single-entry form.
+      * <p>
+      * This SHALL include all _non-HBAR_ token transfers completed as a
+      * result of this transaction.<br/>
+      * This MUST include, at least,
+      * <ul>
+      *   <li>Each source and recipient of custom fees</li>
+      *   <li>All transfers directly performed by this transaction</li>
+      *   <li>Any transfers performed by a smart contract call associated
+      *       with this transaction</li>
+      * </ul>
+      */
+    repeated proto.TokenTransferList token_transfer_lists = 3;
 }
 
 /**
