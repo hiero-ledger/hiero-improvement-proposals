@@ -82,7 +82,7 @@ message RecordFileItem {
      * The contents of sidecar files for this block.<br/>
      * Each block can have zero or more sidecar files.
      */
-    repeated bytes sidecar_file_contents = 3;
+    repeated SidecarFile sidecar_file = 3;
 
     /**
      * A collection of RSA signatures from consensus nodes.<br/>
