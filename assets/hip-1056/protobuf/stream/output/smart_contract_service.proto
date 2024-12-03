@@ -52,14 +52,9 @@ message ContractCallOutput {
      proto.ContractFunctionResult contract_function_result = 1;
  
      /**
-     * The storage changes to a smart contract's storage as a side effect of the function call.
-     */
-     repeated ContractStateChange state_changes = 2;
- 
-     /**
      * The inter contract interaction details. This represents the internal EVM message frames.
      */
-     repeated ContractAction contract_actions = 3;
+     repeated ContractAction contract_actions = 2;
 }
 
 /**
@@ -88,14 +83,9 @@ message ContractCreateOutput {
      proto.ContractFunctionResult contract_function_result = 3;
  
      /**
-     * The storage changes to a smart contract's storage as a side effect of the function call.
-     */
-     repeated proto.ContractStateChange state_changes = 4;
- 
-     /**
      * The inter contract interaction details. This represents the internal EVM message frames.
      */
-     repeated proto.ContractAction contract_actions = 5;
+     repeated proto.ContractAction contract_actions = 4;
 }
 
 // no evm exec, only modified entity
@@ -165,12 +155,7 @@ message EthereumOutput {
     bytes runtime_bytecode = 4;
 
     /**
-    * The storage changes to a smart contract's storage as a side effect of the function call.
-    */
-    repeated ContractStateChange state_changes = 5;
-
-    /**
     * The inter contract interaction details. This represents the internal EVM message frames.
     */
-    repeated ContractAction contract_actions = 6;
+    repeated ContractAction contract_actions = 5;
 }
