@@ -21,16 +21,16 @@ defaults:
 
 jobs:
   StatusChangeNotifications:
-    runs-on: hiero-improvement-proposals-linux-medium
+    runs-on: improvement-proposals-linux-medium
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
         with:
           egress-policy: audit
 
       - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD }}
-        uses: step-security/action-discord@b4bb54a2ec8218130ee588d2ca1fa358cf828735 # v0.1.2
+        uses: step-security/action-discord@5e8cd69d2f322a15430c4d13a97659b58031d207 # v0.1.1
         with:
           args:  "${{ github.event.inputs.filename }} moved into ${{ github.event.inputs.status }} status https://hips.hedera.com/hip/${{ github.event.inputs.filename }}"

@@ -16,10 +16,10 @@ permissions:
 
 jobs:
   assign-hip-number:
-    runs-on: hiero-improvement-proposals-linux-medium
+    runs-on: improvement-proposals-linux-medium
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
         with:
           egress-policy: audit
 
@@ -31,7 +31,7 @@ jobs:
 
       - name: Import GPG Key
         id: gpg_importer
-        uses: step-security/ghaction-import-gpg@c86c374c0659a6c2d1284bccf8af889e73ce8fe0 # v6.3.0
+        uses: step-security/ghaction-import-gpg@6c8fe4d0126a59d57c21f87c9ae5dd3451fa3cca # v6.1.0
         with:
           git_commit_gpgsign: true
           git_tag_gpgsign: true
