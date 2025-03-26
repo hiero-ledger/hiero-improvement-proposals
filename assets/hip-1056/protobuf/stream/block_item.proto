@@ -164,7 +164,7 @@ message BlockItem {
         com.hedera.hapi.block.stream.output.StateChanges state_changes = 7;
 
         /**
-         * Verification data for an item filtered from the stream.<br/>
+         * Verification data for items filtered from the stream.<br/>
          * This is a hash for a merkle tree node where the contents of that
          * part of the merkle tree have been removed from this stream.
          * <p>
@@ -172,9 +172,9 @@ message BlockItem {
          * block stream.<br/>
          * Items of this type SHALL replace any item removed from a partial
          * (filtered) block stream.<br/>
-         * Presence of `filtered_item` entries SHALL NOT prevent verification
-         * of a block, but MAY preclude verification or reconstruction of
-         * consensus state.<br/>
+         * Presence of `filtered_item_hash` entries SHALL NOT prevent
+         * verification of a block, but MAY preclude verification or
+         * reconstruction of consensus state.<br/>
          */
         FilteredItemHash filtered_item_hash = 8;
 
@@ -214,34 +214,49 @@ message BlockItem {
 }
 
 /**
- * Verification data for an item filtered from the stream.
+ * Verification data for items filtered from the stream.
  *
  * Items of this type SHALL NOT be present in the full (unfiltered) block
  * stream.<br/>
  * Items of this type SHALL replace any item removed from a partial (filtered)
  * block stream.<br/>
- * Presence of `filtered_item` entries SHALL NOT prevent verification
+ * Presence of `FilteredItemHash` entries SHALL NOT prevent verification
  * of a block, but MAY preclude verification or reconstruction
  * of consensus state.<br/>
  */
 message FilteredItemHash {
     /**
-     * A hash of an item filtered from the stream.
+     * A hash of items filtered from the stream.
      * <p>
      * The hash algorithm used MUST match the hash algorithm specified in
      * the block header for the containing block.<br/>
      * This field is REQUIRED.
      */
-    bytes item_hash = 1;
+    bytes hash = 1;
 
     /**
-     * A record of the merkle path to the item that was filtered
-     * from the stream.<br/>
-     * This path begins at the root of the block proof merkle tree.
+     * A binary tree path to a merkle subtree.
+     * This path begins at the root of the block proof merkle tree and ends
+     * at the merkle subtree whose leaf nodes have all been filtered.<br/>
+     * To walk a path `01001` from the root, go left, right, left, left,
+     * then right.
      * <p>
      * This REQUIRED field SHALL describe the full path in the virtual
      * merkle tree constructed for the block proof that contained the
      * item filtered from the stream.
      */
-    uint64 filtered_path = 3;
+    uint64 filtered_path = 2;
+
+    /**
+     * The log2 value of the number of filtered items.<br/>
+     * Since the filtered merkle subtree is a balanced binary tree, the log2
+     * value of the filtered item count is a whole number.
+     * <p>
+     * The value 2^x where x is this field SHALL be the number of items filtered
+     * in the merkle subtree indicated by the `filtered_path`.
+     */
+    uint64 log2_item_count = 3;
 }
+
+
+
