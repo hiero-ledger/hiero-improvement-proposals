@@ -5,31 +5,22 @@ on:
     - cron: "0 */6 * * *" # Runs every 6 hours
   workflow_dispatch: # Allows manual triggering
 
-permissions:
-  contents: read
-
 jobs:
   update-draft-hips:
     if: github.ref == 'refs/heads/main' # Only run on main branch
-    runs-on: hiero-improvement-proposals-linux-medium
+    runs-on: improvement-proposals-linux-medium
     permissions:
       contents: write
       pull-requests: read
     steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
-
       - name: Checkout Code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
-          ref: 'main'
 
       - name: Import GPG Key
         id: gpg_importer
-        uses: step-security/ghaction-import-gpg@c86c374c0659a6c2d1284bccf8af889e73ce8fe0 # v6.3.0
+        uses: step-security/ghaction-import-gpg@6c8fe4d0126a59d57c21f87c9ae5dd3451fa3cca # v6.1.0
         with:
           git_commit_gpgsign: true
           git_tag_gpgsign: true
@@ -47,7 +38,6 @@ jobs:
           mkdir -p _data
           cat << 'EOF' > fetch-draft-hips.js
           const https = require('https');
-          const fs = require('fs');
 
           async function makeGraphQLRequest(query, token) {
             return new Promise((resolve, reject) => {
@@ -77,7 +67,7 @@ jobs:
           async function getAllPRs() {
             const query = `
               query { 
-                repository(name: "hiero-improvement-proposals", owner: "hiero-ledger") {
+                repository(name: "hedera-improvement-proposal", owner: "hashgraph") {
                   pullRequests(first: 100, states: [OPEN], orderBy: {field: CREATED_AT, direction: DESC}) {
                     nodes {
                       title
@@ -119,18 +109,8 @@ jobs:
 
           // Run the main function
           getAllPRs().then(prs => {
-            // Ensure we're completely replacing the file by writing fresh data
-            // If the file exists, it will be overwritten entirely
-            const outputPath = '_data/draft_hips.json';
-            
-            // Remove the file if it exists (optional, as writeFileSync will overwrite it anyway)
-            if (fs.existsSync(outputPath)) {
-              console.log(`Removing existing file: ${outputPath}`);
-              fs.unlinkSync(outputPath);
-            }
-            
-            console.log(`Writing fresh data to: ${outputPath}`);
-            fs.writeFileSync(outputPath, JSON.stringify(prs, null, 2));
+            const fs = require('fs');
+            fs.writeFileSync('_data/draft_hips.json', JSON.stringify(prs, null, 2));
           }).catch(error => {
             console.error('Failed to fetch PRs:', error);
             process.exit(1);
@@ -144,15 +124,11 @@ jobs:
 
       - name: Commit and Push Changes
         env:
-          GITHUB_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
-          GITHUB_USER_NAME: ${{ vars.GIT_USER_NAME }}
+          GITHUB_USER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
+          GITHUB_USER_NAME: ${{ secrets.GIT_USER_NAME }}
         run: |
-          set -e
           git config --local user.email "$GITHUB_USER_EMAIL"
           git config --local user.name "$GITHUB_USER_NAME"
           git add _data/draft_hips.json
-          git diff --cached --quiet && echo "No changes to commit" && exit 0
-          
-          git commit -s -S -m "Update draft HIPs data [skip ci]"
-          git push origin main
-          set +e
+          git commit -s -S -m "Update draft HIPs data [skip ci]" || echo "No changes to commit"
+          git push origin main || echo "No changes to push"
