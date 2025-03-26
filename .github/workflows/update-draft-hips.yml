@@ -8,7 +8,7 @@ on:
 jobs:
   update-draft-hips:
     if: github.ref == 'refs/heads/main' # Only run on main branch
-    runs-on: improvement-proposals-linux-medium
+    runs-on: hiero-improvement-proposals-linux-medium
     permissions:
       contents: write
       pull-requests: read
@@ -67,7 +67,7 @@ jobs:
           async function getAllPRs() {
             const query = `
               query { 
-                repository(name: "hedera-improvement-proposal", owner: "hashgraph") {
+                repository(name: "hiero-improvement-proposals", owner: "hiero-ledger") {
                   pullRequests(first: 100, states: [OPEN], orderBy: {field: CREATED_AT, direction: DESC}) {
                     nodes {
                       title
