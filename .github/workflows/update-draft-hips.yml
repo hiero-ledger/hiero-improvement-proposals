@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   update-draft-hips:
-    if: ${{ github.ref == 'refs/heads/main' }} # Only run on main branch
+    if: github.ref == 'refs/heads/main' # Only run on main branch
     runs-on: hiero-improvement-proposals-linux-medium
     permissions:
       contents: write
