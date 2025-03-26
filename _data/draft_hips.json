@@ -3,7 +3,7 @@
     "title": "Hiero prep migration",
     "number": 1153,
     "url": "https://github.com/hashgraph/hedera-improvement-proposal/pull/1153",
-    "headRefOid": "a4346717e517d9f43fbb0349b2970c6b72703a84",
+    "headRefOid": "b7a6ab5b64bf2771d08081457bd4890d9104be67",
     "files": {
       "edges": [
         {
@@ -23,8 +23,8 @@
         {
           "node": {
             "path": "HIP/hip-1028.md",
-            "additions": 1,
-            "deletions": 0
+            "additions": 2,
+            "deletions": 1
           }
         },
         {
@@ -79,7 +79,7 @@
         {
           "node": {
             "path": "_includes/hipstable.md",
-            "additions": 30,
+            "additions": 31,
             "deletions": 9
           }
         },
@@ -99,6 +99,13 @@
         },
         {
           "node": {
+            "path": "assets/css/style.scss",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
             "path": "assets/hiero_logo.png",
             "additions": 0,
             "deletions": 0
@@ -114,7 +121,7 @@
         {
           "node": {
             "path": "assets/js/filter.js",
-            "additions": 34,
+            "additions": 37,
             "deletions": 10
           }
         },
