@@ -18,42 +18,46 @@ superseded-by: <HIP number(s) that supersede this HIP, if applicable. Ex: 104>
 
 ## Abstract
 
-This HIP proposes the integration of a sharding mechanism into Hedera. By partitioning the overall network into Local Committees and a coordinating Global Committee, the design aims to reduce per-node storage and communication overhead while preserving security and Byzantine Fault Tolerance. The proposal details protocols for inter-shard synchronization, efficient cross-shard transaction processing, dynamic committee reconfiguration, and the incorporation of shard state proofs. In addition, the design leverages Hedera’s mirror network to offload full historical data storage, thereby enabling Hedera to scale effectively without sacrificing performance.
-
+This HIP proposes a scalable enhancement to Hedera’s architecture through a multi-tier sharding framework that introduces Local Committees for intra-shard transaction processing, a Global Committee for coordinating cross-shard consistency, and dynamic committee reconfiguration for robustness. To support this architecture, the proposal integrates upcoming Block Stream and Block Node initiatives, which consolidate transaction, event, state, and proof data into a single verifiable stream, enabling external services to independently validate network state via Threshold Signature Scheme (TSS). Block Nodes, positioned between consensus and mirror nodes, consume and serve this unified data format, promoting decentralized verification, state proof services, and advanced querying. With this layered approach—shards for computational load distribution, Block Streams for unified verifiable output, and Block Nodes for scalable data access—Hedera improves throughput, reinforces integrity, and supports future-proof decentralized applications.This HIP proposes a scalable enhancement to Hedera’s architecture through a multi-tier sharding framework that introduces Local Committees for intra-shard transaction processing, a Global Committee for coordinating cross-shard consistency, and dynamic committee reconfiguration for robustness. To support this architecture, the proposal integrates upcoming Block Stream and Block Node initiatives, which consolidate transaction, event, state, and proof data into a single verifiable stream, enabling external services to independently validate network state via Threshold Signature Scheme (TSS). Block Nodes, positioned between consensus and mirror nodes, consume and serve this unified data format, promoting decentralized verification, state proof services, and advanced querying. With this layered approach—shards for computational load distribution, Block Streams for unified verifiable output, and Block Nodes for scalable data access—Hedera improves throughput, reinforces integrity, and supports future-proof decentralized applications.
 ------
 
 ## Motivation
 
-Hedera’s underlying Gossip-about-Gossip protocol and DAG-based consensus deliver excellent performance, fairness, and low latency. However, with network expansion, several challenges emerge:
+Despite Hedera’s high throughput through the Gossip-about-Gossip protocol, the growing size of the network introduces challenges including:
 
-- **Scalability Limitations:** Every consensus node must store the ledger’s most recent snapshot (lasting a few minutes) for consensus, while mirror nodes maintain the complete transaction history. This leads to increased resource demands as the network grows.
-- **Communication Overhead:** The extensive Gossip protocol can cause significant per-node bandwidth usage as events proliferate.
-- **Security Concerns:** Static committee assignments can make targeted attacks more effective. Adversaries might exploit this by focusing on a specific shard.
+- Scalability bottlenecks from requiring each consensus node to maintain the full DAG’s recent state.
+- Increasing communication overhead from Gossip spreading every event to every node.
+- Security vulnerabilities stemming from static committee structures, making individual shards more susceptible to targeted attacks.
 
-The introduction of sharding with dynamic committee reconfiguration and shard state proofs partitions the workload and data across multiple committees, thereby creating a scalable ecosystem that supports enterprise-level applications while leveraging mirror nodes to maintain full historical data retention.
+To alleviate these limitations, this HIP introduces dynamic sharding with committee reconfiguration, supported by the modular integration of Block Nodes and unified Block Streams. These accommodate verification, block indexing, and shard state proofs efficiently—without overburdening consensus nodes.
 
 ------
 
 ## Rationale
 
-Drawing inspiration from academic research (e.g., Elastico, OmniLedger, RapidChain) and industry practices (e.g., Ethereum’s Danksharding, BNB Smart Chain, Zilliqa), the proposed sharding mechanism is designed to complement and extend Hedera’s architecture:
+The proposed design extends research from systems such as OmniLedger and RapidChain while embracing Hedera-specific innovations like the Block Stream and Block Node models:
 
-- **Efficiency:** Localizing data and transactions within Local Committees reduces the storage and communication burden on consensus nodes. Historical data is offloaded to mirror nodes that offer audit support, analytic services, and persistent storage of the full ledger.
-- **Scalability:** Parallel processing across shards increases transaction throughput and overall network responsiveness.
-- **Security:** Randomized node assignments and dynamic committee reconfiguration, in concert with the use of state proofs for shards, minimize risks like Sybil and collusion attacks. In addition, segregating local and global transaction ordering helps defend against cross-shard tampering.
+- Reduces per-node workload by localizing data and limiting consensus responsibilities to relevant shards.
+- Parallelizes transaction processing across shards to increase throughput.
+- Incorporates Block Streams to unify state with event and transaction data, enabling downstream services (such as Block Nodes) to perform decentralized state verification and service provisioning.
+- Leverages mirror nodes as full archives for historical reference while Block Nodes supplement data discoverability and verification.
 
-This approach not only enhances Hedera’s scalability and performance but also maintains its core principles of fast, fair, and secure consensus.
-
+Through this design, Hedera maintains consensus integrity, improves scalability, and supports decentralized application demands with dynamic committee realignment to reflect network conditions.
 ------
 
 ## User Stories
 
-1. **Node Operator:**
-   I want the network load to be localized and optimized so that my node only processes data relevant to its shard while the mirror nodes handle full historical records.
-2. **Application Developer:**
-   I need fast, predictable cross-shard transaction processing to ensure my dApp can scale seamlessly, with the added benefit of using state proofs for validation.
-3. **Security Engineer:**
-   I require assurance that dynamic committee reconfiguration, randomized node assignments, and shard state proofs reduce the risk of targeted attacks while the mirror nodes maintain a secure and full transaction history.
+1. Node Operator:
+   I want my node to only process shard-specific data and allow mirror or Block Nodes to manage full history and verification workloads.
+ 
+2. Application Developer:
+   I need reliable and low-latency cross-shard communication and access to trustworthy state proofs through Block Streams or Block Nodes.
+
+3. Data Service Provider:
+   I want to run a Block Node that ingests Block Streams to provide enhanced APIs and decentralized state proof services with optional monetization.
+ 
+4. Auditor / Security Engineer:
+   I require proofs of transaction execution and determinism through signed block data (TSS) and reproducibility via per-shard Block Streams.
 
 ------
 
@@ -61,77 +65,86 @@ This approach not only enhances Hedera’s scalability and performance but also 
 
 ### Architecture
 
-The architecture introduces a two-tier committee system defining the roles of consensus and mirror nodes:
+- Local Committees
+  - Composed of subsets of consensus nodes.
+  - Each manages its own shard’s ledger via a localized DAG.
+  - Each committee produces Block Streams (a unified record format) of their shard history.
+  - Uses shard-specific state proofs and aligns with the network-level TSS for consensus.
 
-- **Local Committees:**
-  Nodes are randomly partitioned into smaller groups responsible for maintaining a specific slice of the overall DAG, with one of this ones randomly selected as coordinator for their shard. Each committee handles intra-shard transactions and uses state proofs to validate and verify the shard’s state. This reduces storage and communication overhead for consensus nodes.
-- **Global Committee:**
-  A randomly designated coordinator from each Local Committee forms the Global Committee. This committee manages cross-shard transactions, ensuring a consistent total order of events. It also serves as a backup for critical metadata and coordinates the generation and distribution of state proofs, further strengthening network security.
-- **Mirror Nodes:**
-  While consensus nodes only keep a snapshot of the recent transactions (a window of a few minutes), mirror nodes serve as the comprehensive storage of all past events and states across the full DAG.
+- Global Committee
+  - Composed of rotating coordinators from Local Committees.
+  - Handles cross-shard transaction batching and finalizes inter-shard state updates.
+  - Produces high-level Block Streams that include batch state transitions verified through the TSS from participating shards.
 
-### Data Partitioning and DAG Slicing
+- Block Stream Integration
+  - All shard DAGs output Block Streams, replacing traditional event and record stream formats.
+  - Each Block in the stream includes:
+    - All relevant events and transactions
+    - Resulting state changes
+    - A threshold signature (TSS) from the Global/Local Committee
+  - These blocks are public, verifiable, and replayable.
 
-To optimize data management and synchronization, the continuous DAG (Hashgraph) is partitioned into interlinked subgraphs through periodic checkpointing:
+- Block Nodes
+  - Purpose-built verifier nodes ingest block streams and store locally the most recent shard/global state.
+  - Block Nodes expose offline verification, state proofs, and data availability APIs.
+  - They provide incentives and decentralized operations for community stakeholders.
 
-- **Checkpointing:**
-  Each Local Committee creates checkpoints that include cryptographic links such as signed timestamps, hash pointers, and shard state proofs. This method maintains global synchronization and validates that each shard’s state is correct without all nodes needing to store the entire history.
-- **Tagging Cross-Shard Events:**
-  When cross-shard transactions occur, Local Committees tag these operations and temporarily cache the related events. Once the Global Committee processes them, updated state proofs accompany the disseminated state changes.
+- Mirror Nodes
+  - Mirror nodes continue to store full history across shards.
+  - Operators or third parties can chose to elevate their nodes with Block Stream parsing capability to become Block Nodes.
+
+### DAG Slicing and Data Partitioning
+
+- Each Local Committee publishes periodic checkpoints and Block Streams tagged with shard IDs.
+- DAG is naturally partitioned by time and committee ownership.
+- State changes are recorded as state deltas in the Block Stream; these can be replayed or queried directly through Block Nodes.
 
 ### Cross-Shard Communication
 
-A three-phase model ensures efficient and secure cross-shard processing:
+1. Intra-Shard Phase: 
+   Local Committees process transactions and produce round-based Block Streams.
 
-1. **Intra-Shard Phase:**
-   Each Local Committee maintains a self-contained, fully-functional Hashgraph DAG with complete consensus properties. 
-2. **Global Phase:**
-   The Global Committee maintains a higher-order DAG with the coordinators aggregating cross-shard transactions and process them using batch operations combined with lightweight atomic commit protocols (e.g., a two-phase commit)
-3. **Synchronization Phase:**
-   Once the Global Committee finalizes transactions, the updated state along with new state proofs is disseminated to the corresponding Local Committees. This ensures that all shards update their state consistently and securely.
+2. Global Coordination Phase:
+   Cross-shard transactions are handled through the Global Committee using deterministic atomic commit patterns (e.g., 2PC). Round-level consensus is captured via threshold-signed global Block Streams.
+
+3. Finalization Phase:
+   Finalized transactions and consensus-related changes are broadcast to relevant shard-local Block Streams. All updates are verifiable using TSS.
 
 ### Committee Reconfiguration
 
-**Dynamic Assignment:**
- New nodes are randomized into committees using consensus-derived entropy (e.g., consensus timestamps), along with verifiable randomness beacons and delay functions (VDFs) for additional security. This randomization prevents predictable patterns and minimizes the risk of adversarial targeting.
-
-**Reorganization Protocol:**
- If a committee’s membership falls below a predefined threshold, a reconfiguration is triggered. The Global Committee employs cryptographic randomness sources to reassign nodes and reseat coordinators. This process also mandates the generation of updated state proofs to ensure continued validity and trust across shards.
+- Nodes dynamically shuffled using entropy derived from consensus timestamps and verifiable delay functions (VDFs).
+- Reshuffling ensures unpredictability and minimizes adversarial targeting.
+- Shard transitions and committee changes are encoded in Block Streams along with evidence for auditability.
 
 ------
 
-## Backward Compatibility
-
-To ensure a smooth transition without disrupting the existing network:
-
-- **Dual Mode Operation:**
-  The new sharding functionality will be introduced as an enhancement rather than a disruptive change. Nodes can operate in both sharded and non-sharded modes during the transition period.
-- **Protocol Versioning:**
-  Legacy nodes will continue participating with complete interoperability through versioning. Coordination layers will facilitate interaction between fully sharded components (using state proofs) and the traditional model where mirror nodes retain extended historical data.
+## Compatibility and Transition
+- Existing nodes will continue to produce legacy output formats temporarily.
+- A transitional Dual Mode operates both RecordStream V6 and Block Stream until full migration.
+- Mirror Nodes may be upgraded gradually into Block Nodes or intermediate verifiers.
+- APIs provided by Block Nodes are designed for backward compatibility and progressive adoption.
 
 ------
 
 ## Security Implications
 
-- **Reduced Attack Surface:**
-  Localizing data and employing randomized reconfiguration limits an adversary’s ability to compromise a significant portion of any shard.
-- **Resilience through Redundancy:**
-  The Global Committee acts as a backup repository, and state proofs further secure each shard’s authenticity. Mirror nodes provide a fail-safe by maintaining the full ledger history.
-- **Tamper Resistance:**
-  Cryptographic links, state proofs, and the regular incorporation of randomness in node reassignments significantly lower the risk of coordinated or cross-shard attacks.
-
-Altogether, these security measures enhance the overall integrity and resilience of the Hedera network as it scales.
+- Randomized dynamic committee assignments reduce predictability and risk of collusion within shards.
+- Threshold-signed Block Streams make it impossible to forge shard or global consensus without compromising quorum.
+- Block Nodes provide alternate trustless validation paths—independently parsing Block Streams to verify DAGs.
 
 ------
 
 ## How to Teach This
 
-- **Documentation and Tutorials:**
-  Comprehensive guides will be produced for node operators, developers, and auditors to explain the sharding architecture, data partitioning, reconfiguration protocols, the role of mirror nodes, and the mechanism of state proofs.
-- **Workshops:**
-  Interactive sessions and webinars will be organized to demonstrate protocol changes in real-time, including live examples of state proof generation and verification.
-- **Community Engagement:**
-  Regular updates and Q&A sessions on forums (e.g., Hedera Discord, GitHub issues) will clarify operational details, benefits of sharding, and the workings of the mirror network.
+- Documentation
+  - Updated developer portal sections on Block Stream format, Block Node deployment, and shard-oriented APIs.
+  - Protocol primer and migration tutorials for legacy node operators.
+
+- Developer Bootcamps / Workshops
+  - Live demonstrations covering intra-/cross-shard transactions, Block Stream validation, and Block Node setup.
+
+- Community Events & Demos
+  - Hands-on sessions explaining how Block Nodes can be deployed for custom applications, compliance tools, and analytics.
 
 ------
 
