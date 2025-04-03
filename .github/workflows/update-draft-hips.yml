@@ -38,6 +38,7 @@ jobs:
           mkdir -p _data
           cat << 'EOF' > fetch-draft-hips.js
           const https = require('https');
+          const fs = require('fs');
 
           async function makeGraphQLRequest(query, token) {
             return new Promise((resolve, reject) => {
@@ -55,7 +56,19 @@ jobs:
               const req = https.request(options, (res) => {
                 let data = '';
                 res.on('data', chunk => { data += chunk; });
-                res.on('end', () => resolve(JSON.parse(data)));
+                res.on('end', () => {
+                  try {
+                    const parsedData = JSON.parse(data);
+                    if (res.statusCode >= 400) {
+                      console.error('API Error:', parsedData);
+                      reject(new Error(`API returned status ${res.statusCode}`));
+                    } else {
+                      resolve(parsedData);
+                    }
+                  } catch (e) {
+                    reject(e);
+                  }
+                });
               });
 
               req.on('error', reject);
@@ -65,6 +78,7 @@ jobs:
           }
 
           async function getAllPRs() {
+            // Query only for open PRs
             const query = `
               query { 
                 repository(name: "hiero-improvement-proposals", owner: "hiero-ledger") {
@@ -86,6 +100,9 @@ jobs:
                       author {
                         login
                       }
+                      isDraft
+                      createdAt
+                      baseRefName
                     }
                   }
                 }
@@ -100,17 +117,62 @@ jobs:
                 process.exit(1);
               }
 
-              return result.data.repository.pullRequests.nodes;
+              // Filter to only include PRs that appear to be new HIPs (not modifications to existing ones)
+              return filterNewHIPPRs(result.data.repository.pullRequests.nodes);
             } catch (error) {
               console.error('Error fetching PRs:', error);
               throw error;
             }
           }
 
+          function filterNewHIPPRs(prs) {
+            // Filter for PRs that contain new HIP files (not updates to existing ones)
+            const newHIPPRs = [];
+            const seenPRs = new Set();
+
+            for (const pr of prs) {
+              // Skip if we've already processed this PR
+              if (seenPRs.has(pr.number)) {
+                continue;
+              }
+              
+              // Check each file in the PR
+              const files = pr.files.edges.map(edge => edge.node);
+              
+              // Only consider PRs that contain markdown files in the HIPs directory
+              const hipFiles = files.filter(file => {
+                const path = file.path;
+                return path.endsWith('.md') && 
+                       path.includes('/hip-') && 
+                       !path.includes('/template');
+              });
+
+              // Check if this PR is introducing a new HIP rather than modifying existing ones
+              // A good indicator is if the file has high additions and low/no deletions
+              const isNewHIP = hipFiles.some(file => 
+                file.additions > 20 && file.deletions < 10
+              );
+
+              if (isNewHIP) {
+                newHIPPRs.push(pr);
+                seenPRs.add(pr.number);
+              }
+            }
+
+            return newHIPPRs;
+          }
+
           // Run the main function
           getAllPRs().then(prs => {
-            const fs = require('fs');
+            // Clear existing file before writing
+            if (fs.existsSync('_data/draft_hips.json')) {
+              fs.unlinkSync('_data/draft_hips.json');
+            }
+            
+            // Write the new data
             fs.writeFileSync('_data/draft_hips.json', JSON.stringify(prs, null, 2));
+            
+            console.log(`Successfully processed ${prs.length} new HIP PRs`);
           }).catch(error => {
             console.error('Failed to fetch PRs:', error);
             process.exit(1);
@@ -130,5 +192,4 @@ jobs:
           git config --local user.email "$GITHUB_USER_EMAIL"
           git config --local user.name "$GITHUB_USER_NAME"
           git add _data/draft_hips.json
-          git commit -s -S -m "Update draft HIPs data [skip ci]" || echo "No changes to commit"
-          git push origin main || echo "No changes to push"
+          git diff --staged --quiet || (git commit -s -S -m "Update draft HIPs data [skip ci]" && git push origin main)
