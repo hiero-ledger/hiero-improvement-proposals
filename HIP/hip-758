@@ -1,0 +1,154 @@
+---
+hip: 758
+title: Unify ContractInfo and AccountInfo Queries
+author: Nana Essilfie-Conduah (@nana-ec)
+working-group: Richard Bair (@rbair23), Jasper Potts (@jasperpotts), Nick Poorman (@nickpoorman), Stoyan Panayotov (stoyan.panayotov@limechain.tech), Miroslav Gatsanoga (miroslav.gatsanoga@limechain.tech), Greg Scullard (gregscullard@hedera.com), Steven Sheehy (@steven-sheehy), Michael Tinker (@tinker-michaelj), Neeha Sompalli (@Neeharika-Sompalli)
+type: Standards Track
+category: Service
+needs-council-approval: Yes
+status: Review
+created: 2023-06-15
+discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/pull/758
+updated: 2023-06-20
+---
+
+## Abstract
+
+This proposal addresses the disparity between `ContractInfo` and `AccountInfo` query results.
+As contracts are also accounts developers should be able to retrieve the subset of account information when querying a node, currently this is not the case.
+To address this the `ContractInfo` query will be updated to return the missing account related information.
+
+## Motivation
+
+On Hedera like many other networks Accounts and Contracts are both considered account entities. As such they share many similar properties such as an id and balance.
+Today, the consensus node returns an error when querying `AccountInfo` for a ContractID/address but also does not return account specific details on a `ContractInfo` query.
+As such developers are missing account level details at the EVM level (e.g. nonce) but also at the Hedera level (e.g. ownedNfts)
+
+## Rationale
+
+By providing a consistent API developers can retrieve the complete set of details for a contract under the appropriate query flow.
+
+## User stories
+
+1. As a developer I would like to query for `ContractInfo` using a ContractId/address and retrieve account info in addition to contract specific details. 
+2. As a developer I would like to query for `AccountInfo` using a ContractId/address and retrieve account info. 
+  
+## Specification
+
+This change exposes greater details at the service level and has impacts across products
+
+### Protobuf
+The ContractInfo protobuf message will need to be updated with missing `AccountInfo` details
+```protobuf
+message ContractInfo {
+    ...
+
+    /**
+        * The total number of tinybars proxy staked to this account
+        */
+    int64 proxyReceived = 16;
+
+    /**
+        * If true, no transaction can transfer to this account unless signed by this account's key
+        */
+    bool receiverSigRequired = 17;
+
+    /**
+        * The number of NFTs owned by this account
+        */
+    int64 ownedNfts = 18;
+
+            /**
+        * The alias of this account
+        */
+    bytes alias = 19;
+
+            /**
+        * The ethereum transaction nonce associated with this account.
+        */
+    int64 ethereum_nonce = 20;
+}
+```
+
+### Services
+The `getAccountInfo` behaviour will be updated to return a valid `AccountInfo` object and no longer return an `INVALID_ACCOUNT_ID` error when a valid ContractID/address is provided.
+To achieve this the query will add an `isContract()` check to its inner logic.
+
+### SDK
+The `getContractInfo` queries will need to be updated to expose the new account details under the `ContractInfo` object.
+
+### Mirror Node
+The contract entity details under the `api/v1/contracts` endpoints will need to be updated to expose account info details currently found only under `api/v1/accounts`.
+
+```json
+{
+    ...,
+    "balance": {
+        "timestamp": "0.000002345",
+        "balance": 80,
+        "tokens": [
+        {
+            "token_id": "0.0.200001",
+            "balance": 8
+        }
+        ]
+    },
+    ...,
+    "decline_reward": false,
+    ...,
+    "ethereum_nonce": 10,
+    ...,
+    "pending_reward": 100,
+    ..., 
+    "receiver_sig_required": false,
+    ...,
+    "staked_account_id": null,
+    "staked_node_id": 3,
+    "stake_period_start": "172800000.000000000"
+    ...
+}
+```
+
+
+## Backwards Compatibility
+
+Existing account and contracts details will continue to be persisted on transactions and returned on queries so there is no concern of breaking changes.
+
+Some developers may have relied on the implicit API behavious of an `INVALID_ACCOUNT_ID` error when submitting a `getAccountInfo()` query with a ContractID/address.
+To address this developers should more appropriately submit a `getContractInfo` query to determine if an entity is a contract.
+
+## Security Implications
+
+No new transactions are introduced or state changes so implications are minor.
+The increased size of `getContractInfo()` queries responses will need to be reflected in the node fee charged by nodes.
+
+## How to Teach This
+
+
+
+## Reference Implementation
+
+
+
+## Rejected Ideas
+
+1. Updating `getAccountInfo()` behaviour to support ContractId/address queries whiles leaving `ContractInfo` as is.
+2. Updating  `ContractInfo` with `ethereum_nonce` whiles leaving `getAccountInfo()` behaviour as is.
+2. Updating  `ContractInfo` with an `AccountInfo` property and deprecating duplicates whiles leaving `getAccountInfo()` behaviour as is.
+
+## Open Issues
+
+1. Are developers actively calling `getAccountInfo()` as a way to determine if an entity is an `Account` and not a `Contract`?
+2. Should `alias` be renamed `address` or remain consistent with `AccountInfo`?
+3. Should `liveHashes` be added to `ContractInfo`?
+4. Should Mirror Node API's be updated in a similar consistent manner?
+
+## References
+
+1. [Account Protobuf](https://github.com/hashgraph/hedera-protobufs/blob/main/services/crypto_get_info.proto)
+2. [Contract Protobuf](https://github.com/hashgraph/hedera-protobufs/blob/main/services/contract_get_info.proto)
+3. [Mirror Node REST APIs](https://testnet.mirrornode.hedera.com/api/v1/docs/)
+
+## Copyright/license
+
+This document is licensed under the Apache License, Version 2.0 -- see [LICENSE](../LICENSE) or (https://www.apache.org/licenses/LICENSE-2.0)
