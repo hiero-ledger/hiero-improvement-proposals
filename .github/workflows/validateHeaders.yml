@@ -1,4 +1,3 @@
-# This is a github actions workflow that retrieves the modified hips and runs a validator script against them written in Node.
 name: Validate HIP
 on: [pull_request]
 
