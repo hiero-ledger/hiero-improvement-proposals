@@ -1,6 +1,19 @@
 const fs = require('fs');
 const https = require('https');
 
+// ANSI color codes for terminal output
+const colors = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  bold: '\x1b[1m'
+};
+
 /**
  * Validates a HIP file by sending it to the Vertesia API endpoint.
  * 
@@ -14,11 +27,11 @@ async function validateHIP(hipPath) {
     
     // Skip validation for hipstable files
     if (hip.includes('hipstable')) {
-      console.log("Great Success");
+      console.log(`${colors.green}${colors.bold}✓ Great Success${colors.reset}`);
       return;
     }
     
-    console.log(`Validating ${hip}`);
+    console.log(`${colors.cyan}Validating ${hip}${colors.reset}`);
     
     // Read the HIP file content
     const draftHip = fs.readFileSync(hip, 'utf8');
@@ -36,22 +49,19 @@ async function validateHIP(hipPath) {
     const result = await makeRequest(requestData);
     
     if (result.is_valid) {
-      console.log("Great Success");
+      console.log(`${colors.green}${colors.bold}✓ Great Success${colors.reset}`);
       return;
     } else {
-      // If validation fails, collect all issues
-      const errs = result.issues.map(issue => 
-        new Error(`${issue.field}: ${issue.issue}. Suggestion: ${issue.suggestion}`)
+      // Just collect the issues without creating error objects
+      const issues = result.issues.map(issue => 
+        `${colors.yellow}• ${colors.bold}${issue.field}${colors.reset}${colors.yellow}: ${issue.issue}${colors.reset}\n  ${colors.cyan}Suggestion: ${issue.suggestion}${colors.reset}`
       );
       
-      throw errs;
+      console.log(`${colors.red}${colors.bold}You must correct the following header issues to pass validation:${colors.reset}\n${issues.join('\n\n')}`);
+      process.exit(1);
     }
   } catch (error) {
-    if (Array.isArray(error)) {
-      console.log('You must correct the following header errors to pass validation: ', error);
-    } else {
-      console.log('Error:', error.message || error);
-    }
+    console.log(`${colors.red}${colors.bold}Error:${colors.reset} ${error.message || error}`);
     process.exit(1);
   }
 }
@@ -91,16 +101,16 @@ function makeRequest(data) {
           if (parsedData.result) {
             resolve(parsedData.result);
           } else {
-            reject(new Error('Invalid API response format'));
+            reject(`Invalid API response format: ${responseData}`);
           }
         } catch (e) {
-          reject(new Error(`Failed to parse API response: ${e.message}`));
+          reject(`Failed to parse API response: ${e.message}`);
         }
       });
     });
 
     req.on('error', (error) => {
-      reject(new Error(`Request failed: ${error.message}`));
+      reject(`Request failed: ${error.message}`);
     });
 
     req.write(data);
@@ -110,6 +120,6 @@ function makeRequest(data) {
 
 // Execute the validation function
 validateHIP().catch(error => {
-  console.log(error);
+  console.log(`${colors.red}${colors.bold}Error:${colors.reset} ${error}`);
   process.exit(1);
 });
