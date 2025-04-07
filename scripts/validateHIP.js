@@ -1,170 +1,132 @@
 const fs = require('fs');
-const readline = require('readline');
-const regexs = require('../assets/regex');
-const errs = [];
+const https = require('https');
+
+// ANSI color codes for terminal output
+const colors = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  bold: '\x1b[1m'
+};
+
+// Get API key from environment variable or use a fallback for development
+const API_KEY = process.env.VERTESIA_API_KEY || '';
 
 /**
- * Validates a hip's headers by looking for enclosing '---' substrings and calls functions that validate the contents.
- *
+ * Validates a HIP file by sending it to the Vertesia API endpoint.
+ * 
  * @async
- * @function captureHeaderValidation
- * @param {string} hipPath - Path to the hip.
+ * @function validateHIP
+ * @param {string} hipPath - Path to the HIP file.
  */
-async function captureHeaderValidation(hipPath) {
-  const hip = hipPath || process.argv[2];
-  if (hip.includes('hipstable')) {
-    console.log("Great Success");
-    return
-  }
-  console.log(`Validating ${hip}`)
-  const fileStream = fs.createReadStream(hip);
+async function validateHIP(hipPath) {
+  try {
+    if (!API_KEY) {
+      throw new Error('VERTESIA_API_KEY environment variable not set');
+    }
 
-  const rl = readline.createInterface({
-    input: fileStream,
-    crlfDelay: Infinity
-  });
-  let lineCount = 1;
-  let headerBoundaries = [];
-  let headers = '';
-  for await (const line of rl) {
-    if (/---$/.test(line)) {
-      headerBoundaries.push(line)
-    } else {
-      headers += `${line}\n`;
-    }
-    if (headerBoundaries.length === 2) {
-      validateHeaders(headers);
-      console.log("Great Success")
-      break
-    }
-    if (/author: /.test(line) || /working-group/.test(line)) {
-      validateNames(line);
-    }
-    if (/updated: 2/.test(line)) { // excludes empty updates dates which happens when new hips are created
-      const lastUpdatedDate = new Date(line.split(',').pop());
-      if (lastUpdatedDate.toDateString() !== new Date().toDateString()) {
-        errs.push(Error('updated date doesnt match current date in header, add current day'));
-      }
+    const hip = hipPath || process.argv[2];
+    
+    // Skip validation for hipstable files
+    if (hip.includes('hipstable')) {
+      console.log(`${colors.green}${colors.bold}✓ Great Success${colors.reset}`);
+      return;
     }
     
-    if (lineCount ===  17) {
-      throw new Error('header must be enclosed by "---"');
-    }
-    lineCount++;
-  }
-}
+    console.log(`${colors.cyan}Validating ${hip}${colors.reset}`);
+    
+    // Read the HIP file content
+    const draftHip = fs.readFileSync(hip, 'utf8');
+    
+    // Prepare the request data
+    const requestData = JSON.stringify({
+      interaction: "Evaluate_HIP_Format",
+      data: {
+        hip_spec: ".",
+        draft_hip: draftHip
+      }
+    });
 
-/**
- * Takes a hip's header and runs regexs against the contained properties to validate them.
- *
- * @async
- * @function validateHeaders
- * @param {string} headers
- */
- function validateHeaders(headers) {
-  try {
-    if (!regexs.hipNum.test(headers)) {
-      errs.push(Error('hip num must be a number use 000 if not yet assigned'));
-    }
-
-    if (!regexs.title.test(headers)) {
-      errs.push(Error('header must include a title'));
-    }
-
-    if (!regexs.councilApproval.test(headers)) {
-      errs.push(Error('header must specify "needs-council-approval: Yes/No'));
-    }
-
-    if (!regexs.status.test(headers)) {
-      errs.push(Error('header must include "status: Idea | Draft | Review | Deferred | Withdrawn | Rejected ' + 
-      '| Last Call | Council Review | Accepted | Final | Active | Replaced'));
-    }
-
-    if (!regexs.type.test(headers)) {
-      errs.push(Error('header must match one of the following types exactly ' +
-      '"type: Standards Track | Informational | Process"'));
-    }
-
-    if (!regexs.discussions.test(headers)) {
-      errs.push(Error('header must include discussions page ' +
-      '"discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/xxx"'));
-    }
-
-    if (!/requested-by:/.test(headers)) {
-      errs.push(Error('header must include "requested-by" with the requester\'s name and contact information'));
-    }
-
-    if (/needs-council-approval: Yes/.test(headers) && 
-      (/category: Application/.test(headers) || /type: Informational/.test(headers) || /type: Process/.test(headers))) {
-      errs.push(Error('Application Standards Track/Informational/Process HIPs do not need council approval'));
-    }
-
-    if (/needs-council-approval: No/.test(headers)
-      && (/category: Service/.test(headers) || /category: Core/.test(headers) || /category: Mirror/.test(headers))) {
-        errs.push(Error('Service/Core/Mirror categories require council approval'));
-    }
-
-    if (!regexs.createdDate.test(headers)) {
-      errs.push(Error('created date must be in the form "created: YYYY-MM-DD'));
-    }
-
-    if (/category:/.test(headers) && !regexs.category.test(headers)) {
-      errs.push(Error('header must match one of the following categories ' +
-      'exactly "category: Core | Service | API | Mirror | Application"'));
-    }
-
-    if (/updated:/.test(headers) && !regexs.updatedDate.test(headers)) {
-      errs.push(Error('updated date must be in the form "updated: YYYY-MM-DD, YYYY-MM-DD, etc'));
-    }
-
-    if(/last-call-date-time:/.test(headers) && ! regexs.lastCallDateTime.test(headers)) {
-      errs.push(Error('last-call-date-time should be in the form "last-call-date-time: YYYY-MM-DDTHH:MM:SSZ"'));
-    }
-
-    if (/requires:/.test(headers) && !regexs.requires.test(headers)) {
-      errs.push(Error('require field must specify the hip number(s) its referring "requires: hipnum, hipnum(s)"'));
-    }
-
-    if (/replaces:/.test(headers) && !regexs.replaces.test(headers)) {
-      errs.push(Error('replaces field must specify the hip number(s) its referring "replaces: hipnum, hipnum(s)"'));
-    }
-
-    if (/superseded-by/.test(headers) && !regexs.supersededBy.test(headers)) {
-      errs.push(Error('superseded-by field must specify the hip number(s) its referring "superseded-by: hipnum, hipnum(s)"'));
-    }
-    if (errs.length > 0 ) {
-      throw errs
+    // Send request to the Vertesia API using native https
+    const result = await makeRequest(requestData);
+    
+    if (result.is_valid) {
+      console.log(`${colors.green}${colors.bold}✓ Great Success${colors.reset}`);
+      return;
+    } else {
+      // Format issues with numbers instead of bullets
+      const issues = result.issues.map((issue, index) => 
+        `${colors.yellow}${index + 1}. ${colors.bold}${issue.field}${colors.reset}${colors.yellow}: ${issue.issue}${colors.reset}\n  ${colors.cyan}Suggestion: ${issue.suggestion}${colors.reset}`
+      );
+      
+      console.log(`${colors.red}${colors.bold}You must correct the following header issues to pass validation:${colors.reset}\n${issues.join('\n\n')}`);
+      process.exit(1);
     }
   } catch (error) {
-    console.log('You must correct the following header errors to pass validation: ', error);
+    console.log(`${colors.red}${colors.bold}Error:${colors.reset} ${error.message || error}`);
     process.exit(1);
   }
 }
 
 /**
- * Takes an author: or a working-group: list and validates it.
- *
+ * Makes an HTTPS request to the Vertesia API.
+ * 
  * @async
- * @function validateHeaders
- * @param {string} line - line in header containing author or working-group
+ * @function makeRequest
+ * @param {string} data - The request payload.
+ * @returns {Promise<Object>} The parsed response.
  */
-function validateNames(line) {
-  try {
-      line.split(',')
-              .forEach(
-                element => {
-                  const words = element.split(': ');
-                  if (!regexs.name.test(words[words.length - 1])) {
-                    errs.push(Error('name is improperly formatted, resubmit PR in the form ex: (author|working-group): Firstname Lastname <@gitName or email>'));
-                  }
-                }
-              )
-  } catch (error) {
-    errs.push(Error(error));
-  }
+function makeRequest(data) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'studio-server-production.api.vertesia.io',
+      port: 443,
+      path: '/api/v1/execute/',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length,
+        'Authorization': `Bearer ${API_KEY}`
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let responseData = '';
+
+      res.on('data', (chunk) => {
+        responseData += chunk;
+      });
+
+      res.on('end', () => {
+        try {
+          const parsedData = JSON.parse(responseData);
+          if (parsedData.result) {
+            resolve(parsedData.result);
+          } else {
+            reject(`Invalid API response format: ${responseData}`);
+          }
+        } catch (e) {
+          reject(`Failed to parse API response: ${e.message}`);
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      reject(`Request failed: ${error.message}`);
+    });
+
+    req.write(data);
+    req.end();
+  });
 }
 
-captureHeaderValidation().catch(error => {
-  console.log(error);
+// Execute the validation function
+validateHIP().catch(error => {
+  console.log(`${colors.red}${colors.bold}Error:${colors.reset} ${error}`);
   process.exit(1);
 });

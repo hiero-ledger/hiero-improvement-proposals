@@ -34,6 +34,7 @@ jobs:
       - name: Validate HIPs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERTESIA_API_KEY: ${{ secrets.VERTESIA_API_KEY }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           REPO=${{ github.repository }}
