@@ -606,16 +606,44 @@ message MapUpdateChange {
      */
     MapChangeKey key = 1;
 
-    /**
-     * A value in a virtual map.
-     * <p>
-     * This value MUST correctly represent the state of the map entry
-     * _after_ the asserted update.<br/>
-     * This value MAY be reduced to only transmit fields that differ
-     * from the prior state.<br/>
-     * This field is REQUIRED.
-     */
-    MapChangeValue value = 2;
+    oneof update_value {
+        /**
+         * A boolean flag indicating if the written value was identical to the original state value.
+         * <p>
+         * If this flag is set to true, it indicates that the value being
+         * written to the map is identical to the value that was already
+         * present in the map for the given key. This means that no actual
+         * change has occurred in the state of the map entry, and thus
+         * the state change can be considered a no-op for the purposes of
+         * state updates.
+         * <p>
+         * If this flag is set to false, it indicates that the value being
+         * written to the map is different from the value that was already
+         * present in the map for the given key. In this case, the state
+         * change represent in value represents an actual update to the map entry
+         * <p>
+         * This field is OPTIONAL. If not set, it is assumed to be false.
+         * <p>
+         * Note: This field is useful for optimization purposes, allowing
+         * clients to determine whether an update was necessary or if it
+         * was a no-op. It can help reduce unnecessary state updates and
+         * improve performance in scenarios where many updates are being
+         * made to the same map entry without any actual change in value.
+         * <p>
+         */
+        bool identical = 2;
+
+        /**
+         * A value in a virtual map.
+         * <p>
+         * This value MUST correctly represent the state of the map entry
+         * _after_ the asserted update.<br/>
+         * This value MAY be reduced to only transmit fields that differ
+         * from the prior state.<br/>
+         * This field is REQUIRED.
+         */
+        MapChangeValue value = 3;
+    }
 }
 
 /**
@@ -714,6 +742,62 @@ message MapChangeKey {
     }
 }
 
+message SlotKeyIndex {
+    /**
+      * The contract storage slot counter used to correlate slots across BlockItems for a given contract in a transactions.
+      */
+     int32 index = 1;     
+     
+    /**
+      * The EVM key of this slot, may be left-padded with zeros to form a 256-bit word.
+      */
+    bytes key = 2;
+}
+
+message SlotIndexValue {
+    /**
+      * The contract storage slot counter used to correlate slots across BlockItems for a given contract in a transactions.
+      */
+     int32 index = 1;
+    
+    /**
+     * The value of a slot.
+     * <p>
+     * A few types of changes may occur
+     * 1. A new value is added to the slot.
+     * 2. A value is updated in the slot.
+     * 3. A value is removed from the slot.
+     * 4. The position of the value in the linked list is altered.
+     * 5. A value is read but not updated
+     * SlotValue are stored as linked lists, when the pointers change the previous and or next keys
+     * are updated to reflect the new state of the list. If not value
+     */
+    SlotValue value = 2;
+}
+
+/*
+ * A single contract storage slot descriptor.
+ * The index allows for correlation of slot across export without the needs to repeat the expesnive key
+ */
+message StorageSlot {
+     /**
+      * The contract storage slot counter used to correlate slots across BlockItems for a given transaction.
+      * The assocaited contractId is found in the MapChangeKey
+      * Q: Should the index be across transaction exdecution or contract?
+      */
+    int32 index = 1;
+
+     /**
+      * The EVM key of this slot, may be left-padded with zeros to form a 256-bit word.
+      */
+    bytes key = 2;
+    
+     /**
+      * The value of a slot.
+      */
+    SlotValue value = 3;
+}
+
 /**
  * A value updated in, or added to, a virtual map.
  *
@@ -774,9 +858,9 @@ message MapChangeValue {
         proto.ScheduleList schedule_list_value = 8;
 
         /**
-         * An EVM storage slot value.
+         * A set of EVM storage slot values with associated indexes and keys.
          */
-        proto.SlotValue slot_value_value = 9;
+        repeated StorageSlot storage_slot_values = 9;
 
         /**
          * An updated set of staking information for all nodes in

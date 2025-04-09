@@ -50,6 +50,7 @@ import "stream/input/event_metadata.proto";
 import "stream/input/round_header.proto";
 import "stream/output/block_header.proto";
 import "stream/output/state_changes.proto";
+import "stream/output/smart_contract_service.proto";
 import "stream/output/transaction_output.proto";
 import "stream/output/transaction_result.proto";
 
@@ -210,6 +211,11 @@ message BlockItem {
          * </ul>
          */
         RecordFileItem record_file = 10;
+
+        /**
+         * Trace data.
+         */
+        TraceData trace_data = 11;
     }
 }
 
@@ -258,5 +264,9 @@ message FilteredItemHash {
     uint64 log2_item_count = 3;
 }
 
-
-
+message TraceData {
+    /**
+     * The EVM trace data.
+     */
+    EVMTraceData evm_trace_data = 1;
+}
