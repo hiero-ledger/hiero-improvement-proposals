@@ -124,14 +124,9 @@ message TransactionOutput {
         ContractCreateOutput contract_create = 2;
 
         /**
-         * Output from a crypto transfer transaction.
-         */
-        CryptoTransferOutput crypto_transfer = 3;
-
-        /**
          * Output from an ethereum transaction.
          */
-        EthereumOutput ethereum = 4;
+        EthereumOutput ethereum_call = 4;
 
         /**
          * Output from a schedule create transaction that executed
@@ -146,14 +141,9 @@ message TransactionOutput {
         ScheduleSignOutput schedule_sign = 6;
 
         /**
-         * Output from a token airdrop transaction.
-         */
-        TokenAirdropOutput token_airdrop = 7;
-
-        /**
          * Output from a utilPrng transaction to request a
          * deterministic pseudo-random number.
          */
-        UtilPrngOutput util_prng = 8;
+        UtilPrngOutput util_prng = 7;
     }
 }
