@@ -716,63 +716,25 @@ message MapChangeKey {
         proto.ScheduleID schedule_id_key = 9;
 
         /**
-         * A change to the EVM storage "slot" virtual map.
-         */
-        proto.SlotKey slot_key_key = 10;
-
-        /**
          * A change to a virtual map keyed by a Token identifier.
          */
-        proto.TokenID token_id_key = 11;
+        proto.TokenID token_id_key = 10;
 
         /**
          * A change to a virtual map keyed by a Topic identifier.
          */
-        proto.TopicID topic_id_key = 12;
+        proto.TopicID topic_id_key = 11;
 
         /**
          * A change to a virtual map keyed by contract id identifier.
          */
-        proto.ContractID contract_id_key = 13;
+        proto.ContractID contract_id_key = 12;
 
         /**
          * A change to a virtual map keyed by pending airdrop id identifier.
          */
-        proto.PendingAirdropId pending_airdrop_id_key = 14;
+        proto.PendingAirdropId pending_airdrop_id_key = 13;
     }
-}
-
-message SlotKeyIndex {
-    /**
-      * The contract storage slot counter used to correlate slots across BlockItems for a given contract in a transactions.
-      */
-     int32 index = 1;     
-     
-    /**
-      * The EVM key of this slot, may be left-padded with zeros to form a 256-bit word.
-      */
-    bytes key = 2;
-}
-
-message SlotIndexValue {
-    /**
-      * The contract storage slot counter used to correlate slots across BlockItems for a given contract in a transactions.
-      */
-     int32 index = 1;
-    
-    /**
-     * The value of a slot.
-     * <p>
-     * A few types of changes may occur
-     * 1. A new value is added to the slot.
-     * 2. A value is updated in the slot.
-     * 3. A value is removed from the slot.
-     * 4. The position of the value in the linked list is altered.
-     * 5. A value is read but not updated
-     * SlotValue are stored as linked lists, when the pointers change the previous and or next keys
-     * are updated to reflect the new state of the list. If not value
-     */
-    SlotValue value = 2;
 }
 
 /*
