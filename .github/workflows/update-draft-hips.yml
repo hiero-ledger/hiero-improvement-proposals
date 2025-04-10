@@ -38,6 +38,7 @@ jobs:
           mkdir -p _data
           cat << 'EOF' > fetch-draft-hips.js
           const https = require('https');
+          const fs = require('fs');
 
           async function makeGraphQLRequest(query, token) {
             return new Promise((resolve, reject) => {
@@ -109,8 +110,18 @@ jobs:
 
           // Run the main function
           getAllPRs().then(prs => {
-            const fs = require('fs');
-            fs.writeFileSync('_data/draft_hips.json', JSON.stringify(prs, null, 2));
+            // Ensure we're completely replacing the file by writing fresh data
+            // If the file exists, it will be overwritten entirely
+            const outputPath = '_data/draft_hips.json';
+            
+            // Remove the file if it exists (optional, as writeFileSync will overwrite it anyway)
+            if (fs.existsSync(outputPath)) {
+              console.log(`Removing existing file: ${outputPath}`);
+              fs.unlinkSync(outputPath);
+            }
+            
+            console.log(`Writing fresh data to: ${outputPath}`);
+            fs.writeFileSync(outputPath, JSON.stringify(prs, null, 2));
           }).catch(error => {
             console.error('Failed to fetch PRs:', error);
             process.exit(1);
