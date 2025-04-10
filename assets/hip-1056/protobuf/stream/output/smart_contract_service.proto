@@ -116,11 +116,12 @@ message EthereumOutput {
 message EVMTransactionLog {
      /**
       * The address of the contract emitting the log
+      * Q: Should we change this to ContractID as a space saver and parsers have to go pick up the 20 bytesaddress?
       */
      string address = 1;
 
      /**
-      * The sequence index of the log event in this contract execution
+      * The sequence index of the log event in this block
       */
      int32 log_index = 2;
 
@@ -139,12 +140,14 @@ message EVMTransactionLog {
  * EVM tranactin execution output details
  * Details maps to the log eth_getTransactionReceipt response without repeating info already available in the input transaction
  */
-message EVMTransactionOutput {
+message EVMTransactionReceipt {
      /**
       * A bloom filter produced by this contract call.<br/>
       * Ethereum uses this bloom filter to search for call results in the
       * Ethereum block history. High false positive rates make the bloom
       * filters quite limited value.
+      * Q: should htis be moved to Trace? If this was filtered out would it 
+      * break users of eth_getLogs
       */
      bytes bloom = 1;  
 
@@ -181,15 +184,30 @@ message EVMTransactionOutput {
  * Q: Should we add the ContractId in here for simplicity?
  */
 message SlotRead {
+    /**
+     * The number of the contract whose storage this slot belongs to.
+     */
+    ContractID contractID = 1;
+
      /**
-      * The contract storage slot counter used to correlate slots across BlockItems for a given contract in a transactions.
+      * The identifer to use to link this read storage value to it's key and potential written value
       */
-     int32 index = 1;
+     oneof slot_key_link {
+          /**
+           * The contract storage slot counter used to correlate slots across BlockItems for a given contract in a transactions.
+           */
+          int32 index = 1;
+
+          /**
+           * The key of this contratc storage slot, may be left-padded with zeros to form a 256-bit word.
+           */
+          bytes key = 2;
+     }     
 	
      /**
       * The storage value in this slot, may be left-padded with zeros to form a 256-bit word.
       */
-     bytes read_value = 2;
+     bytes read_value = 3;
 }
 
 /**
@@ -206,6 +224,7 @@ message EVMTraceData {
      * An ethereum transaction hash value.
      * <p>
      * This SHALL be a keccak256 hash of the ethereumData that represents the RLP encoded transaction.
+     * Q: should we remove this as parsers can calcualte by encoding the RLPTx in the input block item
      */
     bytes ethereum_hash = 2;    
  
@@ -216,6 +235,7 @@ message EVMTraceData {
  
     /**
      * Contract runtime bytecode. Corresponding init code can be found in transaction input
+     * Q: Is this needed? If initicode is in the input then this is only need if runtime is not what is stored in state.
      */
     bytes runtime_bytecode = 4;
 }
