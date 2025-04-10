@@ -19,6 +19,7 @@ superseded-by: <HIP number(s) that supersede this HIP, if applicable. Ex: 104>
 ## Abstract
 
 This HIP proposes a scalable enhancement to Hedera’s architecture through a multi-tier sharding framework that introduces Local Committees for intra-shard transaction processing, a Global Committee for coordinating cross-shard consistency, and dynamic committee reconfiguration for robustness. To support this architecture, the proposal integrates upcoming Block Stream and Block Node initiatives, which consolidate transaction, event, state, and proof data into a single verifiable stream, enabling external services to independently validate network state via Threshold Signature Scheme (TSS). Block Nodes, positioned between consensus and mirror nodes, consume and serve this unified data format, promoting decentralized verification, state proof services, and advanced querying. With this layered approach—shards for computational load distribution, Block Streams for unified verifiable output, and Block Nodes for scalable data access—Hedera improves throughput, reinforces integrity, and supports future-proof decentralized applications.This HIP proposes a scalable enhancement to Hedera’s architecture through a multi-tier sharding framework that introduces Local Committees for intra-shard transaction processing, a Global Committee for coordinating cross-shard consistency, and dynamic committee reconfiguration for robustness. To support this architecture, the proposal integrates upcoming Block Stream and Block Node initiatives, which consolidate transaction, event, state, and proof data into a single verifiable stream, enabling external services to independently validate network state via Threshold Signature Scheme (TSS). Block Nodes, positioned between consensus and mirror nodes, consume and serve this unified data format, promoting decentralized verification, state proof services, and advanced querying. With this layered approach—shards for computational load distribution, Block Streams for unified verifiable output, and Block Nodes for scalable data access—Hedera improves throughput, reinforces integrity, and supports future-proof decentralized applications.
+
 ------
 
 ## Motivation
@@ -43,6 +44,7 @@ The proposed design extends research from systems such as OmniLedger and RapidCh
 - Leverages mirror nodes as full archives for historical reference while Block Nodes supplement data discoverability and verification.
 
 Through this design, Hedera maintains consensus integrity, improves scalability, and supports decentralized application demands with dynamic committee realignment to reflect network conditions.
+
 ------
 
 ## User Stories
