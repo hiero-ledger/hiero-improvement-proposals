@@ -599,51 +599,54 @@ message SingletonUpdateChange {
  */
 message MapUpdateChange {
     /**
+    * A boolean flag indicating if the written value was identical to the original state value.
+    * <p>
+    * If this flag is set to true, it indicates that the value being
+    * written to the map is identical to the value that was already
+    * present in the map for the given key. This means that no actual
+    * change has occurred in the state of the map entry, and thus
+    * the state change can be considered a no-op for the purposes of
+    * state updates.
+    * <p>
+    * If this flag is set to false, it indicates that the value being
+    * written to the map is different from the value that was already
+    * present in the map for the given key. In this case, the state
+    * change represent in value represents an actual update to the map entry
+    * <p>
+    * This field is OPTIONAL. If not set, it is assumed to be false.
+    * <p>
+    * Note: This field is useful for optimization purposes, allowing
+    * clients to determine whether an update was necessary or if it
+    * was a no-op. It can help reduce unnecessary state updates and
+    * improve performance in scenarios where many updates are being
+    * made to the same map entry without any actual change in value.
+    * Note: When true a values metadata fields such as properties in
+    * the linked list cases (next and previous) may still see changes
+    * Q: LL is one case but is there a clean way to hihglight for
+    * MapChangeValue what is considered the core value and what is metadata
+    * or is it unique and explicit to the message type?
+    * <p>
+    */
+    bool identical = 1;
+
+    /**
      * A key in a virtual map.
      * <p>
      * This key MUST be mapped to the value added or updated.<br/>
      * This field is REQUIRED.
      */
-    MapChangeKey key = 1;
+    MapChangeKey key = 2;
 
-    oneof update_value {
-        /**
-         * A boolean flag indicating if the written value was identical to the original state value.
-         * <p>
-         * If this flag is set to true, it indicates that the value being
-         * written to the map is identical to the value that was already
-         * present in the map for the given key. This means that no actual
-         * change has occurred in the state of the map entry, and thus
-         * the state change can be considered a no-op for the purposes of
-         * state updates.
-         * <p>
-         * If this flag is set to false, it indicates that the value being
-         * written to the map is different from the value that was already
-         * present in the map for the given key. In this case, the state
-         * change represent in value represents an actual update to the map entry
-         * <p>
-         * This field is OPTIONAL. If not set, it is assumed to be false.
-         * <p>
-         * Note: This field is useful for optimization purposes, allowing
-         * clients to determine whether an update was necessary or if it
-         * was a no-op. It can help reduce unnecessary state updates and
-         * improve performance in scenarios where many updates are being
-         * made to the same map entry without any actual change in value.
-         * <p>
-         */
-        bool identical = 2;
-
-        /**
-         * A value in a virtual map.
-         * <p>
-         * This value MUST correctly represent the state of the map entry
-         * _after_ the asserted update.<br/>
-         * This value MAY be reduced to only transmit fields that differ
-         * from the prior state.<br/>
-         * This field is REQUIRED.
-         */
-        MapChangeValue value = 3;
-    }
+    /**
+     * A value in a virtual map.
+     * <p>
+     * This value MUST correctly represent the state of the map entry
+     * _after_ the asserted update.<br/>
+     * This value MAY be reduced to only transmit fields that differ
+     * from the prior state.<br/>
+     * This field is REQUIRED.
+     */
+    MapChangeValue value = 3;
 }
 
 /**
@@ -716,48 +719,30 @@ message MapChangeKey {
         proto.ScheduleID schedule_id_key = 9;
 
         /**
+         * A change to the EVM storage "slot" virtual map.
+         */
+        proto.SlotKey slot_key_key = 10;
+
+        /**
          * A change to a virtual map keyed by a Token identifier.
          */
-        proto.TokenID token_id_key = 10;
+        proto.TokenID token_id_key = 11;
 
         /**
          * A change to a virtual map keyed by a Topic identifier.
          */
-        proto.TopicID topic_id_key = 11;
+        proto.TopicID topic_id_key = 12;
 
         /**
          * A change to a virtual map keyed by contract id identifier.
          */
-        proto.ContractID contract_id_key = 12;
+        proto.ContractID contract_id_key = 13;
 
         /**
          * A change to a virtual map keyed by pending airdrop id identifier.
          */
-        proto.PendingAirdropId pending_airdrop_id_key = 13;
+        proto.PendingAirdropId pending_airdrop_id_key = 14;
     }
-}
-
-/*
- * A single contract storage slot descriptor.
- * The index allows for correlation of slot across export without the needs to repeat the expesnive key
- */
-message StorageSlot {
-     /**
-      * The contract storage slot counter used to correlate slots across BlockItems for a given transaction.
-      * The assocaited contractId is found in the MapChangeKey
-      * Q: Should the index be across transaction exdecution or contract?
-      */
-    int32 index = 1;
-
-     /**
-      * The EVM key of this slot, may be left-padded with zeros to form a 256-bit word.
-      */
-    bytes key = 2;
-    
-     /**
-      * The value of a slot.
-      */
-    SlotValue value = 3;
 }
 
 /**
