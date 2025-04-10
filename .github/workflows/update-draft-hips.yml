@@ -4,16 +4,10 @@ on:
   schedule:
     - cron: "0 */6 * * *" # Runs every 6 hours
   workflow_dispatch: # Allows manual triggering
-    inputs:
-      bypass-main-check:
-        required: false
-        default: 'false'
-        type: string
-        description: 'Bypass the run-on-main check'
 
 jobs:
   update-draft-hips:
-    if: ${{ github.ref == 'refs/heads/main' || inputs.bypass-main-check == 'true' }} # Only run on main branch
+    if: ${{ github.ref == 'refs/heads/main' }} # Only run on main branch
     runs-on: hiero-improvement-proposals-linux-medium
     permissions:
       contents: write
@@ -153,5 +147,4 @@ jobs:
           
           git commit -s -S -m "Update draft HIPs data [skip ci]"
           git push origin main
-          
           set +e
