@@ -135,11 +135,13 @@ jobs:
 
       - name: Commit and Push Changes
         env:
-          GITHUB_USER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
-          GITHUB_USER_NAME: ${{ secrets.GIT_USER_NAME }}
+          GITHUB_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
+          GITHUB_USER_NAME: ${{ vars.GIT_USER_NAME }}
         run: |
+          set -e
           git config --local user.email "$GITHUB_USER_EMAIL"
           git config --local user.name "$GITHUB_USER_NAME"
           git add _data/draft_hips.json
           git commit -s -S -m "Update draft HIPs data [skip ci]" || echo "No changes to commit"
           git push origin main || echo "No changes to push"
+          set +e
