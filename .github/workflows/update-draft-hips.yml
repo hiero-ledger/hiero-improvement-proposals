@@ -149,6 +149,9 @@ jobs:
           git config --local user.email "$GITHUB_USER_EMAIL"
           git config --local user.name "$GITHUB_USER_NAME"
           git add _data/draft_hips.json
-          git commit -s -S -m "Update draft HIPs data [skip ci]" || echo "No changes to commit"
-          git push origin main || echo "No changes to push"
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          
+          git commit -s -S -m "Update draft HIPs data [skip ci]"
+          git push origin main
+          
           set +e
