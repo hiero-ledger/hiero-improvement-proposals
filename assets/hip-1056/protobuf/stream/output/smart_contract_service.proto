@@ -46,7 +46,7 @@ message ContractCallOutput {
      /**
       * A receipt for an Ethereum Transaction execution
       */
-     EVMTransactionReceipt evm_transaction_receipt = 1;
+     EVMActivity evm_transaction_receipt = 1;
 }
 
 /**
@@ -59,7 +59,7 @@ message ContractCreateOutput {
      /**
       * A receipt for an Ethereum Transaction execution
       */
-     EVMTransactionReceipt evm_transaction_receipt = 1;
+     EVMActivity evm_transaction_receipt = 1;
 }
 
 // no evm exec, only modified entity
@@ -106,12 +106,15 @@ message EthereumOutput {
      /**
       * A receipt for an Ethereum Transaction execution
       */
-     EVMTransactionReceipt evm_transaction_receipt = 1;
+     EVMActivity evm_transaction_receipt = 1;
 }
 
 /**
  * EVM transaction execution log storage details
  * Details maps to the log object in eth_getTransactionReceipt response without repeating info already available in the input transaction
+ *   Q: Is this change needed in the end. i) Changes were COntractID -> address, ii) removal of bloom and iii) addition of log_index
+ *   i) and ii) are likely to be reverted and if ii) can't be done then this is essentially ContractLoginfo. ANother option is to use
+ *   ContractLoginfo and deprecate bloom if it can be removed.
  */
 message EVMTransactionLog {
      /**
@@ -137,10 +140,23 @@ message EVMTransactionLog {
 }
 
 /**
- * EVM tranactin execution output details
- * Details maps to the log eth_getTransactionReceipt response without repeating info already available in the input transaction
+ * EVM transaction details
+ * Details support the information needed by eth_getTransactionReceipt not found in or state changes
+ * <p>
+ * Values here map to the historic ContractFunction results in the record stream format.
+ * The following optimizations were made
+ * 1. contract_nonces and signer_nonce are noted restated. These updates will be exposed in the State changes.
+ *   The impact is nonce values between transactions are not exposed, this block level concept matches EVM behaviour
+ * 2. evm_addresses of newly created accounts or contracts are not restated as they are in state changes
+ * 3. gas is not restated as it can be found in the RLP transaction or explicitly in the transactionbody input
+ * 4. amount is not restated as it can be found in the RLP transaction or explicitly in the transactionbody input
+ * 5. functionParameters is not restated as it's in the RLP transaction.
+ *   For inner transactions this shall be in the ContractCall or ContractCreate
+ * 6. sender_id is not restated as it can be found and transformed from the RLP transaction
+ * 7. ContractID is not restated as it can be found in the RLP transaction or explicitly in the transactionbody input
+ * 8. ContractLoginfo is not resused but shrunk into EVMTransactionLog. This may be reverted
  */
-message EVMTransactionReceipt {
+message EVMActivity {
      /**
       * A bloom filter produced by this contract call.<br/>
       * Ethereum uses this bloom filter to search for call results in the
@@ -180,39 +196,52 @@ message EVMTransactionReceipt {
 
 /**
  * The slots read during the contract execution. These slots may or may not have been overwritten.
- * The associated writes and contract will be found in the state changes MapUpdateChange KVs
- * Q: Should we add the ContractId in here for simplicity?
+ * The associated writes will be found in the state changes MapUpdateChange KVs
  */
-message SlotRead {
-    /**
-     * The number of the contract whose storage this slot belongs to.
-     */
-    ContractID contractID = 1;
+message ContractSlotReads {
+     
+     message SlotRead {
+          oneof identifier {
+               /**
+               * The contract storage slot counter in this block 
+               * This is populated in place of the 256 bit word when the given slot is written to in state changes
+               */
+               int32 index = 1;
+
+               /**
+               * The key of this contratc storage slot, may be left-padded with zeros to form a 256-bit word.
+               * This is populated when the slot was not written and only read
+               */
+               bytes key = 2;
+          }
+
+          /**
+          * The storage value in this slot, may be left-padded with zeros to form a 256-bit word.
+          */
+          bytes read_value = 3;
+     }
+     
+     /**
+      * The contract assocaited with the storage slots this slot belongs to.
+      */
+     ContractID contractID = 1;
 
      /**
-      * The identifer to use to link this read storage value to it's key and potential written value
+      * The storage slots that were read in this EVM exectuion. They may or may not have assocaited slot writes
       */
-     oneof slot_key_link {
-          /**
-           * The contract storage slot counter used to correlate slots across BlockItems for a given contract in a transactions.
-           */
-          int32 index = 1;
-
-          /**
-           * The key of this contratc storage slot, may be left-padded with zeros to form a 256-bit word.
-           */
-          bytes key = 2;
-     }     
-	
-     /**
-      * The storage value in this slot, may be left-padded with zeros to form a 256-bit word.
-      */
-     bytes read_value = 3;
+     repeated SlotRead slot_reads = 2;    
 }
 
 /**
  * EVM tranaction execution trace details
  * Details maps to the variable needed for debugging executions
+  * <p>
+ * Values here map to the historic SideCar in the record stream format.
+ * The following optimizations were made
+ * 1. ContractStateChanges are retired as all state changes are now in the StateChanges
+ * 2. ContractBytecode is retired as initcode is made avialble in the input and runtimebyte code is exposed in changes
+ *   Inner contract creations will have ContractCreate transations whose input and state changes should also expose this
+ *   Q: Are cases of FileID usage covered in the child cases. Can we get creative and refer to the top level FileID and maybe even byte indexes to avoid replication?
  */
 message EVMTraceData {
     /**
@@ -229,9 +258,9 @@ message EVMTraceData {
     bytes ethereum_hash = 2;    
  
     /**
-     * Contract slot values that were read during the execution of the EVM transaction. Assocaited written values will be in state changes
+     * Contract slot values that were read during the execution of the EVM transaction. Associated written values will be in state changes
      */
-    repeated SlotRead read_values = 3;
+    ContractSlotReads contract_slot_reads = 3;
  
     /**
      * Contract runtime bytecode. Corresponding init code can be found in transaction input
