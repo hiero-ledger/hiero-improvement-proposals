@@ -124,9 +124,9 @@ message TransactionOutput {
         ContractCreateOutput contract_create = 2;
 
         /**
-         * Output from an ethereum transaction.
+         * Output from an EVM RLP encoded transaction execution.
          */
-        EthereumOutput ethereum_call = 4;
+        EthereumOutput evm_call = 4;
 
         /**
          * Output from a schedule create transaction that executed

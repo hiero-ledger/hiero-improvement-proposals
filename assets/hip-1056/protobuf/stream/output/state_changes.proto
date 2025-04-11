@@ -805,9 +805,9 @@ message MapChangeValue {
         proto.ScheduleList schedule_list_value = 8;
 
         /**
-         * A set of EVM storage slot values with associated indexes and keys.
+         * An EVM storage slot value.
          */
-        repeated StorageSlot storage_slot_values = 9;
+        proto.SlotValue slot_value_value = 9;
 
         /**
          * An updated set of staking information for all nodes in
