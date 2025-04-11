@@ -599,12 +599,43 @@ message SingletonUpdateChange {
  */
 message MapUpdateChange {
     /**
+    * A boolean flag indicating if the written value was identical to the original state value.
+    * <p>
+    * If this flag is set to true, it indicates that the value being
+    * written to the map is identical to the value that was already
+    * present in the map for the given key. This means that no actual
+    * change has occurred in the state of the map entry, and thus
+    * the state change can be considered a no-op for the purposes of
+    * state updates.
+    * <p>
+    * If this flag is set to false, it indicates that the value being
+    * written to the map is different from the value that was already
+    * present in the map for the given key. In this case, the state
+    * change represent in value represents an actual update to the map entry
+    * <p>
+    * This field is OPTIONAL. If not set, it is assumed to be false.
+    * <p>
+    * Note: This field is useful for optimization purposes, allowing
+    * clients to determine whether an update was necessary or if it
+    * was a no-op. It can help reduce unnecessary state updates and
+    * improve performance in scenarios where many updates are being
+    * made to the same map entry without any actual change in value.
+    * Note: When true a values metadata fields such as properties in
+    * the linked list cases (next and previous) may still see changes
+    * Q: LL is one case but is there a clean way to hihglight for
+    * MapChangeValue what is considered the core value and what is metadata
+    * or is it unique and explicit to the message type?
+    * <p>
+    */
+    bool identical = 1;
+
+    /**
      * A key in a virtual map.
      * <p>
      * This key MUST be mapped to the value added or updated.<br/>
      * This field is REQUIRED.
      */
-    MapChangeKey key = 1;
+    MapChangeKey key = 2;
 
     /**
      * A value in a virtual map.
@@ -615,7 +646,7 @@ message MapUpdateChange {
      * from the prior state.<br/>
      * This field is REQUIRED.
      */
-    MapChangeValue value = 2;
+    MapChangeValue value = 3;
 }
 
 /**
