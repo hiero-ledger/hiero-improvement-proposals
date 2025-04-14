@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: Apache-2.0
+syntax = "proto3";
+
+package org.hiero.block.api;
+
+message BlockContentsProofRequest {}
+
+message BlockContentsProofResponse {}
+
+message StateProofRequest {}
+
+message StateProofResponse {}
+
+/**
+ * Remote procedure calls (RPCs) for the Block Node block contents proof
+ *  and state proof query services.
+ */
+service ProofService {
+  /**
+   * Request a block contents proof for a given block from the block node.
+   */
+  rpc blockContents(BlockContentsProofRequest) returns (BlockContentsProofResponse);
+
+  /**
+   * Request a state proof for a given state item and block from the block node.
+   */
+  rpc state(StateProofRequest) returns (StateProofResponse);
+}
