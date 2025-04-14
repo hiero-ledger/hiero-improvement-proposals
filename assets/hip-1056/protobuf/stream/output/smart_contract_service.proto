@@ -44,9 +44,9 @@ import "contract_call_local.proto";
  */
 message ContractCallOutput {
      /**
-      * A receipt for an Ethereum Transaction execution
+      * Result details for an EVM transaction execution
       */
-     EVMActivity evm_transaction_receipt = 1;
+     EVMTransactionResult evm_transaction_result = 1;
 }
 
 /**
@@ -57,9 +57,9 @@ message ContractCallOutput {
  */
 message ContractCreateOutput {
      /**
-      * A receipt for an Ethereum Transaction execution
+      * Result details for an EVM transaction execution
       */
-     EVMActivity evm_transaction_receipt = 1;
+     EVMTransactionResult evm_transaction_result = 1;
 }
 
 // no evm exec, only modified entity
@@ -104,39 +104,9 @@ message ContractSystemDeleteOutput {}
  */
 message EthereumOutput {
      /**
-      * A receipt for an Ethereum Transaction execution
+      * Result details for an EVM transaction execution
       */
-     EVMActivity evm_transaction_receipt = 1;
-}
-
-/**
- * EVM transaction execution log storage details
- * Details maps to the log object in eth_getTransactionReceipt response without repeating info already available in the input transaction
- *   Q: Is this change needed in the end. i) Changes were COntractID -> address, ii) removal of bloom and iii) addition of log_index
- *   i) and ii) are likely to be reverted and if ii) can't be done then this is essentially ContractLoginfo. ANother option is to use
- *   ContractLoginfo and deprecate bloom if it can be removed.
- */
-message EVMTransactionLog {
-     /**
-      * The address of the contract emitting the log
-      * Q: Should we change this to ContractID as a space saver and parsers have to go pick up the 20 bytesaddress?
-      */
-     string address = 1;
-
-     /**
-      * The sequence index of the log event in this block
-      */
-     int32 log_index = 2;
-
-     /**
-      * The Log data
-      */
-     bytes data = 3;
-
-     /**
-      * The logc topics
-      */
-     repeated bytes topics = 4;
+     EVMTransactionResult evm_transaction_result = 1;
 }
 
 /**
@@ -154,44 +124,28 @@ message EVMTransactionLog {
  *   For inner transactions this shall be in the ContractCall or ContractCreate
  * 6. sender_id is not restated as it can be found and transformed from the RLP transaction
  * 7. ContractID is not restated as it can be found in the RLP transaction or explicitly in the transactionbody input
- * 8. ContractLoginfo is not resused but shrunk into EVMTransactionLog. This may be reverted
  */
-message EVMActivity {
-     /**
-      * A bloom filter produced by this contract call.<br/>
-      * Ethereum uses this bloom filter to search for call results in the
-      * Ethereum block history. High false positive rates make the bloom
-      * filters quite limited value.
-      * Q: should htis be moved to Trace? If this was filtered out would it 
-      * break users of eth_getLogs
-      */
-     bytes bloom = 1;  
-
+message EVMTransactionResult {
      /**
       * Result data from the function call.
       * <p>
       * This SHALL be encoded in RLP bytecode format.
       */
-     bytes contractCallResult = 2;
+     bytes contractCallResult = 1;
 
      /**
       * Any error message produced by the contract call.
       * <p>
       * This SHALL be unset if the contract call succeeded.
       */
-     string errorMessage = 3;
+     string errorMessage = 2;
 
      /**
       * A quantity of "gas" used.<br/>
       * This represents the resource units expended to execute this
       * contract call, and correlates to transaction costs.
       */
-     uint64 gas_used = 4;
-
-     /**
-      * Any Log events produced by this contract call.
-      */
-     repeated EVMTransactionLog logs = 5;
+     uint64 gas_used = 3;
 }
 
 /**
@@ -209,14 +163,16 @@ message ContractSlotReads {
                int32 index = 1;
 
                /**
-               * The key of this contratc storage slot, may be left-padded with zeros to form a 256-bit word.
+               * The key of this contratc storage slot, left padding of 0's by EVM is stripped to save space. 
+               * Indexers should left-pad with zeros to form a 256-bit word.
                * This is populated when the slot was not written and only read
                */
                bytes key = 2;
           }
 
           /**
-          * The storage value in this slot, may be left-padded with zeros to form a 256-bit word.
+           * The storage value in this slot, left padding of 0's by EVM is stripped to save space. 
+           * Indexers should left-pad with zeros to form a 256-bit word.
           */
           bytes read_value = 3;
      }
@@ -233,6 +189,29 @@ message ContractSlotReads {
 }
 
 /**
+ * EVM transaction execution log storage details
+ * Details maps to the log object in eth_getTransactionReceipt response without repeating info already available in the input transaction
+ * Log bloom logic is removed as it may be calculated by block parser for both transactions and block level
+ */
+message EVMTransactionLog {
+     /**
+      * The contract emitting the log. ContractID vs 20 bye address is used to preserve space
+      */
+     ContractID contractID = 1;
+
+     /**
+      * The Log data
+      */
+     bytes data = 2;
+
+     /**
+      * The logc topics left padding of 0's by EVM is stripped to save space. 
+      * Indexers should left-pad with zeros to form a 256-bit word.
+      */
+     repeated bytes topics = 3;
+}
+
+/**
  * EVM tranaction execution trace details
  * Details maps to the variable needed for debugging executions
   * <p>
@@ -242,29 +221,35 @@ message ContractSlotReads {
  * 2. ContractBytecode is retired as initcode is made avialble in the input and runtimebyte code is exposed in changes
  *   Inner contract creations will have ContractCreate transations whose input and state changes should also expose this
  *   Q: Are cases of FileID usage covered in the child cases. Can we get creative and refer to the top level FileID and maybe even byte indexes to avoid replication?
+ * 3. ContractLoginfo is not reused but shrunk into EVMTransactionLog.
+ * 4. ethereum_hash is removed as it may be calculated by block parsers and indexers
  */
-message EVMTraceData {
+message EVMTraceData { 
     /**
-     * The inter contract interaction details. This represents the internal EVM message frames.
+     * Contract init and runtime bytecodes for child contracts that aren't in transaction input or state changes.
+     * There are cases of child transactions where we can expose the input byte code if not found in top level contract.
+     * The EVM opcode operations expose the code in and out so this is exposable.
+     * Q1 - For child transactions confirm it is runtime bytcode that is stored, how is it modified when a FileID is used?
+     * Q2 - Can we replace byteocde refs with FileIDs? Might not scale since FileIDs can be deleted outside of contract.
+     * Q3 - Can MN pick up FileID contents at the time of creation to know init bytecode for top level contracts?
+     * Q4 - Should this be simplified to just contracts and initcode since runtime is always captured in state changes
+     * Q5 - Can we consistently extract child contract init code to top level contract bytecode. For simple cases yes 
+          - gets tricky for impacts of proxy and already deployed, soldiity vs vyper etc
      */
-    repeated ContractAction contract_actions = 1;
+     repeated ContractBytecode child_contract_bytecodes = 1;
 
-    /**
-     * An ethereum transaction hash value.
-     * <p>
-     * This SHALL be a keccak256 hash of the ethereumData that represents the RLP encoded transaction.
-     * Q: should we remove this as parsers can calcualte by encoding the RLPTx in the input block item
-     */
-    bytes ethereum_hash = 2;    
+     /**
+      * The inter contract interaction details. This represents the internal EVM message frames.
+      */
+     repeated ContractAction contract_actions = 2;
  
-    /**
-     * Contract slot values that were read during the execution of the EVM transaction. Associated written values will be in state changes
-     */
-    ContractSlotReads contract_slot_reads = 3;
- 
-    /**
-     * Contract runtime bytecode. Corresponding init code can be found in transaction input
-     * Q: Is this needed? If initicode is in the input then this is only need if runtime is not what is stored in state.
-     */
-    bytes runtime_bytecode = 4;
+     /**
+      * Contract slot values that were read during the execution of the EVM transaction. Associated written values will be in state changes
+      */
+     ContractSlotReads contract_slot_reads = 3;
+
+     /**
+      * Any Log events produced by this contract call.
+      */
+     repeated EVMTransactionLog logs = 4;
 }
