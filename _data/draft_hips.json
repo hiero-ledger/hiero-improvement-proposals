@@ -330,20 +330,48 @@
     "title": "Block Node",
     "number": 1081,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1081",
-    "headRefOid": "cc626085b66d30a20d7d26b4b6aca36a5b5b79b4",
+    "headRefOid": "819da7b87edbd10bd1bc2d9807f2e73e02b11b43",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1081.md",
-            "additions": 641,
+            "additions": 668,
             "deletions": 0
           }
         },
         {
           "node": {
-            "path": "assets/hip-1081/protobuf/block_service.proto",
-            "additions": 998,
+            "path": "assets/hip-1081/protobuf/block_access_service.proto",
+            "additions": 163,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1081/protobuf/block_stream_service.proto",
+            "additions": 585,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1081/protobuf/proof_service.proto",
+            "additions": 28,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1081/protobuf/reconnect_service.proto",
+            "additions": 18,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1081/protobuf/state_service.proto",
+            "additions": 128,
             "deletions": 0
           }
         }
@@ -500,13 +528,13 @@
     "title": "HIP-1056: Block Streams",
     "number": 1056,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1056",
-    "headRefOid": "5e49ad5fee2b7e38d83c22ac69b7278f3eba9d56",
+    "headRefOid": "2b2937fff2ab6a6ef8c7f123445985801bafa20b",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1056.md",
-            "additions": 1866,
+            "additions": 1865,
             "deletions": 0
           }
         },
