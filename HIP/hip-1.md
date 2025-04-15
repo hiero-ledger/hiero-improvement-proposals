@@ -46,7 +46,7 @@ There are three kinds of HIP:
 
 ### Hiero Technical Steering Committee
 
-The Hiero Technical Steering Committee (Hiero TSC) is the body that makes final decisions on whether or not to Accept or Reject Standards Track HIPs pertaining to Hiero’s core or service layers. The Council is also responsible for decisions regarding the technical governance of the open-source codebase donated by Hedera.
+The Hiero Technical Steering Committee (Hiero TSC) is the body that makes final decisions on whether or not to Accept or Reject Standards Track HIPs pertaining to Hiero’s core or service layers. The Committee is also responsible for decisions regarding the technical governance of the open-source codebase donated by Hedera.
 
 ### Core Developers
 
@@ -82,9 +82,9 @@ This repository inherits security practices requiring the Developer Certificate 
 
 When the HIP author believes the proposal is complete, they may request content review from the core developers and editors. A HIP must be clear and complete, presenting a net positive improvement.
 
-A HIP may be marked **Last Call** to gather final user feedback before acceptance. At the end of the Last Call period, if no substantive changes are needed, editors mark the HIP as **Accepted** (or the Council might ultimately mark it as **Rejected**).
+A HIP may be marked **Last Call** to gather final user feedback before acceptance. At the end of the Last Call period, if no substantive changes are needed, editors mark the HIP as **Accepted** (or the Committee might ultimately mark it as **Rejected**).
 
-- **Accepted** means the Council believes it is ready to proceed.  
+- **Accepted** means the Committee believes it is ready to proceed.  
 - **Final** means the reference implementation has been completed and merged, and the proposal is fully realized in code.
 
 Alternatively, a HIP can be:
@@ -112,10 +112,10 @@ The possible paths of the status of HIPs are as follows:
 - **Deferred** – Under consideration for future implementation, not immediate.  
 - **Withdrawn** – Author has withdrawn the HIP.  
 - **Stagnant** – Inactive for 6+ months while in Draft or Review.  
-- **Rejected** – Declined by consensus or Council.  
+- **Rejected** – Declined by consensus or Hiero TSC.  
 - **Last Call** – Final comment period before acceptance.  
-- **Hiero Review** – Official review by the Hiero Council.  
-- **Accepted** – Council has voted yes; ready for implementation.  
+- **Hiero Review** – Official review by the Hiero TSC.  
+- **Accepted** – Hiero TSC has voted yes; ready for implementation.  
 - **Final** – Implementation completed and recognized as the standard.  
 - **Active** – Some Informational or Process HIPs that are ongoing.  
 - **Replaced** – Rendered obsolete by a newer HIP.
@@ -175,7 +175,7 @@ type: <Standards Track | Informational | Process>
 category: <Core | Service | Mirror | Application> (if Standards Track)
 needs-hiero-review: <Yes | No>
 needs-hedera-approval: <Yes | No>
-status: <Draft | Review | Last Call | Council Review | Accepted | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced>
+status: <Draft | Review | Last Call | Accepted | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced>
 created: <date in yyyy-mm-dd format>
 last-call-date-time: <optional, set by editor for last call end>
 discussions-to: <URL for official discussion thread>
