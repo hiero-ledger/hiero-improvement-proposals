@@ -180,7 +180,7 @@ message ContractSlotReads {
      /**
       * The contract assocaited with the storage slots this slot belongs to.
       */
-     ContractID contractID = 1;
+     ContractID contract_id = 1;
 
      /**
       * The storage slots that were read in this EVM exectuion. They may or may not have assocaited slot writes
@@ -197,7 +197,7 @@ message EVMTransactionLog {
      /**
       * The contract emitting the log. ContractID vs 20 bye address is used to preserve space
       */
-     ContractID contractID = 1;
+     ContractID contract_id = 1;
 
      /**
       * The Log data
@@ -224,7 +224,7 @@ message ContractInitByteCode {
      /**
       * The contract whose init byte code is described
       */
-     ContractID contractID = 1;
+     ContractID contract_id = 1;
 
      /**
       * The bytecode that predeces and deploys the runtime bytecode in a contracts deployment
@@ -276,7 +276,7 @@ message EVMTraceData {
      /**
       * Contract slot values that were read during the execution of the EVM transaction. Associated written values will be in state changes
       */
-     ContractSlotReads contract_slot_reads = 3;
+     repeated ContractSlotReads contract_slot_reads = 3;
 
      /**
       * Any error message produced by the contract call.
