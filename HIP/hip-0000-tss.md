@@ -94,8 +94,8 @@ provides the API of the `HintsLibrary` and `HistoryLibrary` interfaces in the re
 implementation in [4]. 
 
 Readers interested in thoroughly understanding the reference implementation should refer to 
-its design documentation ([5]). Readers interested in the deeper details of the cryptography 
-should consult [1].
+its [design documentation](https://github.com/hiero-ledger/hiero-consensus-node/blob/main/hedera-node/docs/exact-weight-tss.md). 
+Readers interested in the deeper details of the cryptography should consult [1].
 
 ### Schnorr proof keys and the address book chain of trust
 
@@ -111,7 +111,7 @@ voted for that membership change.
 
 We propose a recursive proof mechanism that uses a zero-knowledge succinct non-interactive
 argument of knowledge (zk-SNARK) based on honest nodes contributing signatures to address book
-changes using Schnorr keys they gossip to the network via a message as below.
+changes using Schnorr keys they gossip the public parts of to the network.
 ```
 message HistoryProofKeyPublicationTransactionBody {
   /**
@@ -237,27 +237,45 @@ message ProofKey {
 
 Block node and mirror node developers will be mostly interested in just the
 `HistoryProofConstruction#source_proof` and `HistoryProofConstruction#target_proof` 
-fields of these singletons. The latter field is set only when the honest nodes 
-reach consensus on a particular zk-SNARK. The message in the `target_proof` field 
-will contain the zk-SNARK in its `HistoryProof#proof` field; and just as important,
-will contain in its `HistoryProof#target_history` message the address book metadata 
-that was bound in the `History#metadata` field. (Recall this metadata is the crucial 
-bridge to the hinTS signing scheme for the same roster.)
+fields of these singletons. The `target_proof` is set only when the honest nodes 
+reach consensus on the zk-SNARK for a particular construction. The message in the 
+`target_proof` field contains the zk-SNARK itself in its `HistoryProof#proof` field; 
+and just as importantly, contains in its `HistoryProof#target_history` field the 
+address book metadata that was bound as part of the zk-SNARK, in the 
+`History#metadata` field. 
 
-For more details on the reference implementation, please consult [4] and [5].
+This metadata is the bridge between the address book chain of trust and the hinTS 
+signing scheme actually used to create TSS signatures, as we see next.
+
+### hinTS BLS keys and TSS signatures
+
+When confronted with a new candidate address book (or the genesis address book),
+the honest nodes must work together to construct the hinTS scheme for that address
+book. The first step is once again to gossip the public parts of the BLS keys they
+have generated for their individual use.
+```
+message HintsKeyPublicationTransactionBody {
+  ...
+  /**
+   * The party's hinTS key.
+   */
+  bytes hints_key = 3;
+}
+```
 
 
 ## Backwards Compatibility
-Because we propose to enable hinTS signatures in tandem with the block stream as in
+Because we propose to enable hinTS TSS in tandem with the block stream detailed in
 [HIP-1056](https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1056), this
-proposal will simply be one more part of that sharp and permanent discontinuity in
-the Hiero protocol.
+change will be one just more part of a sharp and permanent discontinuity in the Hiero 
+protocol. (It is conceivable that Hedera will ultimately publish TSS block proofs for 
+all historical mainnet blocks; but that is not in the scope of this HIP.)
 
 ## Security Implications
-The attack surface for forging hinTS signatures is essentially the same as already 
+The attack surface for forging hinTS signatures is essentially the same as already
 exists with the V6 record stream today. If an attacker can steal the private keys of
-nodes that hold at least 1/3 of the stake weight, they can forge network signatures 
-on arbitrary blocks (whether that means listing RSA signatures or aggregating BLS 
+nodes that hold at least 1/3 of the stake weight, they can forge network signatures
+on arbitrary blocks (whether that means listing RSA signatures or aggregating BLS
 signatures). Node operators must therefore remain vigilant and follow best practices
 to ensure the physical and cyber security of their machines.
 
