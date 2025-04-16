@@ -1,9 +1,29 @@
 [
   {
+    "title": "The hinTS threshold signature scheme",
+    "number": 1183,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1183",
+    "headRefOid": "73b0189cc54364ee65384fedc532253e5c76b490",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-tss.md",
+            "additions": 315,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tinker-michaelj"
+    }
+  },
+  {
     "title": "Recreate hip-851.md",
     "number": 1182,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1182",
-    "headRefOid": "c3ade43a864539ebf50fedc99273937f4fb1f83d",
+    "headRefOid": "52fa4cfe17c347b4e0aa146e020aefdb7d163149",
     "files": {
       "edges": [
         {
@@ -11,26 +31,6 @@
             "path": "HIP/hip-851.md",
             "additions": 217,
             "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "mgarbs"
-    }
-  },
-  {
-    "title": "Update hip-1.md to replace Council with Hiero TSC",
-    "number": 1180,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1180",
-    "headRefOid": "ccde78bb3733ad7cda53aa086998fc66fa09f192",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1.md",
-            "additions": 8,
-            "deletions": 8
           }
         }
       ]
@@ -63,14 +63,14 @@
     "title": "HIP 1056: Add 8 leaf merkle tree and Trace Data improvements",
     "number": 1173,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1173",
-    "headRefOid": "769989d35c33dc3df66e27eaea157d52d4c14431",
+    "headRefOid": "998b7110c5aa5f0c6470a39fd68ce6a764c156df",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1056.md",
-            "additions": 145,
-            "deletions": 88
+            "additions": 234,
+            "deletions": 100
           }
         },
         {
@@ -96,6 +96,13 @@
         },
         {
           "node": {
+            "path": "assets/hip-1056/protobuf/stream/block_proof.proto",
+            "additions": 15,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
             "path": "assets/hip-1056/protobuf/stream/output/crypto_service.proto",
             "additions": 15,
             "deletions": 32
@@ -104,7 +111,7 @@
         {
           "node": {
             "path": "assets/hip-1056/protobuf/stream/output/smart_contract_service.proto",
-            "additions": 151,
+            "additions": 188,
             "deletions": 57
           }
         },
