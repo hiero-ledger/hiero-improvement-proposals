@@ -131,14 +131,14 @@ message EVMTransactionResult {
       * <p>
       * This SHALL be encoded in RLP bytecode format.
       */
-     bytes contractCallResult = 1;
+     bytes contract_call_result = 1;
 
      /**
-      * Any error message produced by the contract call.
+      * Any error message produced by the contract call. Max size of 100 bytes
       * <p>
       * This SHALL be unset if the contract call succeeded.
       */
-     string errorMessage = 2;
+     string error_message = 2;
 
      /**
       * A quantity of "gas" used.<br/>
@@ -212,6 +212,44 @@ message EVMTransactionLog {
 }
 
 /**
+ * The init bytecode components for child contracts created as part of the contract execution.
+ * init_bytecode = deploy_bytecode + runtime_byteode + metadata_bytecode
+ * <p>
+ * The EVM opcode operations expose the code input and output during a contract creation.
+ * The consensus node logic should be able to pick up the diff in initbyte and runtime to define the deploy and
+ * metadata bytecode.
+ * Indexers would be able to build the full bytecode by combinining ContractInitByteCode with contract runtime bytecode
+ */
+message ContractInitByteCode {
+     /**
+      * The contract whose init byte code is described
+      */
+     ContractID contractID = 1;
+
+     /**
+      * The bytecode that predeces and deploys the runtime bytecode in a contracts deployment
+      * <p>
+      * This bytecode should end in the first occurent of f3fe (RETURN & INVALID) opcodes in the init bytecode
+      */
+     bytes deploy_bytecode = 2;
+
+     /**
+      * The bytecode that follows the runtime bytecode (found in contract state) in a contracts deployment.
+      * <p>
+      * This bytecode may be present depending on the compiler utilized or the nature of child contract creations
+      */
+     bytes metadata_bytecode = 2;
+
+     /**
+      * The bytecode that defines a deployed contracts logic. 
+      * <p>
+      * This bytecode is usually found in state but in some
+      * scenarios it may be necessary to expose it when missing from state e.g. SELFDESTRUCT
+      */
+     bytes runtime_bytecode = 2;
+}
+
+/**
  * EVM tranaction execution trace details
  * Details maps to the variable needed for debugging executions
   * <p>
@@ -226,17 +264,9 @@ message EVMTransactionLog {
  */
 message EVMTraceData { 
     /**
-     * Contract init and runtime bytecodes for child contracts that aren't in transaction input or state changes.
-     * There are cases of child transactions where we can expose the input byte code if not found in top level contract.
-     * The EVM opcode operations expose the code in and out so this is exposable.
-     * Q1 - For child transactions confirm it is runtime bytcode that is stored, how is it modified when a FileID is used?
-     * Q2 - Can we replace byteocde refs with FileIDs? Might not scale since FileIDs can be deleted outside of contract.
-     * Q3 - Can MN pick up FileID contents at the time of creation to know init bytecode for top level contracts?
-     * Q4 - Should this be simplified to just contracts and initcode since runtime is always captured in state changes
-     * Q5 - Can we consistently extract child contract init code to top level contract bytecode. For simple cases yes 
-          - gets tricky for impacts of proxy and already deployed, soldiity vs vyper etc
+     * The init bytecode components for child contracts created as part of the contract execution.
      */
-     repeated ContractBytecode child_contract_bytecodes = 1;
+     repeated ContractInitByteCode child_init_bytecodes = 1;
 
      /**
       * The inter contract interaction details. This represents the internal EVM message frames.
@@ -249,7 +279,14 @@ message EVMTraceData {
      ContractSlotReads contract_slot_reads = 3;
 
      /**
+      * Any error message produced by the contract call.
+      * <p>
+      * This SHALL be unset if the contract call succeeded.
+      */
+     string full_error_message = 4;
+
+     /**
       * Any Log events produced by this contract call.
       */
-     repeated EVMTransactionLog logs = 4;
+     repeated EVMTransactionLog logs = 5;
 }
