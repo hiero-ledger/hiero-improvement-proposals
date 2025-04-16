@@ -1,5 +1,45 @@
 [
   {
+    "title": "Recreate hip-851.md",
+    "number": 1182,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1182",
+    "headRefOid": "c3ade43a864539ebf50fedc99273937f4fb1f83d",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-851.md",
+            "additions": 217,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "Update hip-1.md to replace Council with Hiero TSC",
+    "number": 1180,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1180",
+    "headRefOid": "ccde78bb3733ad7cda53aa086998fc66fa09f192",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1.md",
+            "additions": 8,
+            "deletions": 8
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
     "title": "Generalized Schedule Contract Call",
     "number": 1179,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1179",
@@ -330,13 +370,13 @@
     "title": "Block Node",
     "number": 1081,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1081",
-    "headRefOid": "819da7b87edbd10bd1bc2d9807f2e73e02b11b43",
+    "headRefOid": "f2b3a35760de1b9e6105445636edee23356014e4",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1081.md",
-            "additions": 668,
+            "additions": 664,
             "deletions": 0
           }
         },
