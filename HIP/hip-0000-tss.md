@@ -138,6 +138,18 @@ address book hash and the zk-SNARK verification key.
 ledgerId = <genesisAddressBookHash>||<zkSnarkVerificationKey>
 ```
 
+In the reference implementation, as soon as the ledger id is computed, it is set in a singleton
+with the State API key `HistoryService.LEDGER_ID` with `StateIdentifier` ordinal
+[`42`](https://github.com/hiero-ledger/hiero-consensus-node/blob/main/hapi/hedera-protobuf-java-api/src/main/proto/block/stream/output/state_changes.proto#L420).
+This singleton has the simple type,
+```
+message ProtoBytes {
+    bytes value = 1;
+}
+```
+Any block stream consumer that wants to validate signatures should keep the value of this
+singleton readily available, since it is an ingredient in every chain-of-trust proof.
+
 The honest nodes in the network prove this ledger id---and every subsequent address book 
 change---by first using a deterministic policy to determine the hash of the target address 
 book, then gossiping their Schnorr signatures on the hash of that address book. The honest 
@@ -235,9 +247,9 @@ message ProofKey {
 }
 ```
 
-Block node and mirror node developers will be mostly interested in just the
+Block node and mirror node developers will likely be interested in only the
 `HistoryProofConstruction#source_proof` and `HistoryProofConstruction#target_proof` 
-fields of these singletons. The `target_proof` is set only when the honest nodes 
+fields of these singletons. The `target_proof` is set exactly when the honest nodes
 reach consensus on the zk-SNARK for a particular construction. The message in the 
 `target_proof` field contains the zk-SNARK itself in its `HistoryProof#proof` field; 
 and just as importantly, contains in its `HistoryProof#target_history` field the 
@@ -249,10 +261,10 @@ signing scheme actually used to create TSS signatures, as we see next.
 
 ### hinTS BLS keys and TSS signatures
 
-When confronted with a new candidate address book (or the genesis address book),
-the honest nodes must work together to construct the hinTS scheme for that address
-book. The first step is once again to gossip the public parts of the BLS keys they
-have generated for their individual use.
+When faced with a new candidate address book (or the genesis address book), the honest
+nodes in the network must work together to construct the hinTS scheme for that address
+book. The first step is to gossip a special, cryptographically "extended" forms of the
+public BLS keys they have generated for their individual use.
 ```
 message HintsKeyPublicationTransactionBody {
   ...
@@ -263,13 +275,162 @@ message HintsKeyPublicationTransactionBody {
 }
 ```
 
+Unlike simple BLS keys, these extended hinTS keys have information that can be
+**preprocessed** into an aggregated **verification key**. Given a verification key
+`VK` that aggregates the extended variants of a set of BLS keys `{ k_1, k_2, ..., k_n }`,
+the hinTS scheme lets us replace (1) a linear-size list of partial signatures
+`{ s_1, s_2, ... s_n }` that verify under the respective keys; with (2) a single
+aggregate BLS signature `S` that verifies under `VK`.
+
+The honest nodes use a deterministic policy to choose which of the published hinTS
+keys they will aggregate into the verification key for the target address book, then
+gossip a vote on the resulting preprocessing output. The honest nodes adopt the `VK`
+from the preprocessing output that receives votes from at least a third of the stake
+weight in the source address book for the construction.
+
+The reference implementation keeps the state of the two latest hinTS constructions in
+singleton states. Their State API keys are,
+- `HintsService.ACTIVE_HINT_CONSTRUCTION`
+- `HintsService.NEXT_HINT_CONSTRUCTION`
+
+(**Important:** The reference implementation does have `HINT` not `HINTS` here; a typo
+that cannot be trivially changed now.)
+
+The `StateIdentifier` ordinals for these singletons are [`38` and `39`](https://github.com/hiero-ledger/hiero-consensus-node/blob/main/hapi/hedera-protobuf-java-api/src/main/proto/block/stream/output/state_changes.proto#L400), respectively. These singletons have the following type,
+```
+message HintsConstruction {
+  /**
+   * The id of the construction.
+   */
+  uint64 construction_id = 1;
+  /**
+   * The hash of the roster whose weights are used to determine when
+   * the >=1/3 weight signing threshold is reached.
+   */
+  bytes source_roster_hash = 2;
+  /**
+   * The hash of the roster whose weights are used to determine when
+   * the >2/3 weight availability threshold is reached.
+   */
+  bytes target_roster_hash = 3;
+
+  oneof preprocessing_state {
+    ...
+    /**
+     * If set, the completed hinTS scheme.
+     */
+    HintsScheme hints_scheme = 6;
+  }
+}
+```
+
+Where the key elements of a `HintsScheme` are,
+```
+message HintsScheme {
+  /**
+   * The aggregation and verification keys for the scheme.
+   */
+  PreprocessedKeys preprocessed_keys = 1;
+  ...
+}
+
+message PreprocessedKeys {
+  /**
+   * The aggregation key for the hinTS scheme
+   */
+  bytes aggregation_key = 1;
+  /**
+   * The succinct verification key for the hinTS scheme.
+   */
+  bytes verification_key = 2;
+}
+```
+
+Block node and mirror node developers will most likely be concerned with keeping a
+history of the achieved `PreprocessedKeys#verification_key` fields. Specifically,
+a map from the `HintsConstruction#construction_id` values of the completed
+constructions to their finalized `PreprocessedKeys#verification_key` fields.
+
+### Verifying `BlockProof`s as a stream consumer
+
+In the preceding sections we said that block node and mirror node developers will likely
+want to store three kinds of block stream "historical context" to simplify verification
+of the `BlockProof` signatures.
+1. The ledger id.
+2. The chain-of-trust metadata values from completed `HistoryProofConstruction`s, along
+with the source and target `HistoryProof`s in the same construction.
+3. A map from the ids of completed `HintsConstruction`s to their verification keys.
+
+Stream consumers that only care about verifying the latest `BlockProof`s can also limit
+their context to just the most recent `ACTIVE` and `NEXT` singletons in categories
+(2) and (3).
+
+In any case, now detail the exact steps needed to verify a `BlockProof` for a block whose
+root hash is known. The relevant fields from the `BlockProof` message are below.
+```
+message BlockProof {
+    ...
+    /**
+     * A TSS signature for one block.<br/>
+     * ...
+     */
+    bytes block_signature = 4;
+
+    /**
+     * A set of hash values along with ordering information.<br/>
+     * This list of hash values form the set of sibling hash values needed to
+     * correctly reconstruct the parent hash, and all hash values "above" that
+     * hash in the merkle tree.
+     * <p>
+     * A Block proof can be constructed by combining the sibling hashes for
+     * a previous block hash and sibling hashes for each entry "above" that
+     * node in the merkle tree of a block proof that incorporates that previous
+     * block hash. This form of block proof may be used to prove a chain of
+     * blocks when one or more older blocks is missing the original block
+     * proof that signed the block's merkle root directly.
+     * ...
+     */
+    repeated MerkleSiblingHash sibling_hashes = 5;
+
+    oneof verification_reference {
+        /**
+         * The id of the hinTS scheme this signature verifies under.
+         */
+        uint64 scheme_id = 6;
+        ...
+    }
+}
+```
+
+_Step 1: Locate the verification key._
+The `BlockProof#scheme_id` field identifies the `HintsConstruction` singleton that the
+honest nodes used to construct the hinTS scheme used to sign this block. The verification
+key is in the `HintsConstruction#hints_scheme` field of this singleton; specifically,
+in the  scheme's `HintsScheme#preprocessed_keys` field, the verification key is the
+`PreprocessedKeys#verification_key` field. Call this key `VK`.
+
+_Step 2: Recover and check the chain-of-trust proof for this verification key._
+Except for a special case when the network first bebegins signing with TSS, the honest nodes
+will never use a verification key they have not already published a chain-of-trust proof
+for. That is, for each `VK` used to sign, the block stream must already include a
+`HistoryProofConstruction` whose `HistoryProofConstruction#target_proof` is a `HistoryProof`
+with `HistoryProof#target_history` satisfying `History#metadata == VK`. This proof must
+verify under a library like `HistoryLibrary` in the reference implementation.
+
+_Step 3: Verify the aggregate hinTS signature under `VK`._
+Suppose the block root hash is known to be `H`; and call our `BlockProof#block_signature`
+field `S`. Then using a library like `HintsLibrary` in the reference implementation, assert
+the hinTS signature verifies at a 1/3 threshold.
+```
+HintsLibrary.verifyAggregate(S, H, VK, 1, 3)
+```
 
 ## Backwards Compatibility
 Because we propose to enable hinTS TSS in tandem with the block stream detailed in
 [HIP-1056](https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1056), this
 change will be one just more part of a sharp and permanent discontinuity in the Hiero 
-protocol. (It is conceivable that Hedera will ultimately publish TSS block proofs for 
-all historical mainnet blocks; but that is not in the scope of this HIP.)
+protocol. (Hedera may choose to publish TSS block proofs for all historical mainnet
+blocks; but that is not part of the scope of this HIP.)
 
 ## Security Implications
 The attack surface for forging hinTS signatures is essentially the same as already
@@ -308,7 +469,9 @@ Setup*. Cryptology ePrint Archive, Paper 2023/567. Retrieved from [https://eprin
 3. [HIP-1056: Block Streams](https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1056)
 4. [Hiero consensus node](https://github.com/hiero-ledger/hiero-consensus-node) 
 5. [Reference implementation design doc](https://github.com/hiero-ledger/hiero-consensus-node/blob/main/hedera-node/docs/exact-weight-tss.md)
-6. [zk-SNARK construction ordinals](https://github.com/hiero-ledger/hiero-consensus-node/blob/main/hapi/hedera-protobuf-java-api/src/main/proto/block/stream/output/state_changes.proto#L430)
+6. [zk-SNARK construction state change ordinals](https://github.com/hiero-ledger/hiero-consensus-node/blob/main/hapi/hedera-protobuf-java-api/src/main/proto/block/stream/output/state_changes.proto#L430)
+7. [hinTS construction state change ordinals](https://github.com/hiero-ledger/hiero-consensus-node/blob/main/hapi/hedera-protobuf-java-api/src/main/proto/block/stream/output/state_changes.proto#L400)
+8. [Ledger id state change ordinal](https://github.com/hiero-ledger/hiero-consensus-node/blob/main/hapi/hedera-protobuf-java-api/src/main/proto/block/stream/output/state_changes.proto#L420).
 
 ## Copyright/license
 This document is licensed under the Apache License, Version 2.0 —
