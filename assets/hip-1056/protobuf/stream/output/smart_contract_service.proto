@@ -212,8 +212,9 @@ message EVMTransactionLog {
 }
 
 /**
- * The init bytecode components for child contracts created as part of the contract execution.
+ * The init bytecode component for this child contracts created as part of the contract execution.
  * init_bytecode = deploy_bytecode + runtime_byteode + metadata_bytecode
+ * The ContrctID will be found in the state changes for the corecposing 
  * <p>
  * The EVM opcode operations expose the code input and output during a contract creation.
  * The consensus node logic should be able to pick up the diff in initbyte and runtime to define the deploy and
@@ -222,23 +223,18 @@ message EVMTransactionLog {
  */
 message ContractInitByteCode {
      /**
-      * The contract whose init byte code is described
-      */
-     ContractID contract_id = 1;
-
-     /**
       * The bytecode that predeces and deploys the runtime bytecode in a contracts deployment
       * <p>
       * This bytecode should end in the first occurent of f3fe (RETURN & INVALID) opcodes in the init bytecode
       */
-     bytes deploy_bytecode = 2;
+     google.protobuf.BytesValue deploy_bytecode = 1;
 
      /**
       * The bytecode that follows the runtime bytecode (found in contract state) in a contracts deployment.
       * <p>
       * This bytecode may be present depending on the compiler utilized or the nature of child contract creations
       */
-     bytes metadata_bytecode = 2;
+     google.protobuf.BytesValue metadata_bytecode = 2;
 
      /**
       * The bytecode that defines a deployed contracts logic. 
@@ -246,7 +242,7 @@ message ContractInitByteCode {
       * This bytecode is usually found in state but in some
       * scenarios it may be necessary to expose it when missing from state e.g. SELFDESTRUCT
       */
-     bytes runtime_bytecode = 2;
+     google.protobuf.BytesValue runtime_bytecode = 3;
 }
 
 /**
@@ -263,10 +259,10 @@ message ContractInitByteCode {
  * 4. ethereum_hash is removed as it may be calculated by block parsers and indexers
  */
 message EVMTraceData { 
-    /**
-     * The init bytecode components for child contracts created as part of the contract execution.
-     */
-     repeated ContractInitByteCode child_init_bytecodes = 1;
+     /**
+      * The init bytecode components for child contracts created as part of the contract execution.
+      */
+     ContractInitByteCode init_bytecodes = 1;
 
      /**
       * The inter contract interaction details. This represents the internal EVM message frames.
