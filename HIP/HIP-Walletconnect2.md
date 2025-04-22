@@ -112,33 +112,7 @@ No changes from [Hip-820](https://raw.githubusercontent.com/hiero-ledger/hiero-i
 
 ### hedera_getNodeAddresses
 
-While constructing a transaction for transmission to a controller, a dApp needs to choose which Hedera Network node shall receive the transaction prior to signing (this is a requirement of the Hedera API Protocol).  
-While a dApp can easily obtain a list of potential Hedera Nodes, a controller may not have an all-inclusive list nor a path to the node’s gRPC endpoint.  
-The `hedera_getNodeAddresses` method allows a dApp to request a list of node wallet addresses known to the controller.  
-The controller should only include nodes in this list that it is willing and able to submit transactions to at the time of the request.
-
-#### Parameters
-
-This method requires no input parameters. The [CAIP-217](https://chainagnostic.org/CAIPs/caip-217) Scope property of the RPC call shall be used to identify which network shall be assumed when obtaining the list of known network nodes.
-
-#### Returns
-
-`nodes` – an array of strings formatted in the `<shard>.<realm>.<num>` format identifying a Hedera Node AccountId.  The controller should only return known nodes that it can communicate with to submit transactions.
-
-as well as (for backwards compatibility)
-
-`nodesAndIp` - a list of IP addresses and ports, indexed by `<shard>.<realm>.<num>` format identifying a Hedera Node AccountId.  The controller should only return known nodes that it can communicate with to submit transactions.
-
-for example, such that the application is able to construct a client with the appropriate list of `node_account_ids` and IP addresses:
-
-```
-nodesAndIp: {
-    "35.155.212.90:50211": "0.0.34",
-    "217.76.57.165:50211": "0.0.31",
-    "34.107.78.179:50211": "0.0.31",
-    "3.77.94.254:50211": "0.0.31"
-}
-```
+No changes from [Hip-820](https://raw.githubusercontent.com/hiero-ledger/hiero-improvement-proposals/refs/heads/main/HIP/hip-820.md)
 
 ## Backwards Compatibility
 
