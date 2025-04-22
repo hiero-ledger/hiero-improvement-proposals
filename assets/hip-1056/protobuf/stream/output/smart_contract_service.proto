@@ -248,7 +248,7 @@ message EVMTraceData {
      /**
       * The init bytecode components for child contracts created as part of the contract execution.
       */
-     ContractInitByteCode init_bytecodes = 1;
+     ContractInitByteCode init_bytecode = 1;
 
      /**
       * The inter contract interaction details. This represents the internal EVM message frames.
