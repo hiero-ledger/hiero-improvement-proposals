@@ -9,10 +9,10 @@ needs-council-approval: No
 needs-hiero-review: No
 needs-hedera-approval: No
 status: draft
-last-call-date-time: 
+last-call-date-time:
 created: 2025-04-17
-discussions-to: 
-updated: 
+discussions-to:
+updated:
 requires: [820](https://github.com/hiero-ledger/hiero-improvement-proposals/blob/main/HIP/hip-820.md)
 replaces: [820](https://github.com/hiero-ledger/hiero-improvement-proposals/blob/main/HIP/hip-820.md)
 ---
@@ -39,7 +39,7 @@ Indeed an SDK `Transaction` is a complex object which contains an array of `Tran
 
 A small portion of transaction fees are paid to the node handling receiving and checking the transaction prior to submitting to consensus, it is necessary to ensure that the signature for the transaction includes the `node_account_id` in order to approve this payment.
 
-Sending a transaction which `TransactionBody` specifies `node_account_id` 0.0.3 to node 0.0.4 will result in an `INVALID_NODE_ACCOUNT_ID` failure given node 0.0.4 will not be paid for handling this transaction. 
+Sending a transaction which `TransactionBody` specifies `node_account_id` 0.0.3 to node 0.0.4 will result in an `INVALID_NODE_ACCOUNT_ID` failure given node 0.0.4 will not be paid for handling this transaction.
 
 This HIP aims to correct the first implementation to more faithfully adhere to the SDK's network handling capabilities.
 
@@ -57,13 +57,13 @@ Note that if an application wishes to enforce a specific `node_account_id` is us
 - As a key-owner (account/wallet owner) I want to utilize any dApp of my choosing with any wallet or key-signing tool of my choosing to participate in multi-party, multi-signature transactions when and where required.
 - As a wallet or dApp developer, I wish to leverage the Wallet Connect libraries provided by Wallet Connect with the Hedera SDK or tooling of my choosing.  I require that the protocol be SDK and programming language agnostic.
 - As a dApp developer, I want to be able to leverage the SDK's capabilities for handling unavailable nodes.
-  
+
 ## Specification
 
 Portions of a specification required to implement a Wallet Connect 2.0 protocol for the Hedera Network already exist.  The accepted HIP-30, CAIP Identifiers for the Hedera Network, ratifies the format for identifying hedera networks and addresses.  It includes definitions for the Chain Agnostic Standards Alliance profiles 2, 10 and 19 for the Hedera Network, to summarize:
 
 > The `hedera` namespace will be used for CAIP blockchain identifiers. There will be 4 distinct references: `mainnet`, `testnet`, `previewnet`, and `devnet`…. `hedera:devnet` refers to any non-shared developer local network.
-> 
+>
 > The account address is the standard account identifier format. Each of realm, shard, and account ID separated with a ~~dash~~ [period] (`.`). The format of the realm, shard, and account ID are unsigned integer in decimal representation…
 
 The identifiers described above shall be used during the Wallet Connect 2.0 pairing session negotiation to identify the hedera ledgers and accounts that will participate in transaction signing and submission to the Hedera network.  
@@ -84,7 +84,7 @@ Note: In the event this feature is used to collect signatures in a multi-sig sce
 
 #### Parameters
 
-`transactionList` – a base64 encoding of the Hedera SDK's Transaction bytes `transaction.toBytes()`. 
+`transactionList` – a base64 encoding of the Hedera SDK's Transaction bytes `transaction.toBytes()`.
 
 `signerAccountId` – an Hedera Account identifier in [HIP-30](https://hips.hedera.com/hip/hip-30) (`<nework>:<shard>.<realm>.<num>-<optional-checksum>`) form.  
 This value identifies the account (and therefore associated key set) that the dApp is requesting to sign the transaction.  
@@ -93,7 +93,7 @@ The controller (wallet) may choose to reject the request based on the identified
 
 #### Returns
 
-`signedTransaction`: a base64 encoding of the Hedera SDK's Transaction bytes `transaction.toBytes()` 
+`signedTransaction`: a base64 encoding of the Hedera SDK's Transaction bytes `transaction.toBytes()`
 
 `publicKey`: a base64 encoding of the public key used to sign the transactions. The application will need this in order to add the newly provided signatures to an existing transaction.
 
@@ -133,15 +133,15 @@ No changes from [Hip-820](https://raw.githubusercontent.com/hiero-ledger/hiero-i
 
 ## Backwards Compatibility
 
-There are changes to the existing protocol for Hedera's implementation of wallet connect. 
+There are changes to the existing protocol for Hedera's implementation of wallet connect.
 
 Old applications will continue to work with newer wallets.
 Applications using `hedera_signTransactions` introduced in this improvement proposal will not work with wallets that have not yet implemented support for this feature.
 
 ## Security Implications
 
-Wallet Connect 2.0 has been designed with a strong emphasis on security. 
-Its architecture has undergone extensive peer review and has been adopted by numerous blockchain platforms. 
+Wallet Connect 2.0 has been designed with a strong emphasis on security.
+Its architecture has undergone extensive peer review and has been adopted by numerous blockchain platforms.
 By leveraging this protocol, Hedera can ensure that the foundational communication between wallets and dApps is secure.  
 The protocol implements end-to-end encryption between dApps and wallets.  
 It employs a QR code-based pairing system ensuring the communication channel is established directly between the user’s wallet and the dApp.  
