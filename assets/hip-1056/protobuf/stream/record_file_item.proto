@@ -15,21 +15,7 @@ syntax = "proto3";
 
 package com.hedera.hapi.block.stream;
 
-/*
- * Copyright (C) 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// SPDX-License-Identifier: Apache-2.0
 
 option java_package = "com.hedera.hapi.block.stream.protoc";
 // <<<pbj.java_package = "com.hedera.hapi.block.stream">>> This comment is special code for setting PBJ Compiler java package
@@ -82,11 +68,29 @@ message RecordFileItem {
      * The contents of sidecar files for this block.<br/>
      * Each block can have zero or more sidecar files.
      */
-    repeated SidecarFile sidecar_file = 3;
+    repeated proto.SidecarFile sidecar_file_contents = 3;
 
     /**
      * A collection of RSA signatures from consensus nodes.<br/>
      * These signatures validate the hash of the record_file_contents field.
      */
-    repeated bytes record_file_hash_signatures = 4;
+    repeated RecordFileSignature record_file_signatures = 4;
+}
+
+/**
+ * A signature by a node on the SHA384 hash of the record file.
+ */
+message RecordFileSignature {
+    /**
+     * A single RSA signature.<br/>
+     * This is the RSA signature of the node on the SHA384 hash of
+     * the record file
+     */
+    bytes signatures_bytes = 1;
+
+    /**
+     * A unique node identifier.<br/>
+     * This is the node id of the consensus node that created this signature.
+     */
+    int32 node_id = 2;
 }

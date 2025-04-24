@@ -23,21 +23,7 @@ syntax = "proto3";
 
 package com.hedera.hapi.block.stream;
 
-/*
- * Copyright (C) 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// SPDX-License-Identifier: Apache-2.0
 
 option java_package = "com.hedera.hapi.block.stream.protoc";
 // <<<pbj.java_package = "com.hedera.hapi.block.stream">>> This comment is special code for setting PBJ Compiler java package
@@ -50,6 +36,7 @@ import "stream/input/event_metadata.proto";
 import "stream/input/round_header.proto";
 import "stream/output/block_header.proto";
 import "stream/output/state_changes.proto";
+import "stream/output/smart_contract_service.proto";
 import "stream/output/transaction_output.proto";
 import "stream/output/transaction_result.proto";
 
@@ -96,8 +83,50 @@ import "stream/output/transaction_result.proto";
  * Items to be hashed MUST NOT be contained within another item.<br/>
  * Items which might be filtered out of the stream MUST NOT be
  * contained in other items.
+ *
+ * ### Forward Compatibility
+ * In order to maximize forward compatibility, and minimize the need to
+ * coordinate deployments of different systems creating and processing
+ * block streams in the future, the following rules SHALL be followed
+ * for field numbering in this message.
+ * - The first 15 field numbers SHALL be assigned to the fields present
+ *   in the first release. Unused fields in this range SHALL remain reserved
+ *   until needed for additional options that do not fit into "input" or
+ *   "output" categories.
+ * - Fields numbered 16 and above MUST be numbered as follows.
+ *    - "input" items MUST use `odd` field numbers.
+ *    - "output" items MUST use `even` field numbers.
+ *
+ * #### Forward Compatibility Example
+ * A future update adding three new items. A "BlockTrailer" item which is
+ * neither input nor output, a new "ConsensusTransform" which is an input,
+ * and a new "BridgeTransform" which is an output.
+ * - The "BlockTrailer" is field 12, which is removed from the `reserved` list.
+ * - The "ConsensusTransform" is an input, so it is field `17` (the first unused
+ *   `odd` field greater than or equal to 16).
+ * - The "BridgeTransform" is an output, so it is field `16` (the first unused
+ *   even field greater than or equal to 16).
+ *
+ * #### Initial Field assignment to "input", "output", and "other" categories.
+ * - Inputs
+ *    - `event_header`
+ *    - `round_header`
+ *    - `event_transaction`
+ * - Outputs
+ *    - `block_header`
+ *    - `transaction_result`
+ *    - `transaction_output`
+ *    - `state_changes`
+ * - Any subtree (depending on what was filtered).
+ *   This item details it's path in the tree.
+ *    - `filtered_item_hash`
+ * - Neither input nor output (and not part of the "proof" merkle tree)
+ *    - `block_proof`
+ *    - `record_file`
  */
 message BlockItem {
+    // Reserved for future items that are neither "input" nor "output".
+    reserved 12,13,14,15;
     oneof item {
         /**
          * An header for the block, marking the start of a new block.
@@ -210,6 +239,11 @@ message BlockItem {
          * </ul>
          */
         RecordFileItem record_file = 10;
+
+        /**
+         * Trace data.
+         */
+        TraceData trace_data = 11;
     }
 }
 
@@ -258,5 +292,9 @@ message FilteredItemHash {
     uint64 log2_item_count = 3;
 }
 
-
-
+message TraceData {
+    /**
+     * The EVM trace data.
+     */
+    EVMTraceData evm_trace_data = 1;
+}
