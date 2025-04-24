@@ -18,21 +18,7 @@ syntax = "proto3";
 
 package com.hedera.hapi.block.stream.output;
 
-/*
- * Copyright (C) 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// SPDX-License-Identifier: Apache-2.0
 
 option java_package = "com.hedera.hapi.block.stream.output.protoc";
 // <<<pbj.java_package = "com.hedera.hapi.block.stream.output">>> This comment is special code for setting PBJ Compiler java package
@@ -582,6 +568,33 @@ message SingletonUpdateChange {
          * A change to the roster state singleton.
          */
         com.hedera.hapi.node.state.roster.RosterState roster_state_value = 13;
+
+        /**
+         * A change to a hinTS construction singleton.
+         */
+        com.hedera.hapi.node.state.hints.HintsConstruction hints_construction_value = 14;
+
+        /**
+         * A change to the Entity counts singleton.
+         */
+        com.hedera.hapi.node.state.entity.EntityCounts entity_counts_value = 15;
+
+        /**
+         * A change to a hinTS construction singleton.
+         */
+        com.hedera.hapi.node.state.history.HistoryProofConstruction history_proof_construction_value = 16;
+
+        /**
+         * A change to the CRS State singleton.
+         */
+        com.hedera.hapi.node.state.hints.CRSState crs_state_value = 17;
+
+        /**
+         * A change to the node rewards singleton.
+         * <p>
+         * Node rewards SHALL be updated for every non-empty block.
+         */
+        proto.NodeRewards node_rewards_value = 18;
     }
 }
 
@@ -599,12 +612,43 @@ message SingletonUpdateChange {
  */
 message MapUpdateChange {
     /**
+    * A boolean flag indicating if the written value was identical to the original state value.
+    * <p>
+    * If this flag is set to true, it indicates that the value being
+    * written to the map is identical to the value that was already
+    * present in the map for the given key. This means that no actual
+    * change has occurred in the state of the map entry, and thus
+    * the state change can be considered a no-op for the purposes of
+    * state updates.
+    * <p>
+    * If this flag is set to false, it indicates that the value being
+    * written to the map is different from the value that was already
+    * present in the map for the given key. In this case, the state
+    * change represent in value represents an actual update to the map entry
+    * <p>
+    * This field is OPTIONAL. If not set, it is assumed to be false.
+    * <p>
+    * Note: This field is useful for optimization purposes, allowing
+    * clients to determine whether an update was necessary or if it
+    * was a no-op. It can help reduce unnecessary state updates and
+    * improve performance in scenarios where many updates are being
+    * made to the same map entry without any actual change in value.
+    * Note: When true a values metadata fields such as properties in
+    * the linked list cases (next and previous) may still see changes
+    * Q: LL is one case but is there a clean way to hihglight for
+    * MapChangeValue what is considered the core value and what is metadata
+    * or is it unique and explicit to the message type?
+    * <p>
+    */
+    bool identical = 1;
+
+    /**
      * A key in a virtual map.
      * <p>
      * This key MUST be mapped to the value added or updated.<br/>
      * This field is REQUIRED.
      */
-    MapChangeKey key = 1;
+    MapChangeKey key = 2;
 
     /**
      * A value in a virtual map.
@@ -615,7 +659,7 @@ message MapUpdateChange {
      * from the prior state.<br/>
      * This field is REQUIRED.
      */
-    MapChangeValue value = 2;
+    MapChangeValue value = 3;
 }
 
 /**
@@ -711,6 +755,51 @@ message MapChangeKey {
          * A change to a virtual map keyed by pending airdrop id identifier.
          */
         proto.PendingAirdropId pending_airdrop_id_key = 14;
+
+        /**
+         * An exact date and time,  with a resolution of one second
+         */
+        proto.TimestampSeconds timestamp_seconds_key = 15;
+
+        /**
+         * An ordering key mapped to a particular schedule.<br/>
+         * This identifies the order in which long term scheduled transactions
+         * that are requested to execute in the same consensus second will
+         * be executed. The value will be the `ScheduleID` for the schedule
+         * to be executed at a particular consensus second and order within
+         * that second.
+         */
+        proto.ScheduledOrder scheduled_order_key = 16;
+
+        /**
+         * A TSS Message Map Key key.
+         */
+        com.hedera.hapi.node.state.tss.TssMessageMapKey tss_message_map_key = 17;
+
+        /**
+         * A TSS Message Map Key key.
+         */
+        com.hedera.hapi.node.state.tss.TssVoteMapKey tss_vote_map_key = 18;
+
+        /**
+         * A hinTS party id key.
+         */
+        com.hedera.hapi.node.state.hints.HintsPartyId hints_party_id_key = 19;
+
+        /**
+         * A hinTS preprocessing vote id key.
+         */
+        com.hedera.hapi.node.state.hints.PreprocessingVoteId preprocessing_vote_id_key = 20;
+
+        /**
+         * An unscoped node id key.
+         */
+        com.hedera.hapi.platform.state.NodeId node_id_key = 21;
+
+        /**
+         * A construction-scoped node id key.
+         */
+        com.hedera.hapi.node.state.history.ConstructionNodeId construction_node_id_key = 22;
     }
 }
 
@@ -825,6 +914,56 @@ message MapChangeValue {
          * A scheduled id value.
          */
         proto.ScheduleID schedule_id_value = 18;
+
+        /**
+         * A change to the scheduled throttle usage snapshots.
+         */
+        proto.ThrottleUsageSnapshots throttle_usage_snapshots_value = 19;
+
+        /**
+         * The value of a map that stores tss encryption keys for each node.
+         */
+        com.hedera.hapi.node.state.tss.TssEncryptionKeys tss_encryption_keys_value = 20;
+
+        /**
+         * The value of a map that stores tss messages submitted for each share of nodes.
+         */
+        com.hedera.hapi.services.auxiliary.tss.TssMessageTransactionBody tss_message_value = 21;
+
+        /**
+         * The value of a map that stores tss votes submitted by each node to recover the ledger id.
+         */
+        com.hedera.hapi.services.auxiliary.tss.TssVoteTransactionBody tss_vote_value = 22;
+
+        /**
+         * A hinTS key set.
+         */
+        com.hedera.hapi.node.state.hints.HintsKeySet hints_key_set_value = 23;
+
+        /**
+         * A hinTS preprocessing vote.
+         */
+        com.hedera.hapi.node.state.hints.PreprocessingVote preprocessing_vote_value = 24;
+
+        /**
+         * A CRS publication submission.
+         */
+        com.hedera.hapi.services.auxiliary.hints.CrsPublicationTransactionBody crs_publication_value = 25;
+
+        /**
+         * A history signature.
+         */
+        com.hedera.hapi.node.state.history.RecordedHistorySignature history_signature_value = 26;
+
+        /**
+         * A history proof vote.
+         */
+        com.hedera.hapi.node.state.history.HistoryProofVote history_proof_vote_value = 27;
+
+        /**
+         * A proof key set.
+         */
+        com.hedera.hapi.node.state.history.ProofKeySet proof_key_set_value = 28;
     }
 }
 
