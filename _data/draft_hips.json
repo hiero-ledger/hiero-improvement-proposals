@@ -1,5 +1,25 @@
 [
   {
+    "title": "Update MAINTAINERS.md",
+    "number": 1188,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1188",
+    "headRefOid": "12090dbff7185dc442cdfa72f10dcaa55dea86bf",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "MAINTAINERS.md",
+            "additions": 5,
+            "deletions": 3
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "hendrikebbers"
+    }
+  },
+  {
     "title": "Update hip-1086 with Batch transactions limitations",
     "number": 1184,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1184",
