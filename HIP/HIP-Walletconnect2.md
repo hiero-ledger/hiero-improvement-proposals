@@ -63,7 +63,7 @@ Note that if an application wishes to enforce a specific `node_account_id` is us
 Portions of a specification required to implement a Wallet Connect 2.0 protocol for the Hedera Network already exist.  The accepted HIP-30, CAIP Identifiers for the Hedera Network, ratifies the format for identifying hedera networks and addresses.  It includes definitions for the Chain Agnostic Standards Alliance profiles 2, 10 and 19 for the Hedera Network, to summarize:
 
 > The `hedera` namespace will be used for CAIP blockchain identifiers. There will be 4 distinct references: `mainnet`, `testnet`, `previewnet`, and `devnet`…. `hedera:devnet` refers to any non-shared developer local network.
->
+
 > The account address is the standard account identifier format. Each of realm, shard, and account ID separated with a ~~dash~~ [period] (`.`). The format of the realm, shard, and account ID are unsigned integer in decimal representation…
 
 The identifiers described above shall be used during the Wallet Connect 2.0 pairing session negotiation to identify the hedera ledgers and accounts that will participate in transaction signing and submission to the Hedera network.  
