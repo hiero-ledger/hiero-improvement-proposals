@@ -6,6 +6,8 @@ working-group: TBD
 type: Standards Track
 category: Application
 needs-council-approval: No
+needs-hiero-review: No
+needs-hedera-approval: No
 status: draft
 last-call-date-time: 
 created: 2025-04-17
@@ -82,7 +84,7 @@ Note: In the event this feature is used to collect signatures in a multi-sig sce
 
 #### Parameters
 
-`transactionList` – a base64 encoding of the protobuf of the Hedera SDK [`TransactionList`](https://github.com/hashgraph/hedera-protobufs/blob/f36e05bd6bf3f572707ca9bb338f5ad6421a4241/sdk/transaction_list.proto#L17) message. 
+`transactionList` – a base64 encoding of the Hedera SDK's Transaction bytes `transaction.toBytes()`. 
 
 `signerAccountId` – an Hedera Account identifier in [HIP-30](https://hips.hedera.com/hip/hip-30) (`<nework>:<shard>.<realm>.<num>-<optional-checksum>`) form.  
 This value identifies the account (and therefore associated key set) that the dApp is requesting to sign the transaction.  
@@ -91,7 +93,7 @@ The controller (wallet) may choose to reject the request based on the identified
 
 #### Returns
 
-`signedTransaction`: a base64 encoding of the protobuf of the Hedera SDK [`TransactionList`](https://github.com/hashgraph/hedera-protobufs/blob/f36e05bd6bf3f572707ca9bb338f5ad6421a4241/sdk/transaction_list.proto#L17) message. 
+`signedTransaction`: a base64 encoding of the Hedera SDK's Transaction bytes `transaction.toBytes()` 
 
 `publicKey`: a base64 encoding of the public key used to sign the transactions. The application will need this in order to add the newly provided signatures to an existing transaction.
 
@@ -100,20 +102,13 @@ The controller (wallet) may choose to reject the request based on the identified
 The application having created and submitted a `transaction` object, and got `signedTransaction` and `publicKey` as a response can add the new signatures to the `transaction` as follows:
 
 ```javascript
-    // figure out the public key
-    let _publicKey: PublicKey
-    try {
-        _publicKey = PublicKey.fromBytesECDSA(base64StringToUint8Array(publicKey))
-    } catch {
-        try {
-            _publicKey = PublicKey.fromBytesED25519(base64StringToUint8Array(publicKey))
-        } catch {
-            throw `Invalid public key: ${publicKey}`
-        }
-    }
-    // add the newly acquired signatures to the transaction we created
-    transaction.addSignature(_publicKey, signedTransaction.getSignatures())
+    // create a transaction with the SDK
+    // request that transaction is signed via wallet connect
+    // returns a response called result
 
+    const publicKey = result.publicKey
+    const signedTransaction = result.transaction
+    transaction.addSignature(publicKey, signedTransaction.getSignatures())
 ```
 
 ### hedera_signAndExecuteTransaction
@@ -159,7 +154,7 @@ Additionally, it might be useful to create reference implementations in various 
 
 ## Reference Implementation
 
-No reference implementation presently exists, however there are some non-conforming prototypes presently under development.
+The [hedera-wallet-connect repository](https://github.com/hashgraph/hedera-wallet-connect) contains sample code and demos that serves as a reference implementation.
 
 ## Rejected Ideas
 
