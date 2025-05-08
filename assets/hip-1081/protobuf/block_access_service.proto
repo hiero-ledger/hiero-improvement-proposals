@@ -132,22 +132,13 @@ enum BlockResponseCode {
 
   /**
    * The request for a verified block cannot be fulfilled.<br/>
-   * The client requested a verified block from a block node that does not
-   * offer verified blocks.
-   * <p>
-   * The client MAY retry the request with the `allow_unverified` flag set.
-   */
-  ALLOW_UNVERIFIED_REQUIRED = 5;
-
-  /**
-   * The request for a verified block cannot be fulfilled.<br/>
    * The client requested a verified block from a block node but the
    * requested block is not yet verified.
    * <p>
    * The client MAY retry the request after a short delay
    * (typically 2 seconds or more).
    */
-  VERIFIED_BLOCK_UNAVAILABLE = 6;
+  VERIFIED_BLOCK_UNAVAILABLE = 5;
 }
 
 /**
