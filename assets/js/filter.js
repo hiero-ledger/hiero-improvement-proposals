@@ -49,9 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function filterRows() {
-        let selectedTypes = $('#type-filter').val();
-        if (!selectedTypes || selectedTypes.length === 0) {
-            selectedTypes = $('#type-filter option').map(function() { return this.value }).get();
+        let selectedCategoriesForFilter = $('#type-filter').val();
+        if (!selectedCategoriesForFilter || selectedCategoriesForFilter.length === 0) {
+            // If no categories are selected in the filter, treat all categories as selected (i.e., don't filter by category)
         }
 
         const selectedStatuses = statusSelect.val().length > 0 ? statusSelect.val() : ['all'];
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let anyRowVisible = false;
         document.querySelectorAll('.hipstable tbody tr').forEach(row => {
-            const rowTypes = [row.getAttribute('data-type').trim().toLowerCase(), row.getAttribute('data-category').trim().toLowerCase()];
+            const rowCategories = row.getAttribute('data-category').trim().toLowerCase().split(',').map(cat => cat.trim()).filter(cat => cat !== '');
             const rowStatus = row.getAttribute('data-status').trim().toLowerCase();
             
             const rowHederaReview = row.getAttribute('data-hedera-review') === 'true' || 
@@ -68,14 +68,17 @@ document.addEventListener('DOMContentLoaded', () => {
                                    
             const rowHieroReview = row.getAttribute('data-hiero-review') || 'false'; 
 
-            const typeCategoryMatch = selectedTypes.some(type => rowTypes.includes(type));
+            let categoryMatch = true; // Default to true, meaning no category filter applied or matches
+            if (selectedCategoriesForFilter && selectedCategoriesForFilter.length > 0) {
+                // Apply category filter only if categories are selected
+                categoryMatch = selectedCategoriesForFilter.every(selCat => rowCategories.includes(selCat));
+            }
+            
             const statusMatch = selectedStatuses.includes('all') || selectedStatuses.includes(rowStatus);
-            
             const hederaReviewMatch = selectedHederaReview === 'all' || selectedHederaReview === rowHederaReview;
-            
             const hieroReviewMatch = selectedHieroReview === 'all' || selectedHieroReview === rowHieroReview;
 
-            if (typeCategoryMatch && statusMatch && hederaReviewMatch && hieroReviewMatch) {
+            if (categoryMatch && statusMatch && hederaReviewMatch && hieroReviewMatch) {
                 row.style.display = '';
                 anyRowVisible = true;
             } else {
