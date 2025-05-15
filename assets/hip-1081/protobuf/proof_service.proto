@@ -7,8 +7,8 @@ option java_package = "org.hiero.block.api.protoc";
 // <<<pbj.java_package = "org.hiero.block.api">>> This comment is special code for setting PBJ Compiler java package
 option java_multiple_files = true;
 
-import "stream/block_item.proto";
-import "stream/block_proof.proto";
+import "block/stream/block_item.proto";
+import "block/stream/block_proof.proto";
 
 /**
  * A request to obtain the proof for block item within a block.

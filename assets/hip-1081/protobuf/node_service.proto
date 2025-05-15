@@ -7,7 +7,7 @@ option java_package = "org.hiero.block.api.protoc";
 // <<<pbj.java_package = "org.hiero.block.api">>> This comment is special code for setting PBJ Compiler java package
 option java_multiple_files = true;
 
-import "basic_types.proto";
+import "services/basic_types.proto";
 
 /**
  * A request for the status of a Block-Node.
