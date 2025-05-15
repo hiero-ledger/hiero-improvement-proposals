@@ -383,3 +383,52 @@ service BlockStreamPublishService {
      */
     rpc publishBlockStream (stream PublishStreamRequest) returns (stream PublishStreamResponse);
 }
+
+
+message BlockRequest {
+  oneof block_id {
+    /**
+     * The block number of a block to retrieve.
+     */
+    uint64 block_number = 1;
+
+    /**
+     * A flag to request the latest available block.
+     */
+     bool retrieve_latest = 3;
+  }
+  
+  /**
+   * The block number of a block to retrieve.
+   * <p>
+   * The requested block MUST exist on the block node.<br/>
+   * This value MUST NOT be set if `retrieve_latest` is set `true`.<br/>
+   * This value MUST be set to a valid block number if `retrieve_latest` is
+   * unset or is set `false`.
+   */
+  uint64 block_number = 1;
+
+  /**
+   * A flag to indicate that the requested block may be sent without
+   * verifying its `BlockProof`.<br/>
+   * This might be set by a client that expects to perform its own
+   * verification and wishes lower latency or, potentially, lower cost.
+   * <p>
+   * If this value is set, then the responding Block Node MAY respond with a
+   * block that has not completed verification of its `BlockProof`.<br/>
+   * If this is _not_ set then the Block Node MUST respond with either a
+   * fully verified and validated block, or `VERIFIED_BLOCK_UNAVAILABLE` if
+   * the requested block is not yet verified.<br/>
+   * The default value is _not set_.
+   */
+  bool allow_unverified = 2;
+
+  /**
+   * A flag to request the latest available block.
+   * <p>
+   * This value MAY be set `true` to request the last block available.<br/>
+   * If this value is set to `true` then `block_number` MUST NOT be set and
+   * SHALL be ignored.
+   */
+  bool retrieve_latest = 3;
+}
