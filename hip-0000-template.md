@@ -47,7 +47,7 @@ improvement, or tool will be used by the end user. Template for a user story:
 ## Specification
 The technical specification should describe the syntax and semantics of any new
 features. The specification should be detailed enough to allow competing,
-interoperable implementations for at least the current Hiero ecosystem.
+interoperable implementations for at least the current Hiero ecosystem. Details can include the low level design, and API/Protobuf definition. 
 
 Some specifications are of exceptional size. If your HIP requires detail of
 this level, add the large segments of specification as files of the appropriate
@@ -70,6 +70,12 @@ Define a new `TokenAirdrop` transaction body. This transaction distributes
 tokens from the balance of one or more sending account(s) to the balance of
 one or more recipient accounts. The full definition, for clarity, is detailed
 in [an attached file](assets/hip-0000-template/sample.proto).
+
+### Impact on Mirror Node
+Describe impacts, if any, on the Hiero Mirror node.
+
+### Impact on SDK
+Describe Impacts, if any, on the Heiro SDKs
 
 ## Backwards Compatibility
 All HIPs that introduce backward incompatibilities must include a section
