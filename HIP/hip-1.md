@@ -4,7 +4,7 @@ title: Hiero Improvement Proposal Process
 author: Ken Anderson (@kenthejr), Serg Metelin (@sergmetelin), Simi Hunjan (@SimiHunjan), Michael Garber (@mgarbs)
 type: Process
 needs-hiero-approval: Yes
-needs-hedera-review: No # Process HIPs generally don't need Hedera review
+needs-hedera-review: No
 status: Active
 created: 2021-02-11
 last-call-date-time: 2025-06-01T07:00:00Z
