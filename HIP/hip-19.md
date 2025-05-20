@@ -7,7 +7,7 @@ category: Application
 needs-council-approval: No
 status: Final
 created: 2021-06-07
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/101 
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/101 
 updated: 2023-04-03
 ---
 

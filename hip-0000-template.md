@@ -6,10 +6,13 @@ working-group: <List of the technical and business stakeholders' names and/or us
 requested-by: <Name(s) and/or username(s), or name(s) and email(s) of the individual(s) or project(s) requesting the HIP. Ex: Acme Corp <request@acmecorp.com>>
 type: <"Standards Track" | "Informational" | "Process">
 category: <"Core" | "Service" | "Mirror" | "Application">
-needs-council-approval: <"Yes" | "No">
+needs-hedera-review: <"Yes" | "No">
+hedera-review-date: <Date of Hedera's review in YYYY-MM-DD format>
+hedera-approval-status: <"Approved" | "Rejected">
+needs-hiero-approval: <"Yes" | "No">
 status: <"Draft" | "Review" | "Last Call" | "Active" | "Inactive" | "Deferred" | "Rejected" | "Withdrawn" | "Accepted" | "Final" | "Replaced">
 created: <Date the HIP was created on, in YYYY-MM-DD format>
-discussions-to: <A URL pointing to the official discussion thread. Ex: https://github.com/hashgraph/hedera-improvement-proposal/discussions/000>
+discussions-to: <A URL pointing to the official discussion thread. Ex: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/000>
 updated: <Latest date HIP was updated, in YYYY-MM-DD format.>
 requires: <HIP number(s) this HIP depends on, if applicable. Ex: 101, 102>
 replaces: <HIP number(s) this HIP replaces, if applicable. Ex: 99>
@@ -22,7 +25,7 @@ Please provide a short (~200 word) description of the issue being addressed.
 This abstract should be copied to the description for your pull request.
 
 ## Motivation
-The motivation is critical for HIPs that want to change the Hedera codebase or
+The motivation is critical for HIPs that want to change the Hiero codebase or
 ecosystem. It should clearly explain why the existing specification is
 inadequate to address the problem that the HIP solves. HIP submissions without
 sufficient motivation may be rejected outright.
@@ -30,34 +33,32 @@ sufficient motivation may be rejected outright.
 ## Rationale
 The rationale fleshes out the specification by describing why particular design
 decisions were made. It should describe alternate designs that were considered
-and related work, e.g. how the feature is supported in other languages.
+and related work, e.g. how the feature is supported in other ecosystems.
 
 The rationale should provide evidence of consensus within the community and
 discuss important objections or concerns raised during the discussion.
 
 ## User stories
 Provide a list of "user stories" to express how this feature, functionality,
-improvement, or tool will be used by the end user. Template for user story:
-“As (user persona), I want (to perform this action) so that (I can accomplish
-this goal).”
+improvement, or tool will be used by the end user. Template for a user story:
+> “As (user persona), I want (to perform this action) so that (I can accomplish
+> this goal).”
 
 ## Specification
 The technical specification should describe the syntax and semantics of any new
 features. The specification should be detailed enough to allow competing,
-interoperable implementations for at least the current Hedera ecosystem.
+interoperable implementations for at least the current Hiero ecosystem.
 
-Some specifications are of exceptional (thousands of lines) size. If your HIP
-requires detail of this level, add the large segments of specification as
-files of appropriate type (e.g. Solidity code, Protocol Buffer definition,
-Java code, etc...) in the `assets` folder, and add descriptive links
-to each such file here.
+Some specifications are of exceptional size. If your HIP requires detail of
+this level, add the large segments of specification as files of the appropriate
+type (e.g. Solidity code, Protocol Buffer definition, Java code, etc.) in the
+`assets` folder, and include descriptive links to each file here.
+
 ### Example Specification
-<blockquote>
+Add a new `TokenAirdrop` transaction to `HieroFunctionality`:
 
-Add a new `TokenAirdrop` transaction to `HederaFunctionality`. 
 ```protobuf
-enum HederaFunctionality {
-//  ...
+enum HieroFunctionality {
     /**
      * Airdrops one or more tokens to one or more accounts.
      */
@@ -65,19 +66,10 @@ enum HederaFunctionality {
 }
 ```
 
-Define a new `TokenAirdrop` transaction body.  This transaction distributes
+Define a new `TokenAirdrop` transaction body. This transaction distributes
 tokens from the balance of one or more sending account(s) to the balance of
-one or more recipient accounts. Accounts MAY receive the tokens in one of
-four ways. The full definition, for clarity, is detailed
+one or more recipient accounts. The full definition, for clarity, is detailed
 in [an attached file](assets/hip-0000-template/sample.proto).
-
-</blockquote>
-
-Some HIP specifications are not well served by this mechanism.  In these cases
-the HIP MAY initially specify a public github commit or PR, and the HIP
-administrator may work with the authors to define an alternative method to
-include an appropriate snapshot of the specification content on
-a case-by-case basis.
 
 ## Backwards Compatibility
 All HIPs that introduce backward incompatibilities must include a section
@@ -96,29 +88,22 @@ apply the HIP to their work.
 
 ## Reference Implementation
 The reference implementation must be complete before any HIP is given the status
-of “Final”. The final implementation must include test code and documentation.
+of “Final.” The final implementation must include test code and documentation.
 
 ## Rejected Ideas
-Throughout the discussion of a HIP, various ideas will be proposed which are not
+Throughout the discussion of a HIP, various ideas will be proposed that are not
 accepted. Those rejected ideas should be recorded along with the reasoning as to
-why they were rejected. This both helps record the thought process behind the
-final version of the HIP as well as preventing people from bringing up the same
-rejected idea again in subsequent discussions.
-
-In a way, this section can be thought of as a breakout section of the Rationale
-section that focuses specifically on why certain ideas were not ultimately
-pursued.
+why they were rejected. This helps document the thought process behind the final
+version of the HIP and prevents people from revisiting the same rejections later.
 
 ## Open Issues
-While a HIP is in draft, ideas can come up which warrant further discussion.
-Those ideas should be recorded so people know that they are being thought about
-but do not have a concrete resolution. This helps make sure all issues required
-for the HIP to be ready for consideration are complete and reduces people
-duplicating prior discussions.
+While a HIP is in draft, new ideas may arise that warrant further discussion.
+List them here so everyone knows they are under consideration but not yet
+resolved. This reduces duplication in future discussions.
 
 ## References
-A collections of URLs used as references through the HIP.
+A collection of URLs used as references throughout the HIP.
 
 ## Copyright/license
-This document is licensed under the Apache License, Version 2.0 --
-see [LICENSE](../LICENSE) or (https://www.apache.org/licenses/LICENSE-2.0)
+This document is licensed under the Apache License, Version 2.0 —
+see [LICENSE](../LICENSE) or <https://www.apache.org/licenses/LICENSE-2.0>.

@@ -10,7 +10,7 @@ last-call-date-time: 2021-11-30T07:00:00Z
 release: v0.22.0
 created: 2021-10-19
 updated: 2022-04-26
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/159
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/159
 ---
 
 ## **Abstract**
@@ -26,7 +26,7 @@ Since you can request account infos from multiple different networks you can't t
 
 ## **Rationale**
 
-To solve this issue, we think it would make sense for all enitity info responses to include a `ledger_id` field. Please reference [HIP-198](https://github.com/hashgraph/hedera-improvement-proposal/blob/master/HIP/hip-198.md) for the latest information regarding ledger IDs.
+To solve this issue, we think it would make sense for all enitity info responses to include a `ledger_id` field. Please reference [HIP-198](https://github.com/hiero-ledger/hiero-improvement-proposals/blob/main/HIP/hip-198.md) for the latest information regarding ledger IDs.
 
 ## **User Stories**
 As a developer I want to know which network the entity info response came from when the response information is written to a file that is then shared with other users of the application.
@@ -573,4 +573,4 @@ N/A
 
 ## **Copyright/license**
 
-This document is licensed under the Apache License, Version 2.0 -- see [LICENSE](https://github.com/hashgraph/hedera-improvement-proposal/LICENSE) or ([https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0))
+This document is licensed under the Apache License, Version 2.0 -- see [LICENSE](https://github.com/hiero-ledger/hiero-improvement-proposals/LICENSE) or ([https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0))

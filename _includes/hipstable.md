@@ -8,6 +8,7 @@
             <option value="application">Application</option>
             <option value="informational">Informational</option>
             <option value="process">Process</option>
+            <option value="block node">Block Node</option> {# Added Block Node #}
         </select>
     </div>
     
@@ -17,7 +18,6 @@
             <option value="draft">Draft</option>
             <option value="review">Review</option>
             <option value="last call">Last Call</option>
-            <option value="council review">Council Review</option>
             <option value="accepted">Accepted</option>
             <option value="rejected">Rejected</option>
             <option value="final">Final</option>
@@ -28,16 +28,26 @@
             <option value="withdrawn">Withdrawn</option>
         </select>
     </div>
-    
     <div class="filter-group">
-        <h4>Council Approval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
+        <h4>Hiero Review&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
         <label>
-            <input type="radio" name="council-approval-filter" class="council-filter" value="true"> Yes
+            <input type="radio" name="hiero-review-filter" class="hiero-filter" value="true"> Yes
         </label>
         <label>
-            <input type="radio" name="council-approval-filter" class="council-filter" value="false"> No
+            <input type="radio" name="hiero-review-filter" class="hiero-filter" value="false"> No
         </label>
     </div>
+    
+    <div class="filter-group">
+        <h4>Hedera Review&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
+        <label>
+            <input type="radio" name="hedera-review-filter" class="hedera-filter" value="true"> Yes
+        </label>
+        <label>
+            <input type="radio" name="hedera-review-filter" class="hedera-filter" value="false"> No
+        </label>
+    </div>
+    
 </div>
 
 <div class="no-hips-message" style="display: none;">
@@ -52,7 +62,8 @@
             <th class="numeric">Number</th>
             <th>Title</th>
             <th>Author</th>
-            <th>Needs Council Approval</th>
+            <th>Needs Hiero Review</th>
+            <th>Needs Hedera Review</th>
         </tr>
     </thead>
     <tbody class="draft-tbody"></tbody>
@@ -60,8 +71,9 @@
 
 <!-- Then render the rest of the statuses -->
 {% for status in site.data.statuses %}
-    {% assign hips = include.hips | where: "status", status | where: "category", category | where: "type", type | sort: "hip" | reverse %}
-    {% assign count = hips.size %}
+    {% comment %} Filter HIPS by the current status from site.data.statuses {% endcomment %}
+    {% assign status_hips = include.hips | where_exp: "item", "item.status == status" | sort: "hip" | reverse %}
+    {% assign count = status_hips.size %}
     {% if count > 0 %}
         <h2 id="{{ status | slugify }}">
             {{ status | capitalize }} 
@@ -74,7 +86,8 @@
                     <th class="numeric">Number</th>
                     <th>Title</th>
                     <th>Author</th>
-                    <th>Needs Council Approval</th>
+                    <th>Needs Hiero Review</th>
+                    <th>Needs Hedera Review</th>
                     {% if status == "Last Call" %}
                         <th>Review Period Ends</th>
                     {% else %}
@@ -83,11 +96,14 @@
                 </tr>
             </thead>
             <tbody>
-                {% for page in hips %}
+                {% for page in status_hips %}
                     <tr data-type="{{ page.type | downcase }}"
-                        data-category="{{ page.category | downcase }}"
+                        data-category="{{ page.category | join: ', ' | downcase }}" {# Ensure multi-category is comma-separated string #}
                         data-status="{{ page.status | downcase }}"
-                        data-council-approval="{{ page.needs-council-approval | downcase }}">
+                        data-hedera-review="{{ page.needs-hedera-approval | default: page.needs-council-approval | default: false | downcase }}"
+                        data-council-review="{{ page.needs-council-approval | default: false | downcase }}"
+                        data-hedera-review-date="{{ page.hedera-review-date }}"
+                        data-hiero-review="{{ page.needs-hiero-review | downcase }}">
                         
                         <td class="hip-number">
                             <a href="{{ page.url | relative_url }}">{{ page.hip | xml_escape }}</a>
@@ -101,8 +117,16 @@
                             {% include authorslist.html authors=page.author %}
                         </td>
                         
-                        <td class="council-approval">
-                            {% if page.needs-council-approval %}
+                        <td class="hiero-review">
+                            {% if page.needs-hiero-review %}
+                                Yes
+                            {% else %}
+                                No
+                            {% endif %}
+                        </td>
+                        
+                        <td class="hedera-review">
+                            {% if page.needs-hedera-approval or page.needs-council-approval %}
                                 Yes
                             {% else %}
                                 No
@@ -116,7 +140,7 @@
                         {% else %}
                             {% if page.category == "Mirror" %}
                                 <td class="release">
-                                    <a href="https://github.com/hashgraph/hedera-mirror-node/releases/tag/{{page.release}}">
+                                    <a href="https://github.com/hiero-ledger/hiero-mirror-node/releases/tag/{{page.release}}">
                                         {{page.release|xml_escape}}
                                     </a>
                                 </td>

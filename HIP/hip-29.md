@@ -6,7 +6,7 @@ type: Standards Track
 category: Application
 needs-council-approval: No
 status: Final
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/166
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/166
 created: 2021-10-11
 updated: 2021-10-11
 ---

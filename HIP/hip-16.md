@@ -7,7 +7,7 @@ category: Service
 needs-council-approval: Yes
 status: Final
 created: 2021-03-29
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/64
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/64
 updated: 2021-05-12
 ---
 
@@ -55,9 +55,9 @@ An expired entity will still have a grace period before it is removed. During th
 
 If an entity was marked as deleted, then it cannot have its expiration time extended. Neither an update transaction nor an auto-renew will be able to extend it. It can only be deleted by a `delete` transaction, and the transaction will only succeed if it contained no hbars or tokens.
 
-Hedera Services will generate an [autorenewal-record](https://github.com/hashgraph/hedera-services/blob/master/docs/autorenew-feature.md#autorenewal-record)
+Hedera Services will generate an [autorenewal-record](https://github.com/hashgraph/hedera-services/blob/main/docs/autorenew-feature.md#autorenewal-record)
 for the action on each entity that is automatically renewed. Hedera Services will generate an
-[entity-removal-record](https://github.com/hashgraph/hedera-services/blob/master/docs/autorenew-feature.md#entity-removal-record)
+[entity-removal-record](https://github.com/hashgraph/hedera-services/blob/main/docs/autorenew-feature.md#entity-removal-record)
 for the action on each entity that is automatically removed.
 
 If an entity `E` is created with auto-renew account `A`, then the `create` transaction will extend the expiration time of `A` to be at least equal to `E` (unless it's already equal or greater).  That ensures that if `E` is an entity that can't be updated (e.g., an immutable smart contract with no admin key), then `A` will never expire before `E`. Similarly, if an update or auto-update to `E` extends its expiration, then `A` must also be extended to last at least as long. This is also true if `E` is a TokenType, and `A` is its treasury.
@@ -124,9 +124,9 @@ For the most up-to-date pricing, please refer to https://docs.hedera.com/guides/
 
 Please note that the renewal fees depend on the resources, such as state size for the Hedera Smart Contracts Service, file size for Hedera File Service, number of token associations for the Hedera Token Service and duration into consideration. 
 
-https://github.com/hashgraph/hedera-services/blob/master/docs/autorenew-feature.md#autorenewal-record
+https://github.com/hashgraph/hedera-services/blob/main/docs/autorenew-feature.md#autorenewal-record
 
-https://github.com/hashgraph/hedera-services/blob/master/docs/autorenew-feature.md#entity-removal-record
+https://github.com/hashgraph/hedera-services/blob/main/docs/autorenew-feature.md#entity-removal-record
 
 > **Note: This Entity Auto-Renewal feature has been implemented in Hedera Services via [PR #1376](https://github.com/hashgraph/hedera-services/pull/1376).**
 

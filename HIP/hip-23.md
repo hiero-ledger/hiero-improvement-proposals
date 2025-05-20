@@ -8,7 +8,7 @@ needs-council-approval: Yes
 status: Final
 release: v0.19.0
 created: 2021-06-22
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/107
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/107
 updated: 2023-02-01
 ---
 

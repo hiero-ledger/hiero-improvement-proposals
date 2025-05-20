@@ -8,7 +8,7 @@ needs-council-approval: Yes
 status: Final
 release: v0.22.0
 created: 2021-09-16
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/140
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/140
 updated: 2023-02-01
 ---
 
@@ -308,9 +308,9 @@ Currently, no open issues.
 ## References
 
 * [Hyperledger Besu](http://github.com/hyperledger/besu)
-* [Ethereum London Hard Fork](https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/london.md)
-* [Ethereum Berlin Hard Fork](https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/berlin.md)
-* [Ethereum Istanbul Hard Fork](https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/istanbul.md)
+* [Ethereum London Hard Fork](https://github.com/ethereum/execution-specs/blob/main/network-upgrades/mainnet-upgrades/london.md)
+* [Ethereum Berlin Hard Fork](https://github.com/ethereum/execution-specs/blob/main/network-upgrades/mainnet-upgrades/berlin.md)
+* [Ethereum Istanbul Hard Fork](https://github.com/ethereum/execution-specs/blob/main/network-upgrades/mainnet-upgrades/istanbul.md)
 
 ## Copyright/license
 

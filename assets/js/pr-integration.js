@@ -149,7 +149,7 @@ class HIPPRIntegration {
 
             for (const file of mdFiles) {
                 try {
-                    const contentUrl = `https://raw.githubusercontent.com/hashgraph/hedera-improvement-proposal/${pr.headRefOid}/${file.node.path}`;
+                    const contentUrl = `https://raw.githubusercontent.com/hiero-ledger/hiero-improvement-proposals/${pr.headRefOid}/${file.node.path}`;
                     console.log(`Fetching content from: ${contentUrl}`);
                     
                     const response = await fetch(contentUrl);

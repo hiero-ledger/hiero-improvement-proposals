@@ -8,7 +8,7 @@ needs-council-approval: Yes
 status: Replaced
 superseded-by: 30
 created: 2021-06-29
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/110
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/110
 ---
 
 ## Abstract
@@ -67,7 +67,7 @@ No known security concerns.
 ## References
 
 [0] https://dcentwallet.com/features/erc721-wallet
-[1] https://github.com/hashgraph/hedera-improvement-proposal/blob/master/HIP/hip-10.md
+[1] https://github.com/hiero-ledger/hiero-improvement-proposals/blob/main/HIP/hip-10.md
 
 ## Copyright/license
 
