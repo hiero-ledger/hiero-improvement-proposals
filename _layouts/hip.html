@@ -56,17 +56,17 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for new header: needs-hedera-approval -->
-    {% if page.needs-hedera-approval != undefined %}
+    <!-- Support for new header: needs-hedera-review -->
+    {% if page.needs-hedera-review != undefined %}
     <tr>
       <th>
         Needs Hedera Approval
       </th>
       <td>
-        {% if page.needs-hedera-approval %}
-        Yes <span class="tooltip" data-tooltip="needs-hedera-approval-yes" style="text-decoration:none">ⓘ</span>
+        {% if page.needs-hedera-review %}
+        Yes <span class="tooltip" data-tooltip="needs-hedera-review-yes" style="text-decoration:none">ⓘ</span>
         {% else %}
-        No <span class="tooltip" data-tooltip="needs-hedera-approval-no" style="text-decoration:none">ⓘ</span>
+        No <span class="tooltip" data-tooltip="needs-hedera-review-no" style="text-decoration:none">ⓘ</span>
         {% endif %}
       </td>
     </tr>
@@ -267,8 +267,8 @@ https://schema.org/TechArticle
         true: "👥 This HIP requires council approval for implementation because it makes changes at the protocol level.",
         false: "✅ This HIP does not require council approval for implementation.",
       },
-      "needs-hedera-approval-yes": "👥 This HIP requires Hedera approval for implementation because it makes changes at the protocol level.",
-      "needs-hedera-approval-no": "✅ This HIP does not require Hedera approval for implementation.",
+      "needs-hedera-review-yes": "👥 This HIP requires Hedera approval for implementation because it makes changes at the protocol level.",
+      "needs-hedera-review-no": "✅ This HIP does not require Hedera approval for implementation.",
       "hedera-reviewed-date": "📅 The date when Hedera reviewed this HIP. 'Not Reviewed' means it has not yet been reviewed by Hedera.",
       "hedera-approval-status": "👍/👎 Indicates whether Hedera has approved or rejected the HIP, or if approval is not applicable (N/A).",
       "hederaApproval": "📅 The date when this HIP received official approval from Hedera. 'Not Approved' means it has not yet received official approval.",

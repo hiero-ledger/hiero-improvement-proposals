@@ -100,7 +100,7 @@
                     <tr data-type="{{ page.type | downcase }}"
                         data-category="{{ page.category | join: ', ' | downcase }}" {# Ensure multi-category is comma-separated string #}
                         data-status="{{ page.status | downcase }}"
-                        data-hedera-review="{{ page.needs-hedera-approval | default: page.needs-council-approval | default: false | downcase }}"
+                        data-hedera-review="{{ page.needs-hedera-review | default: page.needs-council-approval | default: false | downcase }}"
                         data-council-review="{{ page.needs-council-approval | default: false | downcase }}"
                         data-hedera-review-date="{{ page.hedera-review-date }}"
                         data-hiero-review="{{ page.needs-hiero-review | downcase }}">
@@ -126,7 +126,7 @@
                         </td>
                         
                         <td class="hedera-review">
-                            {% if page.needs-hedera-approval or page.needs-council-approval %}
+                            {% if page.needs-hedera-review or page.needs-council-approval %}
                                 Yes
                             {% else %}
                                 No
