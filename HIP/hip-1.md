@@ -3,14 +3,13 @@ hip: 1
 title: Hiero Improvement Proposal Process
 author: Ken Anderson (@kenthejr), Serg Metelin (@sergmetelin), Simi Hunjan (@SimiHunjan), Michael Garber (@mgarbs)
 type: Process
-needs-hiero-review: No
-needs-hedera-approval: No
+needs-hiero-approval: Yes
+needs-hedera-review: No # Process HIPs generally don't need Hedera review
 status: Active
 created: 2021-02-11
+last-call-date-time: 2025-06-01T07:00:00Z
 discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/54
-updated: 2025-03-25
-hedera-reviewed-date: N/A
-hedera-approval-status: N/A
+updated: 2025-05-20 # Updated to reflect current changes
 ---
 
 ## What is a HIP?
@@ -18,6 +17,8 @@ hedera-approval-status: N/A
 HIP stands for **Hiero Improvement Proposal**. A HIP is intended to provide information or initiate engineering efforts to update functionality under Hiero governance. The HIP should be technically clear and concise, and as granular as possible. Small, targeted HIPs are more likely to reach consensus and result in a reference implementation.
 
 HIPs are intended to be the primary mechanism for proposing new features, for collecting community input, and for documenting the design decisions that go into the Hiero codebase. The HIP author is responsible for building consensus within the community and documenting dissenting opinions.
+
+For HIPs that propose changes to the Hiero codebase (typically Standards Track HIPs for Core, Service, or Mirror Node categories), the process involves Hiero providing technical approval and Hedera providing review and acceptance if the changes are to be incorporated into the Hedera network or ecosystem.
 
 Because the HIPs are maintained as text files in a versioned repository, their revision history is the historical record of the proposal. HIPs are **not** meant to address *bugs* in implemented code. Bugs should be addressed using issues on the implementation's repository.
 
@@ -46,7 +47,7 @@ There are three kinds of HIP:
 
 ### Hiero Technical Steering Committee
 
-The Hiero Technical Steering Committee (Hiero TSC) is the body that makes final decisions on whether or not to Accept or Reject Standards Track HIPs pertaining to Hiero’s core or service layers. The Committee is also responsible for decisions regarding the technical governance of the open-source codebase donated by Hedera.
+The Hiero Technical Steering Committee (Hiero TSC) is the body that makes final decisions on whether or not to Approve Standards Track HIPs pertaining to Hiero’s core or service layers. The Committee is also responsible for decisions regarding the technical governance of the open-source codebase donated by Hedera.
 
 ### Core Developers
 
@@ -82,10 +83,15 @@ This repository inherits security practices requiring the Developer Certificate 
 
 When the HIP author believes the proposal is complete, they may request content review from the core developers and editors. A HIP must be clear and complete, presenting a net positive improvement.
 
-A HIP may be marked **Last Call** to gather final user feedback before acceptance. At the end of the Last Call period, if no substantive changes are needed, editors mark the HIP as **Accepted** (or the Committee might ultimately mark it as **Rejected**).
+A HIP may be marked **Last Call** to gather final user feedback. 
 
-- **Accepted** means the Committee believes it is ready to proceed.  
-- **Final** means the reference implementation has been completed and merged, and the proposal is fully realized in code.
+Following a successful Last Call period (or if Last Call is deemed unnecessary for minor changes):
+- For HIPs requiring Hiero's technical endorsement (most Standards Track and Process HIPs, where `needs-hiero-approval: Yes`), the Hiero TSC will review the HIP. If they agree, the HIP status changes to **Approved**.
+- For HIPs that also require Hedera's adoption (e.g., changes to be implemented on the Hedera mainnet, typically Standards Track HIPs of type Core, Service, Mirror Node, where `needs-hedera-review: Yes`), Hedera will conduct a review. If Hedera agrees to adopt and implement the HIP, its status changes to **Accepted**.
+
+A HIP can only reach **Accepted** status after it has been **Approved** (if Hiero approval is required).
+
+- **Final** means the reference implementation has been completed, merged, and the proposal is fully realized in code (e.g., deployed on the Hedera mainnet or integrated into the relevant Hiero open-source project).
 
 Alternatively, a HIP can be:
 - **Deferred** (no progress),
@@ -94,9 +100,7 @@ Alternatively, a HIP can be:
 - **Rejected** (if it's not accepted), or
 - **Replaced** (superseded by a newer HIP).
 
-> **Hiero Review vs. Hedera Review**
-> - **Hiero Review**: Standards Track HIPs typically require a final vote by the Hiero TSC.
-> Note: If the HIP is Accepted by Hiero, Hedera may choose whether to adopt it onto the Hedera mainnet. The `hedera-reviewed-date` header can be updated to mark the date of the review, and `hedera-approval-status` can be set to `Approved` or `Rejected`.
+> ~~**Hiero Review vs. Hedera Review**~~
 
 The possible paths of the status of HIPs are as follows:
 
@@ -112,17 +116,59 @@ The possible paths of the status of HIPs are as follows:
 - **Deferred** – Under consideration for future implementation, not immediate.  
 - **Withdrawn** – Author has withdrawn the HIP.  
 - **Stagnant** – Inactive for 6+ months while in Draft or Review.  
-- **Rejected** – Declined by consensus or Hiero TSC.  
-- **Last Call** – Final comment period before acceptance.  
-- **Hiero Review** – Official review by the Hiero TSC.  
-- **Accepted** – Hiero TSC has voted yes; ready for implementation.  
-- **Final** – Implementation completed and recognized as the standard.  
-- **Active** – Some Informational or Process HIPs that are ongoing.  
+- **Rejected** – Declined by consensus or Hiero TSC
+- **Last Call** – Final comment period before Hiero approval.
+- **Approved** – Hiero TSC has formally approved the technical specification of the HIP. For Process HIPs not needing Hedera review (like this one), or Informational HIPs, this may be the final substantive state before Active/Final.
+- **Accepted** – Hedera has formally agreed to adopt and implement the HIP (applies to HIPs where `needs-hedera-review: Yes`). This status follows 'Approved'.
+- **Final** – Implementation completed and recognized as the standard (e.g., released on mainnet or in the relevant Hiero project).
+- **Active** – Some Informational or Process HIPs that are ongoing or have been adopted.
 - **Replaced** – Rendered obsolete by a newer HIP.
 
-### HIP Maintenance
+## HIP Statuses
 
-Standards Track HIPs generally no longer change once they reach Final. Updates can be noted as errata. Informational or Process HIPs can be updated as needed, often with editorial oversight.
+HIPs have the following statuses:
+
+*   **Draft**: The HIP is currently being drafted and is not yet ready for review.
+*   **Review**: The HIP is ready for review by the community and HIP editors.
+*   **Last Call**: The HIP is in a final review window, typically 14 days, before being moved to a Hiero TSC approval vote (Service, Core, Mirror, Block Node hips) or `Accepted` (Application hips).
+*   **Approved**: A Standards Track HIP has been approved by Hiero and is awaiting review by Hedera.
+*   **Accepted**: Standards Track HIPs that have been accepted by the community or the Hedera Council depending on the type of hip that it is.
+*   **Final**: A Standards Track HIP has been reviewed and accepted by Hedera, and its reference implementation has been merged.
+*   **Active**: A Process or Informational HIP that is currently in effect.
+*   **Stagnant**: A HIP that has been inactive for a significant period (e.g., 6+ months) may be marked as Stagnant by the HIP editors.
+*   **Deferred**: A HIP that is not currently being pursued but may be revisited in the future.
+*   **Withdrawn**: The HIP author has withdrawn the proposal.
+*   **Rejected**: The HIP has been rejected by the HIP editors, the community, or a Hiero TSC vote.
+*   **Replaced**: The HIP has been replaced by a newer HIP.
+
+## HIP Workflow Overview
+
+### Standards Track HIPs
+
+Standards Track HIPs (categories: Core, Service, Mirror, Block Node) follow this general lifecycle:
+
+1.  **Idea**: Propose your idea to the community. Create an [issue](https://github.com/hiero-ledger/hiero-improvement-proposals/issues) to discuss the idea.
+2.  **Draft**: Create a copy of the [HIP template](./hip-0000-template.md), fill in the details, and submit it as a pull request (PR) to the HIPs repository. The HIP status should be `Draft`. `needs-hiero-approval` should be `Yes`, and `needs-hedera-review` should be `Yes`.
+3.  **Review**: Once the PR is submitted, the HIP editors and community will review the proposal. The status changes to `Review`.
+4.  **Last Call**: If the HIP is generally agreed upon, a HIP editor will assign a `last-call-date-time` and change the status to `Last Call`. This is a final opportunity for community feedback, typically lasting 14 days.
+5.  **Approved**: After the Last Call period, if there are no major objections that cannot be resolved, Hiero TSC will vote on the hip and if it is approved, a HIP editor or maintainer will create a PR changing the status to `Approved`. At this point, the HIP is considered approved by the Hiero community and awaits review by Hedera.
+6.  **Final**: When a hip is implemented in code and released to mainnet, a maintainer updates the status of the hip to `Final` and specifies a `Release` number.
+7.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: A HIP may also end up in one of these states as described in "HIP Statuses".
+
+### Informational, Process and Application HIPs
+
+Informational and Process HIPs follow a simpler lifecycle:
+
+1.  **Idea**: Propose your idea. Create an [issue](https://github.com/hiero-ledger/hiero-improvement-proposals/issues) to discuss.
+2.  **Draft**: Create a copy of the [HIP template](./hip-0000-template.md), fill in the details, and submit it as a PR. The HIP status should be `Draft`.
+    *   For Process HIPs: `needs-hiero-approval` should be `Yes`, `needs-hedera-review` should be `No`.
+    *   For Informational and Application HIPs: `needs-hiero-approval` should be `No`, `needs-hedera-review` should be `No`.
+3.  **Review**: The HIP editors and community review the proposal. Status changes to `Review`.
+4.  **Last Call**: If generally agreed upon, a HIP editor assigns a `last-call-date-time` and changes status to `Last Call` (typically 14 days).
+5.  **Accepted**: After Last Call, if no major objections, a HIP editor merges the PR.
+    *   Process and Informational HIPs: Status changes to `Active`.
+    *   Application HIPs: Status changes to `Accepted`.
+6.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: As described in "HIP Statuses".
 
 ## What belongs in a successful HIP?
 
@@ -172,10 +218,10 @@ author: <list of authors>
 working-group: <optional list of stakeholders>
 requested-by: <name(s) or project requesting it>
 type: <Standards Track | Informational | Process>
-category: <Core | Service | Mirror | Application> (if Standards Track)
-needs-hiero-review: <Yes | No>
-needs-hedera-approval: <Yes | No>
-status: <Draft | Review | Last Call | Accepted | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced>
+category: <Core | Service | Mirror | Application | Process> (if Standards Track or Process)
+needs-hiero-approval: <Yes | No> # Does the HIP require formal approval by the Hiero TSC?
+needs-hedera-review: <Yes | No> # Does the HIP require review and acceptance by the Hedera Council for implementation on its network/ecosystem?
+status: <Draft | Review | Last Call | Approved | Accepted | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced>
 created: <date in yyyy-mm-dd format>
 last-call-date-time: <optional, set by editor for last call end>
 discussions-to: <URL for official discussion thread>
@@ -184,15 +230,9 @@ requires: <optional HIP number(s)>
 replaces: <optional HIP number(s)>
 superseded-by: <optional HIP number(s)>
 release: <optional implementation release version>
-hedera-reviewed-date: <optional, e.g. N/A, or 2025-01-15>
-hedera-approval-status: <optional, e.g. N/A, Approved, or Rejected>
 ---
 ```
 
-These fields mirror the original system, but include the new Hedera review headers:
-- `needs-hedera-approval`: Indicates whether the HIP requires Hedera's approval (Yes/No)
-- `hedera-reviewed-date`: The date when Hedera reviewed the HIP (if applicable) 
-- `hedera-approval-status`: Whether Hedera approved or rejected the HIP (Approved/Rejected/N/A)
 
 ### Reporting HIP Bugs or Updates
 
