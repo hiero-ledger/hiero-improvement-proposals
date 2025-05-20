@@ -103,7 +103,7 @@
                         data-hedera-review="{{ page.needs-hedera-review | default: page.needs-council-approval | default: false | downcase }}"
                         data-council-review="{{ page.needs-council-approval | default: false | downcase }}"
                         data-hedera-review-date="{{ page.hedera-review-date }}"
-                        data-hiero-review="{{ page.needs-hiero-review | downcase }}">
+                        data-hiero-review="{{ page.needs-hiero-approval | downcase }}">
                         
                         <td class="hip-number">
                             <a href="{{ page.url | relative_url }}">{{ page.hip | xml_escape }}</a>
@@ -118,7 +118,7 @@
                         </td>
                         
                         <td class="hiero-review">
-                            {% if page.needs-hiero-review %}
+                            {% if page.needs-hiero-approval %}
                                 Yes
                             {% else %}
                                 No

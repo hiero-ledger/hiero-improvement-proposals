@@ -71,18 +71,18 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for legacy header: needs-hiero-review -->
-    {% if page.needs-hiero-review != undefined %}
+    <!-- Support for legacy header: needs-hiero-approval -->
+    {% if page.needs-hiero-approval != undefined %}
     <tr>
       <th>
         Needs Hiero Review
       </th>
       <td>
-        {% if page.needs-hiero-review %}
-        Yes <span class="tooltip" data-tooltip="{{ page.needs-hiero-review | jsonify }}"
+        {% if page.needs-hiero-approval %}
+        Yes <span class="tooltip" data-tooltip="{{ page.needs-hiero-approval | jsonify }}"
           style="text-decoration:none">ⓘ</span>
         {% else %}
-        No <span class="tooltip" data-tooltip="{{ page.needs-hiero-review | jsonify }}"
+        No <span class="tooltip" data-tooltip="{{ page.needs-hiero-approval | jsonify }}"
           style="text-decoration:none">ⓘ</span>
         {% endif %}
       </td>
