@@ -21,6 +21,21 @@ url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: hedera
 github_username: hiero-ledger
 
+# Order for displaying HIP statuses
+hip_status_order:
+  - Draft
+  - Review
+  - Last Call
+  - Approved
+  - Accepted
+  - Final
+  - Active
+  - Stagnant
+  - Deferred
+  - Withdrawn
+  - Rejected
+  - Replaced
+
 # Build settings
 markdown: kramdown
 theme: minima
