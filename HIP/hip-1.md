@@ -23,7 +23,7 @@ For HIPs that propose changes to the Hiero codebase (typically Standards Track H
 Because the HIPs are maintained as text files in a versioned repository, their revision history is the historical record of the proposal. HIPs are **not** meant to address *bugs* in implemented code. Bugs should be addressed using issues on the implementation's repository.
 
 > **Note on Hedera Adoption**  
-> While the Hiero Technical Steering Committee (TSC) decides on Accepting or Rejecting HIPs, there is an optional set of headers (`hedera-reviewed-date`, `hedera-approval-status`) to note if/when Hedera decides to adopt the HIP for its own mainnet. If Hedera chooses not to adopt, the `hedera-approval-status` can be set to `Rejected`.
+> While the Hiero Technical Steering Committee (TSC) decides on Approving or Rejecting HIPs into the Hiero codebase, there is an optional set of headers (`hedera-reviewed-date`, `hedera-approval-status`) to note if/when Hedera decides to Accept the HIP for its own mainnet. If Hedera chooses not to adopt, the `hedera-approval-status` can be set to `Not Approved`.
 
 ## HIP Types
 
@@ -132,7 +132,7 @@ HIPs have the following statuses:
 *   **Review**: The HIP is ready for review by the community and HIP editors.
 *   **Last Call**: The HIP is in a final review window, typically 14 days, before being moved to a Hiero TSC approval vote (Service, Core, Mirror, Block Node hips) or `Accepted` (Application hips).
 *   **Approved**: A Standards Track HIP has been approved by Hiero and is awaiting review by Hedera.
-*   **Accepted**: Standards Track HIPs that have been accepted by the community or the Hedera Council depending on the type of hip that it is.
+*   **Accepted**: Standards Track HIPs that have been accepted by the community or the Hedera Council depending on the type of hip it is.
 *   **Final**: A Standards Track HIP has been reviewed and accepted by Hedera, and its reference implementation has been merged.
 *   **Active**: A Process or Informational HIP that is currently in effect.
 *   **Stagnant**: A HIP that has been inactive for a significant period (e.g., 6+ months) may be marked as Stagnant by the HIP editors.
