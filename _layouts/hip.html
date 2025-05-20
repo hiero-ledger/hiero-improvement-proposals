@@ -125,7 +125,7 @@ layout: default
     {% endif %}
     {% if page.last-call-date-time != undefined %}
     <tr>
-      <th>Review period ends <span class="tooltip" data-tooltip="reviewPeriodEnds" style="text-decoration:none">ⓘ</span>
+      <th>Last Call Period Ends <span class="tooltip" data-tooltip="reviewPeriodEnds" style="text-decoration:none">ⓘ</span>
       </th>
       <td>
         {{ page.last-call-date-time | date_to_rfc822 }}
@@ -272,7 +272,7 @@ https://schema.org/TechArticle
       "hedera-reviewed-date": "📅 The date when Hedera reviewed this HIP. 'Not Reviewed' means it has not yet been reviewed by Hedera.",
       "hedera-approval-status": "👍/👎 Indicates whether Hedera has approved or rejected the HIP, or if approval is not applicable (N/A).",
       "hederaApproval": "📅 The date when this HIP received official approval from Hedera. 'Not Approved' means it has not yet received official approval.",
-      "reviewPeriodEnds": "⏳ The last call review period ends on this date, after which the HIP's status may change.",
+      "reviewPeriodEnds": "⏳ The last call Last Call Period Ends on this date, after which the HIP's status may change.",
     };
 
     const tooltipElements = document.querySelectorAll(".tooltip");
