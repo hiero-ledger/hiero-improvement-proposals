@@ -116,7 +116,7 @@
                             {% include authorslist.html authors=page.author %}
                         </td>
                         
-                        <td class="hiero-review">
+                        <td class="hiero-review" data-label="Needs Hiero Approval">
                             {% if page.needs-hiero-approval %}
                                 Yes
                             {% else %}
@@ -124,7 +124,7 @@
                             {% endif %}
                         </td>
                         
-                        <td class="hedera-review">
+                        <td class="hedera-review" data-label="Needs Hedera Review">
                             {% if page.needs-hedera-review or page.needs-council-approval %}
                                 Yes
                             {% else %}
