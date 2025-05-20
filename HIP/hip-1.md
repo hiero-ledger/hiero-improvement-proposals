@@ -100,7 +100,6 @@ Alternatively, a HIP can be:
 - **Rejected** (if it's not accepted), or
 - **Replaced** (superseded by a newer HIP).
 
-> ~~**Hiero Review vs. Hedera Review**~~
 
 The possible paths of the status of HIPs are as follows:
 
