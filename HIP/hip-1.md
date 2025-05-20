@@ -7,7 +7,6 @@ needs-hiero-approval: Yes
 needs-hedera-review: No
 status: Active
 created: 2021-02-11
-last-call-date-time: 2025-06-01T07:00:00Z
 discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/54
 updated: 2025-05-20
 ---
