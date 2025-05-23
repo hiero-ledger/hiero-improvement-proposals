@@ -201,7 +201,7 @@
     "title": "chore: Update MAINTAINERS.md - Update names and affiliations",
     "number": 1197,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1197",
-    "headRefOid": "37c0f56969c50b2d5ecae6a7a4bc01affadbbce6",
+    "headRefOid": "98d7725aaa2991ab3352d228be3ae1bbfd484322",
     "files": {
       "edges": [
         {
@@ -241,13 +241,13 @@
     "title": "Hiero hooks",
     "number": 1195,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1195",
-    "headRefOid": "9ab171b705e95ff27dd771dbf61edd296dfe9996",
+    "headRefOid": "01544a2fa38f20a2231c195f036fec47f1b1f9b0",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1195.md",
-            "additions": 834,
+            "additions": 984,
             "deletions": 0
           }
         }
@@ -509,13 +509,13 @@
     "title": "Block Node",
     "number": 1081,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1081",
-    "headRefOid": "60666d551a0cc4155d8d34ebdc4a14a80cd25f4f",
+    "headRefOid": "86e9d17894ff4666e5afd2a0ba4597355da02468",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1081.md",
-            "additions": 770,
+            "additions": 838,
             "deletions": 0
           }
         },
@@ -529,14 +529,14 @@
         {
           "node": {
             "path": "assets/hip-1081/protobuf/block_access_service.proto",
-            "additions": 130,
+            "additions": 128,
             "deletions": 0
           }
         },
         {
           "node": {
             "path": "assets/hip-1081/protobuf/block_stream_publish_service.proto",
-            "additions": 434,
+            "additions": 441,
             "deletions": 0
           }
         },
@@ -578,7 +578,7 @@
         {
           "node": {
             "path": "assets/hip-1081/protobuf/state_service.proto",
-            "additions": 128,
+            "additions": 127,
             "deletions": 0
           }
         }
