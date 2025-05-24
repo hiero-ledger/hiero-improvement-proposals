@@ -1,0 +1,274 @@
+/**
+ * #  Service
+ * Block stream messages that report the results of transactions handled
+ * by the `smart contract` service.
+ *
+ * ### Keywords
+ * The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+ * "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+ * document are to be interpreted as described in
+ * [RFC2119](https://www.ietf.org/rfc/rfc2119) and clarified in
+ * [RFC8174](https://www.ietf.org/rfc/rfc8174).
+ */
+syntax = "proto3";
+
+package com.hedera.hapi.block.stream.output;
+
+// SPDX-License-Identifier: Apache-2.0
+
+option java_package = "com.hedera.hapi.block.stream.output.protoc";
+// <<<pbj.java_package = "com.hedera.hapi.block.stream.output">>> This comment is special code for setting PBJ Compiler java package
+option java_multiple_files = true;
+
+import "contract_call_local.proto";
+
+/**
+ * Block Stream data for a `contractCallMethod` transaction.
+ *
+ * This message SHALL NOT duplicate information already contained in
+ * the original transaction.
+ */
+message ContractCallOutput {
+     /**
+      * Result details for an EVM transaction execution
+      */
+     EVMTransactionResult evm_transaction_result = 1;
+}
+
+/**
+ * Block Stream data for a `createContract` transaction.
+ *
+ * This message SHALL NOT duplicate information already contained in
+ * the original transaction.
+ */
+message ContractCreateOutput {
+     /**
+      * Result details for an EVM transaction execution
+      */
+     EVMTransactionResult evm_transaction_result = 1;
+}
+
+// no evm exec, only modified entity
+/**
+ * Block Stream data for a `deleteContract` transaction.
+ *
+ * This message SHALL NOT duplicate information already contained in
+ * the original transaction.
+ */
+message ContractDeleteOutput {}
+
+/**
+ * Block Stream data for a contract `systemUndelete` transaction.
+ *
+ * This message SHALL NOT duplicate information already contained in
+ * the original transaction.
+ */
+message ContractSystemUnDeleteOutput {}
+
+/**
+ * Block Stream data for a contract `systemDelete` transaction.
+ *
+ * This message SHALL NOT duplicate information already contained in
+ * the original transaction.
+ */
+message ContractSystemDeleteOutput {}
+
+// no evm exec, only modified entity
+/**
+ * Block Stream data for a `updateContract` transaction.
+ *
+ * This message SHALL NOT duplicate information already contained in
+ * the original transaction.
+ */
+ message ContractUpdateOutput {}
+ 
+/**
+ * Block Stream data for a `callEthereum` transaction.
+ *
+ * This message SHALL NOT duplicate information already contained in
+ * the original transaction.
+ */
+message EthereumOutput {
+     /**
+      * Result details for an EVM transaction execution
+      */
+     EVMTransactionResult evm_transaction_result = 1;
+}
+
+/**
+ * EVM transaction details
+ * Details support the information needed by eth_getTransactionReceipt not found in or state changes
+ * <p>
+ * Values here map to the historic ContractFunction results in the record stream format.
+ * The following optimizations were made
+ * 1. contract_nonces and signer_nonce are noted restated. These updates will be exposed in the State changes.
+ *   The impact is nonce values between transactions are not exposed, this block level concept matches EVM behaviour
+ * 2. evm_addresses of newly created accounts or contracts are not restated as they are in state changes
+ * 3. gas is not restated as it can be found in the RLP transaction or explicitly in the transactionbody input
+ * 4. amount is not restated as it can be found in the RLP transaction or explicitly in the transactionbody input
+ * 5. functionParameters is not restated as it's in the RLP transaction.
+ *   For inner transactions this shall be in the ContractCall or ContractCreate
+ * 6. sender_id is not restated as it can be found and transformed from the RLP transaction
+ * 7. ContractID is not restated as it can be found in the RLP transaction or explicitly in the transactionbody input
+ */
+message EVMTransactionResult {
+     /**
+      * Result data from the function call.
+      * <p>
+      * This SHALL be encoded in RLP bytecode format.
+      */
+     bytes contract_call_result = 1;
+
+     /**
+      * Any error message produced by the contract call. Max size of 100 bytes
+      * <p>
+      * This SHALL be unset if the contract call succeeded.
+      */
+     string error_message = 2;
+
+     /**
+      * A quantity of "gas" used.<br/>
+      * This represents the resource units expended to execute this
+      * contract call, and correlates to transaction costs.
+      */
+     uint64 gas_used = 3;
+}
+
+/**
+ * The slots read during the contract execution. These slots may or may not have been overwritten.
+ * The associated writes will be found in the state changes MapUpdateChange KVs
+ */
+message ContractSlotReads {
+     
+     message SlotRead {
+          oneof identifier {
+               /**
+               * The contract storage slot counter in this block 
+               * This is populated in place of the 256 bit word when the given slot is written to in state changes
+               */
+               int32 index = 1;
+
+               /**
+               * The key of this contratc storage slot, left padding of 0's by EVM is stripped to save space. 
+               * Indexers should left-pad with zeros to form a 256-bit word.
+               * This is populated when the slot was not written and only read
+               */
+               bytes key = 2;
+          }
+
+          /**
+           * The storage value in this slot, left padding of 0's by EVM is stripped to save space. 
+           * Indexers should left-pad with zeros to form a 256-bit word.
+          */
+          bytes read_value = 3;
+     }
+     
+     /**
+      * The contract assocaited with the storage slots this slot belongs to.
+      */
+     ContractID contract_id = 1;
+
+     /**
+      * The storage slots that were read in this EVM exectuion. They may or may not have assocaited slot writes
+      */
+     repeated SlotRead slot_reads = 2;    
+}
+
+/**
+ * EVM transaction execution log storage details
+ * Details maps to the log object in eth_getTransactionReceipt response without repeating info already available in the input transaction
+ * Log bloom logic is removed as it may be calculated by block parser for both transactions and block level
+ */
+message EVMTransactionLog {
+     /**
+      * The contract emitting the log. ContractID vs 20 bye address is used to preserve space
+      */
+     ContractID contract_id = 1;
+
+     /**
+      * The Log data
+      */
+     bytes data = 2;
+
+     /**
+      * The logc topics left padding of 0's by EVM is stripped to save space. 
+      * Indexers should left-pad with zeros to form a 256-bit word.
+      */
+     repeated bytes topics = 3;
+}
+
+/**
+ * The init bytecode component for this child contracts created as part of the contract execution.
+ * init_bytecode = deploy_bytecode + runtime_byteode + metadata_bytecode
+ * The ContrctID will be found in the state changes for the corecposing 
+ * <p>
+ * The EVM opcode operations expose the code input and output during a contract creation.
+ * The consensus node logic should be able to pick up the diff in initbyte and runtime to define the deploy and
+ * metadata bytecode.
+ * Indexers would be able to build the full bytecode by combinining ContractInitByteCode with contract runtime bytecode
+ */
+message ContractInitByteCode {
+     /**
+      * The bytecode that predeces and deploys the runtime bytecode in a contracts deployment
+      * <p>
+      * This bytecode should end in the first occurent of f3fe (RETURN & INVALID) opcodes in the init bytecode
+      */
+     google.protobuf.BytesValue deploy_bytecode = 1;
+
+     /**
+      * The bytecode that follows the runtime bytecode (found in contract state) in a contracts deployment.
+      * <p>
+      * This bytecode may be present depending on the compiler utilized or the nature of child contract creations
+      */
+     google.protobuf.BytesValue metadata_bytecode = 2;
+
+     /**
+      * The bytecode that defines a deployed contracts logic. 
+      * <p>
+      * This bytecode is usually found in state but in some
+      * scenarios it may be necessary to expose it when missing from state e.g. SELFDESTRUCT
+      */
+     google.protobuf.BytesValue runtime_bytecode = 3;
+}
+
+/**
+ * EVM tranaction execution trace details
+ * Details maps to the variable needed for debugging executions
+  * <p>
+ * Values here map to the historic SideCar in the record stream format.
+ * The following optimizations were made
+ * 1. ContractStateChanges are retired as all state changes are now in the StateChanges
+ * 2. ContractBytecode is retired as initcode is made avialble in the input and runtimebyte code is exposed in changes
+ *   Inner contract creations will have ContractCreate transations whose input and state changes should also expose this
+ *   Q: Are cases of FileID usage covered in the child cases. Can we get creative and refer to the top level FileID and maybe even byte indexes to avoid replication?
+ * 3. ContractLoginfo is not reused but shrunk into EVMTransactionLog.
+ * 4. ethereum_hash is removed as it may be calculated by block parsers and indexers
+ */
+message EVMTraceData { 
+     /**
+      * The init bytecode components for child contracts created as part of the contract execution.
+      */
+     ContractInitByteCode init_bytecode = 1;
+
+     /**
+      * The inter contract interaction details. This represents the internal EVM message frames.
+      */
+     repeated ContractAction contract_actions = 2;
+ 
+     /**
+      * Contract slot values that were read during the execution of the EVM transaction. Associated written values will be in state changes
+      */
+     repeated ContractSlotReads contract_slot_reads = 3;
+
+     /**
+      * Any error message produced by the contract call.
+      * <p>
+      * This SHALL be unset if the contract call succeeded.
+      */
+     string full_error_message = 4;
+
+     /**
+      * Any Log events produced by this contract call.
+      */
+     repeated EVMTransactionLog logs = 5;
+}

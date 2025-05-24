@@ -49,10 +49,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function filterRows() {
-        let selectedTypes = $('#type-filter').val();
-        if (!selectedTypes || selectedTypes.length === 0) {
-            selectedTypes = $('#type-filter option').map(function() { return this.value }).get();
+        const rawSelectedTypes = $('#type-filter').val(); // Changed variable name for clarity
+        let selectedCategoriesForFilter = [];
+
+        if (Array.isArray(rawSelectedTypes)) {
+            selectedCategoriesForFilter = rawSelectedTypes
+                .map(cat => (typeof cat === 'string' ? cat.trim().toLowerCase() : ''))
+                .filter(cat => cat !== '');
+        } else if (typeof rawSelectedTypes === 'string' && rawSelectedTypes.trim() !== '') {
+            // Handle case where .val() might return a single string for a single selection
+            selectedCategoriesForFilter = [rawSelectedTypes.trim().toLowerCase()];
         }
+        // If rawSelectedTypes is null (e.g., filter cleared), selectedCategoriesForFilter remains []
 
         const selectedStatuses = statusSelect.val().length > 0 ? statusSelect.val() : ['all'];
         const selectedHederaReview = document.querySelector('input[name="hedera-review-filter"]:checked')?.value || 'all';
@@ -60,22 +68,46 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let anyRowVisible = false;
         document.querySelectorAll('.hipstable tbody tr').forEach(row => {
-            const rowTypes = [row.getAttribute('data-type').trim().toLowerCase(), row.getAttribute('data-category').trim().toLowerCase()];
-            const rowStatus = row.getAttribute('data-status').trim().toLowerCase();
-            
-            const rowHederaReview = row.getAttribute('data-hedera-review') === 'true' || 
-                                   row.getAttribute('data-council-review') === 'true' ? 'true' : 'false';
-                                   
-            const rowHieroReview = row.getAttribute('data-hiero-review') || 'false'; 
+            const categoryAttr = row.getAttribute('data-category');
+            const rowCategories = categoryAttr ? categoryAttr.trim().toLowerCase().split(',').map(cat => cat.trim()).filter(cat => cat !== '') : [];
 
-            const typeCategoryMatch = selectedTypes.some(type => rowTypes.includes(type));
+            const statusAttr = row.getAttribute('data-status');
+            const rowStatus = statusAttr ? statusAttr.trim().toLowerCase() : 'unknown'; // Default to a non-matching status if missing
+            
+            const hederaReviewAttr = row.getAttribute('data-hedera-review');
+            const councilReviewAttr = row.getAttribute('data-council-review');
+            const rowHederaReview = (hederaReviewAttr === 'true' || councilReviewAttr === 'true') ? 'true' : 'false';
+                                   
+            const hieroReviewAttr = row.getAttribute('data-hiero-review');
+            const rowHieroReview = hieroReviewAttr ? hieroReviewAttr : 'false'; 
+
+            let categoryMatch = true; 
+            if (selectedCategoriesForFilter.length > 0) { // Apply filter only if categories are selected
+                categoryMatch = selectedCategoriesForFilter.every(selCat => {
+                    // selCat is a category selected in the filter, e.g., 'core', 'mirror'
+                    // rowCategories is an array of categories from the HIP, e.g., ['core', 'service', 'mirror node']
+
+                    // Direct match:
+                    if (rowCategories.includes(selCat)) {
+                        return true;
+                    }
+
+                    // Alias: filter 'mirror' should match data 'mirror node'
+                    if (selCat === 'mirror' && rowCategories.includes('mirror node')) {
+                        return true;
+                    }
+                    
+                    // Add more specific aliases here if needed in the future.
+
+                    return false; // This selected filter category was not found in the HIP's categories (considering aliases)
+                });
+            }
+            
             const statusMatch = selectedStatuses.includes('all') || selectedStatuses.includes(rowStatus);
-            
             const hederaReviewMatch = selectedHederaReview === 'all' || selectedHederaReview === rowHederaReview;
-            
             const hieroReviewMatch = selectedHieroReview === 'all' || selectedHieroReview === rowHieroReview;
 
-            if (typeCategoryMatch && statusMatch && hederaReviewMatch && hieroReviewMatch) {
+            if (categoryMatch && statusMatch && hederaReviewMatch && hieroReviewMatch) {
                 row.style.display = '';
                 anyRowVisible = true;
             } else {

@@ -1,0 +1,94 @@
+/**
+ * # Event Header
+ * This header precedes the event messages that contain transactions.
+ *
+ * ### Keywords
+ * The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+ * "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+ * document are to be interpreted as described in
+ * [RFC2119](https://www.ietf.org/rfc/rfc2119) and clarified in
+ * [RFC8174](https://www.ietf.org/rfc/rfc8174).
+ */
+syntax = "proto3";
+
+package com.hedera.hapi.block.stream.input;
+
+// SPDX-License-Identifier: Apache-2.0
+
+option java_package = "com.hedera.hapi.block.stream.input.protoc";
+// <<<pbj.java_package = "com.hedera.hapi.block.stream.input">>> This comment is special code for setting PBJ Compiler java package
+option java_multiple_files = true;
+
+
+import "event/event_core.proto";
+import "platform/event/event_descriptor.proto";
+
+
+/**
+ * A header for a single event.<br/>
+ * This message provides information about an event and its parents within a
+ * block.
+ * 
+ * An `EventHeader` message that contains only `EventDescriptors` for parents
+ * can be combined with its following `EventTransaction` messages to create
+ * a `GossipEvent` message.<br/>
+ * The created `GossipEvent` message can be hashed to create the
+ * `EventDescriptor` for that event.<br/>
+ * An `EventHeader` that contains indices to parent events within the containing
+ * block will need to have each parent index replaced by the `EventDescriptor`
+ * of that parent before it can be translated into a `GossipEvent` message.
+ */
+message EventHeader {
+    /**
+     * An event core value.<br/>
+     * This provides information about the event, including its creator.
+     */
+    com.hedera.hapi.platform.event.EventCore event_core = 1;
+
+    /**
+     * A list of references to parent events.<br/>
+     * Each entry can be an `EventDescriptor` or an index to an event
+     * within the block. These items represent the parents of this event.
+     * <p>
+     * This list SHALL include zero or one self parents.<br/>
+     * This list SHALL include zero or more other parents.<br/>
+     * The first element of the list SHALL be the self parent,
+     * if one exists.<br/>
+     * The list of parents SHALL NOT include more than one parent from the same
+     * creator.
+     */
+    repeated ParentEventReference parents = 2;
+
+    /**
+     * The middle bit of the node's signature on the event.<br/>
+     * <p>
+     * This bit SHALL be the middle bit of the node's signature on the hash
+     * of the event.<br/>
+     */
+    bool signature_middle_bit = 3;
+}
+
+/*
+ * A reference to a parent event.
+ */
+message ParentEventReference {
+
+    oneof parent {
+        /**
+         * The EventDescriptor of the parent event.
+         * <p>
+         * The event referenced SHALL NOT be within the containing block.
+         */
+        proto.EventDescriptor descriptor = 1;
+
+        /**
+         * The index of the parent event.
+         * <p>
+         * An `EventHeader`'s index SHALL be the count of preceding `EventHeader`
+         * and `RoundHeader` block items starting from the beginning of
+         * the block.<br/>
+         * The index SHALL be zero-based.
+         */
+        uint32 index = 2;
+    }
+}
