@@ -318,7 +318,13 @@ class EnhancedHIPSearch {
         
         // Add icon
         const icon = document.createElement('span');
-        icon.textContent = result.url.includes('github.com') ? '📝 ' : '📄 ';
+        try {
+            const parsedUrl = new URL(result.url);
+            icon.textContent = parsedUrl.host === 'github.com' ? '📝 ' : '📄 ';
+        } catch (e) {
+            console.warn('Invalid URL provided:', result.url);
+            icon.textContent = '📄 ';
+        }
         
         // Assemble the link content safely
         a.appendChild(icon);
