@@ -227,49 +227,74 @@ class EnhancedHIPSearch {
         let score = 0;
         let matched = false;
 
-        // Check title (highest priority)
-        if (this.checkField(hip.title, lowerQuery)) {
-            score += hip.title.toLowerCase().indexOf(lowerQuery) === 0 ? 10 : 5;
-            matched = true;
-        }
+        const matchResults = [
+            this.checkTitleMatch(hip, lowerQuery),
+            this.checkHipNumberMatch(hip, lowerQuery),
+            this.checkPrNumberMatch(hip, lowerQuery),
+            this.checkCategoryMatch(hip, lowerQuery),
+            this.checkContentMatch(hip, lowerQuery),
+            this.checkAuthorMatch(hip, lowerQuery),
+            this.checkDraftMatch(hip, lowerQuery)
+        ];
 
-        // Check HIP number (very high priority)
-        if (this.checkField(hip.hipnum, lowerQuery)) {
-            score += 15;
-            matched = true;
-        }
-
-        // Check PR number for drafts
-        if (hip.prNumber && lowerQuery.includes(hip.prNumber.toString())) {
-            score += 12;
-            matched = true;
-        }
-
-        // Check category
-        if (this.checkField(hip.category, lowerQuery)) {
-            score += 3;
-            matched = true;
-        }
-
-        // Check content
-        if (this.checkField(hip.content, lowerQuery)) {
-            score += 1;
-            matched = true;
-        }
-
-        // Check author
-        if (this.checkField(hip.author, lowerQuery)) {
-            score += 4;
-            matched = true;
-        }
-
-        // Check for "draft" keyword
-        if (lowerQuery.includes('draft') && hip.status === 'draft') {
-            score += 8;
-            matched = true;
-        }
+        matchResults.forEach(result => {
+            if (result.matched) {
+                score += result.score;
+                matched = true;
+            }
+        });
 
         return { score, matched };
+    }
+
+    checkTitleMatch(hip, lowerQuery) {
+        if (this.checkField(hip.title, lowerQuery)) {
+            const score = hip.title.toLowerCase().indexOf(lowerQuery) === 0 ? 10 : 5;
+            return { score, matched: true };
+        }
+        return { score: 0, matched: false };
+    }
+
+    checkHipNumberMatch(hip, lowerQuery) {
+        if (this.checkField(hip.hipnum, lowerQuery)) {
+            return { score: 15, matched: true };
+        }
+        return { score: 0, matched: false };
+    }
+
+    checkPrNumberMatch(hip, lowerQuery) {
+        if (hip.prNumber && lowerQuery.includes(hip.prNumber.toString())) {
+            return { score: 12, matched: true };
+        }
+        return { score: 0, matched: false };
+    }
+
+    checkCategoryMatch(hip, lowerQuery) {
+        if (this.checkField(hip.category, lowerQuery)) {
+            return { score: 3, matched: true };
+        }
+        return { score: 0, matched: false };
+    }
+
+    checkContentMatch(hip, lowerQuery) {
+        if (this.checkField(hip.content, lowerQuery)) {
+            return { score: 1, matched: true };
+        }
+        return { score: 0, matched: false };
+    }
+
+    checkAuthorMatch(hip, lowerQuery) {
+        if (this.checkField(hip.author, lowerQuery)) {
+            return { score: 4, matched: true };
+        }
+        return { score: 0, matched: false };
+    }
+
+    checkDraftMatch(hip, lowerQuery) {
+        if (lowerQuery.includes('draft') && hip.status === 'draft') {
+            return { score: 8, matched: true };
+        }
+        return { score: 0, matched: false };
     }
 
     checkField(field, query) {
@@ -379,11 +404,28 @@ class EnhancedHIPSearch {
                 searchInput: this.options.searchInput,
                 resultsContainer: this.options.resultsContainer,
                 json: this.options.publishedHipsUrl,
-                searchResultTemplate: '<li><a href="{url}"><b>HIP-{hipnum}:</b> {title}</a></li>',
+                searchResultTemplate: this.createBasicResultTemplate(),
                 noResultsText: this.options.noResultsText,
                 limit: this.options.limit
             });
         }
+    }
+
+    createBasicResultTemplate() {
+        // Return a template function that creates DOM elements
+        return function(item) {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            const b = document.createElement('b');
+            
+            a.href = item.url;
+            b.textContent = `HIP-${item.hipnum}:`;
+            a.appendChild(b);
+            a.appendChild(document.createTextNode(` ${item.title}`));
+            li.appendChild(a);
+            
+            return li.outerHTML;
+        };
     }
 }
 
