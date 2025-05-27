@@ -220,18 +220,6 @@
   color: #fb8500;
 }
 
-// Add icons for draft HIPs
-#results-container > li a[href*="github.com"]:before {
-  content: "📝 ";
-  margin-right: 4px;
-}
-
-// Add icons for published HIPs
-#results-container > li a:not([href*="github.com"]):before {
-  content: "📄 ";
-  margin-right: 4px;
-}
-
 
 @media (max-width: 930px) {
   .site-header .wrapper .site-title {

@@ -10,7 +10,6 @@ class EnhancedHIPSearch {
             resultsContainer: null,
             publishedHipsUrl: './search.json',
             draftHipsUrl: './_data/draft_hips.json',
-            searchResultTemplate: '<li><a href="{url}"><b>{type}:</b> {title}</a></li>',
             noResultsText: 'No results found',
             limit: 10,
             ...options
@@ -209,53 +208,9 @@ class EnhancedHIPSearch {
         console.log(`Searching for: "${query}" in ${this.allHips.length} total HIPs`);
 
         for (const hip of this.allHips) {
-            let score = 0;
-            let matched = false;
-
-            // Check title (highest priority)
-            if (hip.title && hip.title.toLowerCase().includes(lowerQuery)) {
-                score += hip.title.toLowerCase().indexOf(lowerQuery) === 0 ? 10 : 5;
-                matched = true;
-            }
-
-            // Check HIP number (very high priority)
-            if (hip.hipnum && hip.hipnum.toLowerCase().includes(lowerQuery)) {
-                score += 15;
-                matched = true;
-            }
-
-            // Check PR number for drafts
-            if (hip.prNumber && lowerQuery.includes(hip.prNumber.toString())) {
-                score += 12;
-                matched = true;
-            }
-
-            // Check category
-            if (hip.category && hip.category.toLowerCase().includes(lowerQuery)) {
-                score += 3;
-                matched = true;
-            }
-
-            // Check content
-            if (hip.content && hip.content.toLowerCase().includes(lowerQuery)) {
-                score += 1;
-                matched = true;
-            }
-
-            // Check author
-            if (hip.author && hip.author.toLowerCase().includes(lowerQuery)) {
-                score += 4;
-                matched = true;
-            }
-
-            // Check for "draft" keyword
-            if (lowerQuery.includes('draft') && hip.status === 'draft') {
-                score += 8;
-                matched = true;
-            }
-
-            if (matched) {
-                results.push({ ...hip, score });
+            const matchResult = this.calculateMatchScore(hip, lowerQuery);
+            if (matchResult.matched) {
+                results.push({ ...hip, score: matchResult.score });
             }
         }
 
@@ -268,42 +223,139 @@ class EnhancedHIPSearch {
         return sortedResults;
     }
 
+    calculateMatchScore(hip, lowerQuery) {
+        let score = 0;
+        let matched = false;
+
+        // Check title (highest priority)
+        if (this.checkField(hip.title, lowerQuery)) {
+            score += hip.title.toLowerCase().indexOf(lowerQuery) === 0 ? 10 : 5;
+            matched = true;
+        }
+
+        // Check HIP number (very high priority)
+        if (this.checkField(hip.hipnum, lowerQuery)) {
+            score += 15;
+            matched = true;
+        }
+
+        // Check PR number for drafts
+        if (hip.prNumber && lowerQuery.includes(hip.prNumber.toString())) {
+            score += 12;
+            matched = true;
+        }
+
+        // Check category
+        if (this.checkField(hip.category, lowerQuery)) {
+            score += 3;
+            matched = true;
+        }
+
+        // Check content
+        if (this.checkField(hip.content, lowerQuery)) {
+            score += 1;
+            matched = true;
+        }
+
+        // Check author
+        if (this.checkField(hip.author, lowerQuery)) {
+            score += 4;
+            matched = true;
+        }
+
+        // Check for "draft" keyword
+        if (lowerQuery.includes('draft') && hip.status === 'draft') {
+            score += 8;
+            matched = true;
+        }
+
+        return { score, matched };
+    }
+
+    checkField(field, query) {
+        return field && field.toLowerCase().includes(query);
+    }
+
     render(results) {
+        this.clearResults();
+        
         if (results.length === 0) {
-            this.options.resultsContainer.innerHTML = `<li>${this.options.noResultsText}</li>`;
+            this.addNoResultsMessage();
             return;
         }
 
-        const html = results.map(result => {
-            // Create a display format that shows the HIP number consistently
-            let displayTitle;
-            if (result.status === 'draft') {
-                // For drafts, show "HIP-XXX" if we have a HIP number, otherwise "Draft HIP: Title"
-                if (result.extractedHipNumber) {
-                    displayTitle = `HIP-${result.hipnum}: ${result.title}`;
-                } else {
-                    displayTitle = `Draft HIP: ${result.title}`;
-                }
-            } else {
-                displayTitle = `HIP-${result.hipnum}: ${result.title}`;
-            }
-            
-            const displayType = result.status === 'draft' ? 'Draft HIP' : 'HIP';
-            
-            return this.options.searchResultTemplate
-                .replace('{url}', result.url)
-                .replace('{type}', displayType)
-                .replace('{title}', displayTitle)
-                .replace('{hipnum}', result.hipnum)
-                .replace('{category}', result.category || '')
-                .replace('{author}', result.author || '');
-        }).join('');
+        results.forEach(result => this.addResultItem(result));
+    }
 
-        this.options.resultsContainer.innerHTML = html;
+    clearResults() {
+        while (this.options.resultsContainer.firstChild) {
+            this.options.resultsContainer.removeChild(this.options.resultsContainer.firstChild);
+        }
+    }
+
+    addNoResultsMessage() {
+        const li = document.createElement('li');
+        li.textContent = this.options.noResultsText;
+        this.options.resultsContainer.appendChild(li);
+    }
+
+    addResultItem(result) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        
+        // Safely set attributes
+        a.href = this.sanitizeUrl(result.url);
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        
+        // Create safe content
+        const displayTitle = this.createDisplayTitle(result);
+        const displayType = result.status === 'draft' ? 'Draft HIP' : 'HIP';
+        
+        // Create bold element for type
+        const typeElement = document.createElement('b');
+        typeElement.textContent = displayType + ':';
+        
+        // Add icon
+        const icon = document.createElement('span');
+        icon.textContent = result.url.includes('github.com') ? '📝 ' : '📄 ';
+        
+        // Assemble the link content safely
+        a.appendChild(icon);
+        a.appendChild(typeElement);
+        a.appendChild(document.createTextNode(' ' + displayTitle));
+        
+        li.appendChild(a);
+        this.options.resultsContainer.appendChild(li);
+    }
+
+    createDisplayTitle(result) {
+        if (result.status === 'draft') {
+            if (result.extractedHipNumber) {
+                return `HIP-${result.hipnum}: ${result.title}`;
+            } else {
+                return `Draft HIP: ${result.title}`;
+            }
+        } else {
+            return `HIP-${result.hipnum}: ${result.title}`;
+        }
+    }
+
+    sanitizeUrl(url) {
+        try {
+            const validUrl = new URL(url);
+            // Only allow http and https protocols
+            if (validUrl.protocol === 'http:' || validUrl.protocol === 'https:') {
+                return validUrl.href;
+            }
+        } catch (e) {
+            console.warn('Invalid URL provided:', url);
+        }
+        return '#';
     }
 
     emptyResultsContainer() {
-        this.options.resultsContainer.innerHTML = '';
+        this.clearResults();
     }
 
     isValidQuery(query) {
