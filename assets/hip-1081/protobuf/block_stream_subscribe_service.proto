@@ -98,20 +98,12 @@ message SubscribeStreamResponse {
         READ_STREAM_UNKNOWN = 0;
 
         /**
-         * The requesting client account lacks sufficient HBAR to pay the
-         * service fee for this request.<br/>
-         * The client MAY retry the request, but MUST increase the client
-         * account balance with this block node server before doing so.
-         */
-        READ_STREAM_INSUFFICIENT_BALANCE = 1;
-
-        /**
          * The request succeeded.
          * <p>
          * The requested block(s) SHALL precede the status response
          * with this value.
          */
-        READ_STREAM_SUCCESS = 2;
+        SUCCESS = 1;
 
         /**
          * The requested start block number is not valid.<br/>
@@ -120,7 +112,7 @@ message SubscribeStreamResponse {
          * The client MAY retry this request, but MUST change the
          * `start_block_number` field to a valid start block.
          */
-        READ_STREAM_INVALID_START_BLOCK_NUMBER = 3;
+        INVALID_START_BLOCK_NUMBER = 2;
 
         /**
          * The requested end block number is not valid.<br/>
@@ -129,13 +121,13 @@ message SubscribeStreamResponse {
          * The client MAY retry this request, but MUST change the
          * `end_block_number` field to a valid end block.
          */
-        READ_STREAM_INVALID_END_BLOCK_NUMBER = 4;
+        INVALID_END_BLOCK_NUMBER = 3;
 
         /**
          * The requested stream is not available.<br/>
          * The client MAY retry again later.
          */
-        READ_STREAM_NOT_AVAILABLE = 5;
+        NOT_AVAILABLE = 4;
     }
 
     oneof response {
