@@ -6,7 +6,7 @@ working-group: <optional list of key stakeholders\' real names and GitHub handle
 requested-by: <optional name(s) of individual(s), project(s), or organization(s) requesting or sponsoring the HIP>
 discussions-to: <URL of the GitHub Pull Request for this HIP> # This will be filled by the HIP editor upon PR creation.
 type: <Standards Track | Informational | Process> # Refer to HIP-1 for definitions.
-category: <Core | Service | Mirror | Application | Process> # Required for Standards Track and Process HIPs. Refer to HIP-1 for category definitions.
+category: <Core | Service | Mirror | Block Node | Application | Process> # Required for Standards Track and Process HIPs. Refer to HIP-1 for category definitions.
 needs-hiero-approval: Yes # Set to Yes if Hiero Technical Steering Committee (TSC) approval is required (typically for Standards Track & Process HIPs). Set to No for Informational HIPs or if not applicable as per HIP-1.
 needs-hedera-review: No # Set to Yes if the HIP proposes changes for the Hedera network/ecosystem and requires review/acceptance by Hedera (typically Standards Track: Core, Service, Mirror). Refer to HIP-1 for details.
 status: <Draft | Review | Last Call | Approved | Accepted | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced> # Refer to HIP-1 for status definitions and workflow.
