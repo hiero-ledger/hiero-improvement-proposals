@@ -6,17 +6,20 @@
     <ul id="results-container"></ul>
 </div>
 
-<!-- Grab search-script.js -->
+<!-- Grab enhanced search scripts -->
 <script src="/assets/js/search-script.min.js" type="text/javascript"></script>
+<script src="/assets/js/enhanced-search.js" type="text/javascript"></script>
 
 <!-- Configuration -->
 <script>
-    SimpleJekyllSearch({
-        searchInput: document.getElementById('search-input'),
-        resultsContainer: document.getElementById('results-container'),
-        json: "{{ './search.json' | relative_url }}",
-        searchResultTemplate: '<li><a href="{url}"><b>HIP-{hipnum}:</b> {title}</a></li>',
-        noResultsText: 'No results found',
-        limit: 10,
-    })
+    document.addEventListener('DOMContentLoaded', function() {
+        new EnhancedHIPSearch({
+            searchInput: document.getElementById('search-input'),
+            resultsContainer: document.getElementById('results-container'),
+            publishedHipsUrl: "{{ './search.json' | relative_url }}",
+            draftHipsUrl: "{{ './_data/draft_hips.json' | relative_url }}",
+            noResultsText: 'No results found',
+            limit: 15,
+        });
+    });
 </script>
