@@ -289,6 +289,11 @@ class HIPPRIntegration {
 
         this.setupTableSorting(table);
         console.log('Finished adding HIPs to table');
+        
+        // Apply current filters to the newly added rows
+        if (typeof filterRows === 'function') {
+            filterRows();
+        }
     }
 
     setupTableSorting(table) {
