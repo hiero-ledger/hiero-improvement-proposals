@@ -249,7 +249,7 @@ class HIPPRIntegration {
             }
 
             const needsApproval = String(metadata['needs-council-approval']).toLowerCase() === 'true' ||
-                String(metadata['needs-tsc-approval']).toLowerCase() === 'true' ||
+                String(metadata['needs-hiero-approval']).toLowerCase() === 'true' ||
                 String(metadata.needs_council_approval).toLowerCase() === 'true' ||
                 metadata.type?.toLowerCase() === 'standards track';
 
