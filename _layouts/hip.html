@@ -56,7 +56,6 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for new header: needs-hedera-review -->
     {% if page.needs-hedera-review != undefined %}
     <tr>
       <th>
@@ -71,7 +70,6 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for legacy header: needs-hiero-approval -->
     {% if page.needs-hiero-approval != undefined %}
     <tr>
       <th>
@@ -88,20 +86,6 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for legacy header: hedera-approval -->
-    {% if page.hedera-approval != undefined %}
-    <tr>
-      <th>Hedera Approval <span class="tooltip" data-tooltip="hederaApproval" style="text-decoration:none">ⓘ</span></th>
-      <td>
-        {% if page.hedera-approval == "N/A" %}
-          Not Approved
-        {% else %}
-          {{ page.hedera-approval | date_to_rfc822 }}
-        {% endif %}
-      </td>
-    </tr>
-    {% endif %}
-    <!-- Support for new header: hedera-reviewed-date -->
     {% if page.hedera-reviewed-date != undefined %}
     <tr>
       <th>Hedera Reviewed Date <span class="tooltip" data-tooltip="hedera-reviewed-date" style="text-decoration:none">ⓘ</span></th>
@@ -114,7 +98,6 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for new header: hedera-approval-status -->
     {% if page.hedera-approval-status != undefined %}
     <tr>
       <th>Hedera Approval Status <span class="tooltip" data-tooltip="hedera-approval-status" style="text-decoration:none">ⓘ</span></th>
