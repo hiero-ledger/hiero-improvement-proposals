@@ -231,7 +231,7 @@ class HIPPRIntegration {
                         <th class="numeric">Number</th>
                         <th>Title</th>
                         <th>Author</th>
-                        <th>Needs Council Approval</th>
+                        <th>Needs Hiero Approval</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -289,11 +289,6 @@ class HIPPRIntegration {
 
         this.setupTableSorting(table);
         console.log('Finished adding HIPs to table');
-        
-        // Apply current filters to the newly added rows
-        if (typeof filterRows === 'function') {
-            filterRows();
-        }
     }
 
     setupTableSorting(table) {
