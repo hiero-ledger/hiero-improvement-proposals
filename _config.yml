@@ -23,13 +23,13 @@ github_username: hiero-ledger
 
 # Order for displaying HIP statuses
 hip_status_order:
-  - Draft
-  - Review
   - Last Call
+  - Draft
   - Approved
   - Accepted
   - Final
   - Active
+  - Review
   - Stagnant
   - Deferred
   - Withdrawn
