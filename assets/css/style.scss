@@ -1,4 +1,5 @@
 ---
+# Only the main Sass file needs front matter (the dashes are enough)
 ---
 
 @import 'minima';
@@ -100,8 +101,6 @@
   .hipstable .hip-number:before { content: "Number"; }
   .hipstable .title:before { content: "Title"; }
   .hipstable .author:before { content: "Author"; }
-  .hipstable .hiero-review:before { content: "Needs Hiero Approval"; }
-  .hipstable .hedera-review:before { content: "Needs Hedera Review"; }
   .hipstable .council-approval:before { content: "Needs Council Approval"; }
   .hipstable .last-call-date-time:before { content: "Last Call Period Ends"; }
   .hipstable .release:before { content: "Release"; }
@@ -197,27 +196,58 @@
   background-color: #f8f8f8;
 }
 
-// Enhanced styles for search results
-#results-container > li a {
-  text-decoration: none;
-  color: #333;
-  display: block;
-  width: 100%;
+// Enhanced search result styles
+.search-result {
+  &__title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  &__meta {
+    display: flex;
+    gap: 8px;
+    font-size: 0.85em;
+    color: #666;
+  }
+
+  &__type {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: 500;
+  }
+
+  &__category {
+    color: #888;
+  }
+
+  &--published .search-result__type {
+    background-color: #e8f5e8;
+    color: #2d5016;
+  }
+
+  &--draft .search-result__type {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+
+    &:hover {
+      color: inherit;
+    }
+  }
 }
 
-#results-container > li a:hover {
-  text-decoration: none;
-  color: #000;
-}
-
-// Style for published HIPs
-#results-container > li a b:contains("HIP-") {
-  color: #2ea043;
-}
-
-// Style for draft HIPs  
-#results-container > li a b:contains("Draft") {
-  color: #fb8500;
+.search-no-results {
+  color: #888;
+  font-style: italic;
+  text-align: center;
 }
 
 
