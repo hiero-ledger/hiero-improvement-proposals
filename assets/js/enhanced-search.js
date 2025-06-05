@@ -1,433 +1,215 @@
-/**
- * Enhanced Search Script for HIPs
- * Combines regular HIPs with draft HIPs from PR data
- */
-
 class EnhancedHIPSearch {
     constructor(options) {
-        this.options = {
-            searchInput: null,
-            resultsContainer: null,
-            publishedHipsUrl: './search.json',
-            draftHipsUrl: './_data/draft_hips.json',
-            noResultsText: 'No results found',
-            limit: 10,
-            ...options
-        };
+        this.searchInput = options.searchInput;
+        this.resultsContainer = options.resultsContainer;
+        this.publishedHipsUrl = options.publishedHipsUrl;
+        this.draftHipsUrl = options.draftHipsUrl;
+        this.noResultsText = options.noResultsText || 'No results found';
+        this.limit = options.limit || 15;
         
         this.publishedHips = [];
         this.draftHips = [];
-        this.allHips = [];
-        this.isInitialized = false;
+        this.isLoading = false;
         
         this.init();
     }
-
+    
     async init() {
+        await this.loadData();
+        this.setupEventListeners();
+    }
+    
+    async loadData() {
         try {
-            console.log('Initializing Enhanced HIP Search...');
+            // Load published HIPs
+            const publishedResponse = await fetch(this.publishedHipsUrl);
+            this.publishedHips = await publishedResponse.json();
             
-            // Load both published and draft HIPs
-            await Promise.all([
-                this.loadPublishedHips(),
-                this.loadDraftHips()
-            ]);
-            
-            // Combine and setup search
-            this.combineData();
-            this.setupEventListeners();
-            this.isInitialized = true;
-            
-            console.log(`Enhanced search initialized with ${this.allHips.length} HIPs (${this.publishedHips.length} published, ${this.draftHips.length} draft)`);
+            // Load draft HIPs
+            const draftResponse = await fetch(this.draftHipsUrl);
+            this.draftHips = await draftResponse.json();
         } catch (error) {
-            console.error('Failed to initialize enhanced search:', error);
-            // Fallback to basic search if available
-            this.fallbackToBasicSearch();
+            console.error('Error loading search data:', error);
         }
     }
-
-    async loadPublishedHips() {
-        try {
-            const response = await fetch(this.options.publishedHipsUrl);
-            if (!response.ok) {
-                throw new Error(`Failed to load published HIPs: ${response.status}`);
-            }
-            this.publishedHips = await response.json();
-            console.log(`Loaded ${this.publishedHips.length} published HIPs`);
-        } catch (error) {
-            console.error('Error loading published HIPs:', error);
-            this.publishedHips = [];
-        }
-    }
-
-    async loadDraftHips() {
-        try {
-            const baseUrl = window.location.origin + window.location.pathname.replace(/\/$/, '');
-            const draftUrl = `${baseUrl}/_data/draft_hips.json`;
-            console.log('Loading draft HIPs from:', draftUrl);
-            
-            const response = await fetch(draftUrl);
-            if (!response.ok) {
-                throw new Error(`Failed to load draft HIPs: ${response.status} ${response.statusText}`);
-            }
-            const draftData = await response.json();
-            this.draftHips = await this.processDraftHips(draftData);
-            console.log(`Loaded ${this.draftHips.length} draft HIPs`);
-        } catch (error) {
-            console.error('Error loading draft HIPs:', error);
-            // Try alternative URL path
-            try {
-                const altUrl = '/_data/draft_hips.json';
-                console.log('Trying alternative URL:', altUrl);
-                const response = await fetch(altUrl);
-                if (response.ok) {
-                    const draftData = await response.json();
-                    this.draftHips = await this.processDraftHips(draftData);
-                    console.log(`Loaded ${this.draftHips.length} draft HIPs from alternative URL`);
-                } else {
-                    this.draftHips = [];
-                }
-            } catch (altError) {
-                console.error('Alternative URL also failed:', altError);
-                this.draftHips = [];
-            }
-        }
-    }
-
-    async processDraftHips(draftData) {
-        const processedDrafts = [];
-        const seenPRs = new Set();
-
-        for (const pr of draftData) {
-            if (seenPRs.has(pr.number)) {
-                continue;
-            }
-
-            // Look for markdown files that could be HIPs
-            const mdFiles = pr.files.edges.filter(file => 
-                file.node.path.endsWith('.md') && 
-                !file.node.path.includes('template') &&
-                (file.node.path.includes('HIP/') || file.node.path.includes('hip-'))
-            );
-
-            if (mdFiles.length === 0) {
-                continue;
-            }
-
-            // For now, create a draft entry based on PR info and file paths
-            // We'll enhance this later when we can access the actual content
-            const bestFile = mdFiles[0]; // Take the first valid file
-            
-            // Extract potential HIP number from filename
-            const hipNumberMatch = bestFile.node.path.match(/hip-(\d+)\.md/i);
-            const potentialHipNum = hipNumberMatch ? hipNumberMatch[1] : null;
-
-            // Create display format - just use HIP number if available, otherwise use a generic draft identifier
-            const displayHipNum = potentialHipNum ? potentialHipNum : `Draft-${pr.number}`;
-
-            // Create a searchable entry for this draft HIP
-            processedDrafts.push({
-                title: pr.title || `Draft HIP ${potentialHipNum || pr.number}`,
-                hipnum: displayHipNum,
-                category: 'draft',
-                content: `${pr.title || ''} ${pr.author.login} draft pr pull request ${potentialHipNum || ''}`,
-                url: pr.url,
-                type: 'Draft HIP',
-                status: 'draft',
-                author: pr.author.login,
-                prNumber: pr.number,
-                filePath: bestFile.node.path,
-                extractedHipNumber: potentialHipNum
-            });
-            
-            seenPRs.add(pr.number);
-        }
-
-        console.log(`Processed ${processedDrafts.length} draft HIPs`);
-        return processedDrafts;
-    }
-
-    parseHIPMetadata(content) {
-        const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
-        if (!frontmatterMatch) {
-            return {};
-        }
-
-        const metadata = {};
-        const lines = frontmatterMatch[1].split('\n');
-
-        for (const line of lines) {
-            const [key, ...valueParts] = line.split(':');
-            if (key && valueParts.length) {
-                const value = valueParts.join(':').trim();
-                metadata[key.trim().toLowerCase()] = value;
-            }
-        }
-
-        return metadata;
-    }
-
-    combineData() {
-        // Process published HIPs
-        const processedPublished = this.publishedHips.map(hip => ({
-            ...hip,
-            type: `HIP-${hip.hipnum}`,
-            status: 'published'
-        }));
-
-        // Combine all HIPs
-        this.allHips = [...processedPublished, ...this.draftHips];
-    }
-
+    
     setupEventListeners() {
-        if (!this.options.searchInput || !this.options.resultsContainer) {
-            console.error('Search input or results container not found');
-            return;
-        }
-
-        this.options.searchInput.addEventListener('keyup', (e) => {
-            if (this.isWhitelistedKey(e.which)) {
-                this.emptyResultsContainer();
-                const query = e.target.value;
-                if (this.isValidQuery(query)) {
-                    const results = this.search(query);
-                    this.render(results);
-                }
+        this.searchInput.addEventListener('input', this.debounce(() => {
+            this.performSearch();
+        }, 300));
+        
+        this.searchInput.addEventListener('focus', () => {
+            if (this.searchInput.value.trim() && this.resultsContainer.children.length > 0) {
+                this.showResults();
+            }
+        });
+        
+        // Hide results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.searchInput.contains(e.target) && !this.resultsContainer.contains(e.target)) {
+                this.hideResults();
             }
         });
     }
-
-    search(query) {
-        if (!query || query.length === 0) {
-            return [];
-        }
-
-        const lowerQuery = query.toLowerCase();
-        const results = [];
-
-        console.log(`Searching for: "${query}" in ${this.allHips.length} total HIPs`);
-
-        for (const hip of this.allHips) {
-            const matchResult = this.calculateMatchScore(hip, lowerQuery);
-            if (matchResult.matched) {
-                results.push({ ...hip, score: matchResult.score });
-            }
-        }
-
-        // Sort by score (descending) and limit results
-        const sortedResults = results
-            .sort((a, b) => b.score - a.score)
-            .slice(0, this.options.limit);
-
-        console.log(`Found ${results.length} matches, showing top ${sortedResults.length}`);
-        return sortedResults;
+    
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
-
-    calculateMatchScore(hip, lowerQuery) {
-        let score = 0;
-        let matched = false;
-
-        const matchResults = [
-            this.checkTitleMatch(hip, lowerQuery),
-            this.checkHipNumberMatch(hip, lowerQuery),
-            this.checkPrNumberMatch(hip, lowerQuery),
-            this.checkCategoryMatch(hip, lowerQuery),
-            this.checkContentMatch(hip, lowerQuery),
-            this.checkAuthorMatch(hip, lowerQuery),
-            this.checkDraftMatch(hip, lowerQuery)
-        ];
-
-        matchResults.forEach(result => {
-            if (result.matched) {
-                score += result.score;
-                matched = true;
-            }
-        });
-
-        return { score, matched };
-    }
-
-    checkTitleMatch(hip, lowerQuery) {
-        if (this.checkField(hip.title, lowerQuery)) {
-            const score = hip.title.toLowerCase().indexOf(lowerQuery) === 0 ? 10 : 5;
-            return { score, matched: true };
-        }
-        return { score: 0, matched: false };
-    }
-
-    checkHipNumberMatch(hip, lowerQuery) {
-        if (this.checkField(hip.hipnum, lowerQuery)) {
-            return { score: 15, matched: true };
-        }
-        return { score: 0, matched: false };
-    }
-
-    checkPrNumberMatch(hip, lowerQuery) {
-        if (hip.prNumber && lowerQuery.includes(hip.prNumber.toString())) {
-            return { score: 12, matched: true };
-        }
-        return { score: 0, matched: false };
-    }
-
-    checkCategoryMatch(hip, lowerQuery) {
-        if (this.checkField(hip.category, lowerQuery)) {
-            return { score: 3, matched: true };
-        }
-        return { score: 0, matched: false };
-    }
-
-    checkContentMatch(hip, lowerQuery) {
-        if (this.checkField(hip.content, lowerQuery)) {
-            return { score: 1, matched: true };
-        }
-        return { score: 0, matched: false };
-    }
-
-    checkAuthorMatch(hip, lowerQuery) {
-        if (this.checkField(hip.author, lowerQuery)) {
-            return { score: 4, matched: true };
-        }
-        return { score: 0, matched: false };
-    }
-
-    checkDraftMatch(hip, lowerQuery) {
-        if (lowerQuery.includes('draft') && hip.status === 'draft') {
-            return { score: 8, matched: true };
-        }
-        return { score: 0, matched: false };
-    }
-
-    checkField(field, query) {
-        return field && field.toLowerCase().includes(query);
-    }
-
-    render(results) {
-        this.clearResults();
+    
+    performSearch() {
+        const query = this.searchInput.value.trim().toLowerCase();
         
-        if (results.length === 0) {
-            this.addNoResultsMessage();
+        if (!query) {
+            this.hideResults();
             return;
         }
-
-        results.forEach(result => this.addResultItem(result));
+        
+        const results = this.searchAllHips(query);
+        this.displayResults(results);
     }
-
-    clearResults() {
-        while (this.options.resultsContainer.firstChild) {
-            this.options.resultsContainer.removeChild(this.options.resultsContainer.firstChild);
+    
+    searchAllHips(query) {
+        const allResults = [];
+        
+        // Search published HIPs
+        const publishedResults = this.searchHips(this.publishedHips, query, 'published');
+        allResults.push(...publishedResults);
+        
+        // Search draft HIPs
+        const draftResults = this.searchHips(this.draftHips, query, 'draft');
+        allResults.push(...draftResults);
+        
+        // Sort by relevance (exact matches first, then partial matches)
+        allResults.sort((a, b) => {
+            const aExact = this.isExactMatch(a, query);
+            const bExact = this.isExactMatch(b, query);
+            
+            if (aExact && !bExact) return -1;
+            if (!aExact && bExact) return 1;
+            
+            return 0;
+        });
+        
+        return allResults.slice(0, this.limit);
+    }
+    
+    searchHips(hips, query, type) {
+        return hips
+            .filter(hip => this.matchesQuery(hip, query, type))
+            .map(hip => ({
+                ...hip,
+                type: type,
+                url: this.getHipUrl(hip, type)
+            }));
+    }
+    
+    matchesQuery(hip, query, type) {
+        const searchFields = [];
+        
+        if (type === 'published') {
+            searchFields.push(
+                hip.title || '',
+                hip.hipnum || '',
+                hip.category || '',
+                hip.content || ''
+            );
+        } else if (type === 'draft') {
+            searchFields.push(
+                hip.title || '',
+                hip.number ? hip.number.toString() : ''
+            );
         }
+        
+        return searchFields.some(field => 
+            field.toLowerCase().includes(query)
+        );
     }
-
-    addNoResultsMessage() {
-        const li = document.createElement('li');
-        li.textContent = this.options.noResultsText;
-        this.options.resultsContainer.appendChild(li);
+    
+    isExactMatch(hip, query) {
+        const title = (hip.title || '').toLowerCase();
+        const hipnum = hip.hipnum || hip.number?.toString() || '';
+        
+        return title === query || 
+               hipnum === query || 
+               title.includes(query) && title.startsWith(query);
     }
-
-    addResultItem(result) {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        
-        // Safely set attributes
-        a.href = this.sanitizeUrl(result.url);
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        
-        // Create safe content
-        const displayTitle = this.createDisplayTitle(result);
-        const displayType = result.status === 'draft' ? 'Draft HIP' : 'HIP';
-        
-        // Create bold element for type
-        const typeElement = document.createElement('b');
-        typeElement.textContent = displayType + ':';
-        
-        // Add icon
-        const icon = document.createElement('span');
-        try {
-            const parsedUrl = new URL(result.url);
-            icon.textContent = parsedUrl.host === 'github.com' ? '📝 ' : '📄 ';
-        } catch (e) {
-            console.warn('Invalid URL provided:', result.url);
-            icon.textContent = '📄 ';
-        }
-        
-        // Assemble the link content safely
-        a.appendChild(icon);
-        a.appendChild(typeElement);
-        a.appendChild(document.createTextNode(' ' + displayTitle));
-        
-        li.appendChild(a);
-        this.options.resultsContainer.appendChild(li);
-    }
-
-    createDisplayTitle(result) {
-        if (result.status === 'draft') {
-            if (result.extractedHipNumber) {
-                return `HIP-${result.hipnum}: ${result.title}`;
-            } else {
-                return `Draft HIP: ${result.title}`;
-            }
-        } else {
-            return `HIP-${result.hipnum}: ${result.title}`;
-        }
-    }
-
-    sanitizeUrl(url) {
-        try {
-            const validUrl = new URL(url);
-            // Only allow http and https protocols
-            if (validUrl.protocol === 'http:' || validUrl.protocol === 'https:') {
-                return validUrl.href;
-            }
-        } catch (e) {
-            console.warn('Invalid URL provided:', url);
+    
+    getHipUrl(hip, type) {
+        if (type === 'published') {
+            // For published HIPs, use the URL from search.json
+            return hip.url;
+        } else if (type === 'draft') {
+            // For draft HIPs, use the GitHub PR URL from draft_hips.json
+            return hip.url;
         }
         return '#';
     }
-
-    emptyResultsContainer() {
-        this.clearResults();
-    }
-
-    isValidQuery(query) {
-        return query && query.length > 0;
-    }
-
-    isWhitelistedKey(key) {
-        return [13, 16, 20, 37, 38, 39, 40, 91].indexOf(key) === -1;
-    }
-
-    fallbackToBasicSearch() {
-        console.log('Falling back to basic SimpleJekyllSearch');
-        if (window.SimpleJekyllSearch) {
-            window.SimpleJekyllSearch({
-                searchInput: this.options.searchInput,
-                resultsContainer: this.options.resultsContainer,
-                json: this.options.publishedHipsUrl,
-                searchResultTemplate: this.createBasicResultTemplate(),
-                noResultsText: this.options.noResultsText,
-                limit: this.options.limit
+    
+    displayResults(results) {
+        this.resultsContainer.innerHTML = '';
+        
+        if (results.length === 0) {
+            const noResultsItem = document.createElement('li');
+            noResultsItem.className = 'search-no-results';
+            noResultsItem.textContent = this.noResultsText;
+            this.resultsContainer.appendChild(noResultsItem);
+        } else {
+            results.forEach(result => {
+                const listItem = this.createResultItem(result);
+                this.resultsContainer.appendChild(listItem);
             });
         }
+        
+        this.showResults();
     }
-
-    createBasicResultTemplate() {
-        // Return a template function that creates DOM elements
-        return function(item) {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            const b = document.createElement('b');
-            
-            a.href = item.url;
-            b.textContent = `HIP-${item.hipnum}:`;
-            a.appendChild(b);
-            a.appendChild(document.createTextNode(` ${item.title}`));
-            li.appendChild(a);
-            
-            return li.outerHTML;
-        };
+    
+    createResultItem(result) {
+        const listItem = document.createElement('li');
+        listItem.className = `search-result search-result--${result.type}`;
+        
+        const link = document.createElement('a');
+        link.href = result.url;
+        link.target = result.type === 'draft' ? '_blank' : '_self';
+        
+        // Create title with HIP number
+        const hipNumber = result.type === 'published' ? result.hipnum : result.number;
+        const title = result.title || 'Untitled';
+        const displayTitle = hipNumber ? `HIP-${hipNumber}: ${title}` : title;
+        
+        link.innerHTML = `
+            <div class="search-result__title">${this.escapeHtml(displayTitle)}</div>
+            <div class="search-result__meta">
+                <span class="search-result__type">${result.type === 'draft' ? 'Draft PR' : 'Published'}</span>
+                ${result.category ? `<span class="search-result__category">${this.escapeHtml(result.category)}</span>` : ''}
+            </div>
+        `;
+        
+        listItem.appendChild(link);
+        return listItem;
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    showResults() {
+        this.resultsContainer.classList.add('results-visible');
+    }
+    
+    hideResults() {
+        this.resultsContainer.classList.remove('results-visible');
     }
 }
 
-// Export for use
+// Make the class available globally
 window.EnhancedHIPSearch = EnhancedHIPSearch;
