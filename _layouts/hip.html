@@ -56,52 +56,36 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for new header: needs-hedera-approval -->
-    {% if page.needs-hedera-approval != undefined %}
+    {% if page.needs-hedera-review != undefined %}
     <tr>
       <th>
-        Needs Hedera Approval
+        Needs Hedera Review
       </th>
       <td>
-        {% if page.needs-hedera-approval %}
-        Yes <span class="tooltip" data-tooltip="needs-hedera-approval-yes" style="text-decoration:none">ⓘ</span>
+        {% if page.needs-hedera-review %}
+        Yes <span class="tooltip" data-tooltip="needs-hedera-review-yes" style="text-decoration:none">ⓘ</span>
         {% else %}
-        No <span class="tooltip" data-tooltip="needs-hedera-approval-no" style="text-decoration:none">ⓘ</span>
+        No <span class="tooltip" data-tooltip="needs-hedera-review-no" style="text-decoration:none">ⓘ</span>
         {% endif %}
       </td>
     </tr>
     {% endif %}
-    <!-- Support for legacy header: needs-hiero-review -->
-    {% if page.needs-hiero-review != undefined %}
+    {% if page.needs-hiero-approval != undefined %}
     <tr>
       <th>
-        Needs Hiero Review
+        Needs Hiero Approval
       </th>
       <td>
-        {% if page.needs-hiero-review %}
-        Yes <span class="tooltip" data-tooltip="{{ page.needs-hiero-review | jsonify }}"
+        {% if page.needs-hiero-approval %}
+        Yes <span class="tooltip" data-tooltip="{{ page.needs-hiero-approval | jsonify }}"
           style="text-decoration:none">ⓘ</span>
         {% else %}
-        No <span class="tooltip" data-tooltip="{{ page.needs-hiero-review | jsonify }}"
+        No <span class="tooltip" data-tooltip="{{ page.needs-hiero-approval | jsonify }}"
           style="text-decoration:none">ⓘ</span>
         {% endif %}
       </td>
     </tr>
     {% endif %}
-    <!-- Support for legacy header: hedera-approval -->
-    {% if page.hedera-approval != undefined %}
-    <tr>
-      <th>Hedera Approval <span class="tooltip" data-tooltip="hederaApproval" style="text-decoration:none">ⓘ</span></th>
-      <td>
-        {% if page.hedera-approval == "N/A" %}
-          Not Approved
-        {% else %}
-          {{ page.hedera-approval | date_to_rfc822 }}
-        {% endif %}
-      </td>
-    </tr>
-    {% endif %}
-    <!-- Support for new header: hedera-reviewed-date -->
     {% if page.hedera-reviewed-date != undefined %}
     <tr>
       <th>Hedera Reviewed Date <span class="tooltip" data-tooltip="hedera-reviewed-date" style="text-decoration:none">ⓘ</span></th>
@@ -114,7 +98,6 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for new header: hedera-approval-status -->
     {% if page.hedera-approval-status != undefined %}
     <tr>
       <th>Hedera Approval Status <span class="tooltip" data-tooltip="hedera-approval-status" style="text-decoration:none">ⓘ</span></th>
@@ -125,7 +108,7 @@ layout: default
     {% endif %}
     {% if page.last-call-date-time != undefined %}
     <tr>
-      <th>Review period ends <span class="tooltip" data-tooltip="reviewPeriodEnds" style="text-decoration:none">ⓘ</span>
+      <th>Last Call Period Ends <span class="tooltip" data-tooltip="reviewPeriodEnds" style="text-decoration:none">ⓘ</span>
       </th>
       <td>
         {{ page.last-call-date-time | date_to_rfc822 }}
@@ -267,12 +250,12 @@ https://schema.org/TechArticle
         true: "👥 This HIP requires council approval for implementation because it makes changes at the protocol level.",
         false: "✅ This HIP does not require council approval for implementation.",
       },
-      "needs-hedera-approval-yes": "👥 This HIP requires Hedera approval for implementation because it makes changes at the protocol level.",
-      "needs-hedera-approval-no": "✅ This HIP does not require Hedera approval for implementation.",
+      "needs-hedera-review-yes": "👥 This HIP requires Hedera approval for implementation because it makes changes at the protocol level.",
+      "needs-hedera-review-no": "✅ This HIP does not require Hedera approval for implementation.",
       "hedera-reviewed-date": "📅 The date when Hedera reviewed this HIP. 'Not Reviewed' means it has not yet been reviewed by Hedera.",
       "hedera-approval-status": "👍/👎 Indicates whether Hedera has approved or rejected the HIP, or if approval is not applicable (N/A).",
       "hederaApproval": "📅 The date when this HIP received official approval from Hedera. 'Not Approved' means it has not yet received official approval.",
-      "reviewPeriodEnds": "⏳ The last call review period ends on this date, after which the HIP's status may change.",
+      "reviewPeriodEnds": "⏳ The last call Last Call Period Ends on this date, after which the HIP's status may change.",
     };
 
     const tooltipElements = document.querySelectorAll(".tooltip");

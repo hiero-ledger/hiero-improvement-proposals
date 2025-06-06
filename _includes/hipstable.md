@@ -8,7 +8,7 @@
             <option value="application">Application</option>
             <option value="informational">Informational</option>
             <option value="process">Process</option>
-            <option value="block node">Block Node</option> {# Added Block Node #}
+            <option value="block node">Block Node</option>
         </select>
     </div>
     
@@ -19,6 +19,7 @@
             <option value="review">Review</option>
             <option value="last call">Last Call</option>
             <option value="accepted">Accepted</option>
+            <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
             <option value="final">Final</option>
             <option value="active">Active</option>
@@ -29,7 +30,7 @@
         </select>
     </div>
     <div class="filter-group">
-        <h4>Hiero Review&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
+        <h4>Hiero Approval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
         <label>
             <input type="radio" name="hiero-review-filter" class="hiero-filter" value="true"> Yes
         </label>
@@ -62,7 +63,7 @@
             <th class="numeric">Number</th>
             <th>Title</th>
             <th>Author</th>
-            <th>Needs Hiero Review</th>
+            <th>Needs Hiero Approval</th>
             <th>Needs Hedera Review</th>
         </tr>
     </thead>
@@ -71,9 +72,8 @@
 
 <!-- Then render the rest of the statuses -->
 {% for status in site.data.statuses %}
-    {% comment %} Filter HIPS by the current status from site.data.statuses {% endcomment %}
-    {% assign status_hips = include.hips | where_exp: "item", "item.status == status" | sort: "hip" | reverse %}
-    {% assign count = status_hips.size %}
+    {% assign hips = include.hips | where: "status", status | where: "category", category | where: "type", type | sort: "hip" | reverse %}
+    {% assign count = hips.size %}
     {% if count > 0 %}
         <h2 id="{{ status | slugify }}">
             {{ status | capitalize }} 
@@ -86,24 +86,24 @@
                     <th class="numeric">Number</th>
                     <th>Title</th>
                     <th>Author</th>
-                    <th>Needs Hiero Review</th>
+                    <th>Needs Hiero Approval</th>
                     <th>Needs Hedera Review</th>
                     {% if status == "Last Call" %}
-                        <th>Review Period Ends</th>
+                        <th>Last Call Period Ends</th>
                     {% else %}
                         <th class="numeric version">Release</th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
-                {% for page in status_hips %}
+                {% for page in hips %}
                     <tr data-type="{{ page.type | downcase }}"
-                        data-category="{{ page.category | join: ', ' | downcase }}" {# Ensure multi-category is comma-separated string #}
+                        data-category="{{ page.category | downcase }}"
                         data-status="{{ page.status | downcase }}"
-                        data-hedera-review="{{ page.needs-hedera-approval | default: page.needs-council-approval | default: false | downcase }}"
+                        data-hedera-review="{{ page.needs-hedera-review | default: page.needs-council-approval | default: false | downcase }}"
                         data-council-review="{{ page.needs-council-approval | default: false | downcase }}"
                         data-hedera-review-date="{{ page.hedera-review-date }}"
-                        data-hiero-review="{{ page.needs-hiero-review | downcase }}">
+                        data-hiero-review="{{ page.needs-hiero-approval | downcase }}">
                         
                         <td class="hip-number">
                             <a href="{{ page.url | relative_url }}">{{ page.hip | xml_escape }}</a>
@@ -117,16 +117,16 @@
                             {% include authorslist.html authors=page.author %}
                         </td>
                         
-                        <td class="hiero-review">
-                            {% if page.needs-hiero-review %}
+                        <td class="hiero-review" data-label="Needs Hiero Approval">
+                            {% if page.needs-hiero-approval %}
                                 Yes
                             {% else %}
                                 No
                             {% endif %}
                         </td>
                         
-                        <td class="hedera-review">
-                            {% if page.needs-hedera-approval or page.needs-council-approval %}
+                        <td class="hedera-review" data-label="Needs Hedera Review">
+                            {% if page.needs-hedera-review or page.needs-council-approval %}
                                 Yes
                             {% else %}
                                 No

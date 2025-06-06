@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Handle case where .val() might return a single string for a single selection
             selectedCategoriesForFilter = [rawSelectedTypes.trim().toLowerCase()];
         }
-        // If rawSelectedTypes is null (e.g., filter cleared), selectedCategoriesForFilter remains []
 
         const selectedStatuses = statusSelect.val().length > 0 ? statusSelect.val() : ['all'];
         const selectedHederaReview = document.querySelector('input[name="hedera-review-filter"]:checked')?.value || 'all';
@@ -99,11 +98,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Add more specific aliases here if needed in the future.
 
-                    return false; // This selected filter category was not found in the HIP's categories (considering aliases)
+                    return false;
                 });
             }
             
-            const statusMatch = selectedStatuses.includes('all') || selectedStatuses.includes(rowStatus);
+            let statusMatch;
+            if (selectedStatuses.length === 1 && selectedStatuses[0] === 'all') {
+                statusMatch = (rowStatus !== 'draft');
+            } else {
+                statusMatch = selectedStatuses.includes(rowStatus);
+            }
+
             const hederaReviewMatch = selectedHederaReview === 'all' || selectedHederaReview === rowHederaReview;
             const hieroReviewMatch = selectedHieroReview === 'all' || selectedHieroReview === rowHieroReview;
 
@@ -118,6 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
         noHipsMessage.style.display = anyRowVisible ? 'none' : 'block';
         updateTableVisibility();
     }
+
+    // Make filterRows globally accessible
+    window.filterRows = filterRows;
 
     function updateTableVisibility() {
         let anyTableVisible = false;
