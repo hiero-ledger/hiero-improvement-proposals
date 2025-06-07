@@ -265,7 +265,7 @@
     "title": "Update Terminology: Hiero Approves, Hedera Council Accepts",
     "number": 1201,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1201",
-    "headRefOid": "6356bca83177aad9fbb950f8788374a51fb6b467",
+    "headRefOid": "bbf85f8f1336468e40ec4db0d94be6bbf7c1a2b6",
     "files": {
       "edges": [
         {
@@ -334,22 +334,22 @@
         {
           "node": {
             "path": "_data/statuses.yaml",
-            "additions": 6,
+            "additions": 7,
             "deletions": 7
           }
         },
         {
           "node": {
             "path": "_includes/hipstable.md",
-            "additions": 15,
+            "additions": 16,
             "deletions": 16
           }
         },
         {
           "node": {
             "path": "_layouts/hip.html",
-            "additions": 16,
-            "deletions": 16
+            "additions": 14,
+            "deletions": 31
           }
         },
         {
@@ -361,9 +361,37 @@
         },
         {
           "node": {
+            "path": "assets/hip-1/hip-states-ipa.png",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1/hip-states-standards-track.png",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
             "path": "assets/hip-1/hip-states.png",
             "additions": 0,
             "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/js/filter.js",
+            "additions": 11,
+            "deletions": 3
+          }
+        },
+        {
+          "node": {
+            "path": "assets/js/pr-integration.js",
+            "additions": 2,
+            "deletions": 2
           }
         },
         {
@@ -377,6 +405,187 @@
     },
     "author": {
       "login": "mgarbs"
+    }
+  },
+  {
+    "title": "The hinTS threshold signature scheme",
+    "number": 1200,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1200",
+    "headRefOid": "90446747aa47d42a27b5c47c4e710bf6d91ae879",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1200.md",
+            "additions": 478,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tinker-michaelj"
+    }
+  },
+  {
+    "title": "Bump step-security/action-send-mail from 3.12.0 to 5.0.0",
+    "number": 1198,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1198",
+    "headRefOid": "a6eb8237a6cac55875387988dc1b3e0910057f50",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": ".github/workflows/send-email.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "dependabot"
+    }
+  },
+  {
+    "title": "HIP-1193 - Records to block streams cutover",
+    "number": 1193,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1193",
+    "headRefOid": "b6a950e96b6cd1374c424c0b6760f93dc8b06ae7",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1193.md",
+            "additions": 267,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Mark-Swirlds"
+    }
+  },
+  {
+    "title": "Update completed hips (HIP-551, HIP-632, HIP-1064)",
+    "number": 1191,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1191",
+    "headRefOid": "05a995195caf38118cd219cbf36604ea8c707304",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1064.md",
+            "additions": 3,
+            "deletions": 2
+          }
+        },
+        {
+          "node": {
+            "path": "HIP/hip-551.md",
+            "additions": 3,
+            "deletions": 2
+          }
+        },
+        {
+          "node": {
+            "path": "HIP/hip-632.md",
+            "additions": 3,
+            "deletions": 2
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "jnels124"
+    }
+  },
+  {
+    "title": "Improvements to the Wallet Connect implementation for dApps on Hedera",
+    "number": 1190,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1190",
+    "headRefOid": "26fbaea2a391b430e682ffc0bb3e8489a9857bc2",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1190.md",
+            "additions": 181,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "Recreate hip-851.md",
+    "number": 1182,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1182",
+    "headRefOid": "52fa4cfe17c347b4e0aa146e020aefdb7d163149",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-851.md",
+            "additions": 217,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "Generalized Schedule Contract Call",
+    "number": 1179,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1179",
+    "headRefOid": "fd75ffdb82fffd33771eaa207c810835b5b91e9b",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "hip-0000.md",
+            "additions": 91,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "littletarzan"
+    }
+  },
+  {
+    "title": "NEW HIP: Improve Hedera Sharding",
+    "number": 1151,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1151",
+    "headRefOid": "7a4902657919383a17c62fecc4a0a290640aa6ce",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "_data/draft_hips.json",
+            "additions": 76,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "hip-0000-improve-hedera-sharding.md",
+            "additions": 175,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "jxcwu"
     }
   },
   {
