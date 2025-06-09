@@ -31,18 +31,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function getTooltipContent(status) {
     const statusMeanings = {
-        Draft: "⚠️ Initial stage of the HIP process.",
-        Review: "📖 Ready for Editorial Review. Subject to changes; feedback appreciated.",
-        Deferred: "⏸ Addressed in another HIP. Paused in progress.",
-        Withdrawn: "🛑 Withdrawn by the Author(s), finality achieved. Can be resurrected as a new proposal.",
-        Stagnant: "🚧 No activity for 6+ months. Can return to Draft by Authors or Editors.",
-        Rejected: "❌ Not accepted. Rejected ideas are recorded with reasoning.",
-        "Last Call": "📢 Final review window before 'Accepted'. Subject to change if issues found.",
-        "Council Review": "⚖️ Under Council review. Awaiting approval, subject to feedback.",
-        Accepted: "👍 Went through 'Last Call' without content changes. Ready for implementation.",
-        Final: "✅ Implemented in code and released.",
-        Active: "🌟 Informational/Process HIPs that made it through Last Call. Can be 'Withdrawn' or 'Replaced'.",
-        Replaced: "🔄 Overwritten by a newer standard or implementation."
+        Draft: "⚠️ The formal starting point of a HIP. The HIP is currently being drafted and is not yet ready for review.",
+        Review: "📖 The HIP is ready for review by the community and HIP editors.",
+        "Last Call": "📢 The HIP is in a final review window, typically 14 days, before being moved to a Hiero TSC approval vote (Service, Core, Mirror or Block Node HIPs) or Active (Application HIPs).",
+        Approved: "👍 A Standards Track HIP has been approved by Hiero TSC.",
+        Final: "✅ A Standards Track HIP has been reviewed and approved by Hiero TSC and its reference implementation has been merged.",
+        Active: "🌟 A Process or Informational HIP that is currently in effect.",
+        Deferred: "⏸ A HIP that is not currently being pursued but may be revisited in the future.",
+        Withdrawn: "🛑 Author has withdrawn the HIP.",
+        Stagnant: "🚧 A HIP that has been inactive for a significant period (e.g., 6+ months) may be marked as Stagnant by the HIP editors.",
+        Rejected: "❌ The HIP has been rejected by the HIP editors, the community, or a Hiero TSC vote.",
+        Replaced: "🔄 The HIP has been replaced by a newer HIP."
       };
     return statusMeanings[status] || "No information available for this status.";
 }
