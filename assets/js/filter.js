@@ -50,15 +50,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function filterRows() {
         const rawSelectedTypes = $('#type-filter').val(); // Changed variable name for clarity
-        let selectedCategoriesForFilter = [];
+        let selectedTypesForFilter = [];
 
         if (Array.isArray(rawSelectedTypes)) {
-            selectedCategoriesForFilter = rawSelectedTypes
-                .map(cat => (typeof cat === 'string' ? cat.trim().toLowerCase() : ''))
-                .filter(cat => cat !== '');
+            selectedTypesForFilter = rawSelectedTypes
+                .map(type => (typeof type === 'string' ? type.trim().toLowerCase() : ''))
+                .filter(type => type !== '');
         } else if (typeof rawSelectedTypes === 'string' && rawSelectedTypes.trim() !== '') {
             // Handle case where .val() might return a single string for a single selection
-            selectedCategoriesForFilter = [rawSelectedTypes.trim().toLowerCase()];
+            selectedTypesForFilter = [rawSelectedTypes.trim().toLowerCase()];
         }
 
         const selectedStatuses = statusSelect.val().length > 0 ? statusSelect.val() : ['all'];
@@ -67,8 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let anyRowVisible = false;
         document.querySelectorAll('.hipstable tbody tr').forEach(row => {
+            const typeAttr = row.getAttribute('data-type');
+            const rowType = typeAttr ? typeAttr.trim().toLowerCase() : '';
             const categoryAttr = row.getAttribute('data-category');
-            const rowCategories = categoryAttr ? categoryAttr.trim().toLowerCase().split(',').map(cat => cat.trim()).filter(cat => cat !== '') : [];
+            const rowCategory = categoryAttr ? categoryAttr.trim().toLowerCase() : '';
 
             const statusAttr = row.getAttribute('data-status');
             const rowStatus = statusAttr ? statusAttr.trim().toLowerCase() : 'unknown'; // Default to a non-matching status if missing
@@ -80,39 +82,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const hieroReviewAttr = row.getAttribute('data-hiero-review');
             const rowHieroReview = hieroReviewAttr ? hieroReviewAttr : 'false'; 
 
-            let categoryMatch = true; 
-            if (selectedCategoriesForFilter.length > 0) { // Apply filter only if categories are selected
-                categoryMatch = selectedCategoriesForFilter.every(selCat => {
-                    // selCat is a category selected in the filter, e.g., 'core', 'mirror'
-                    // rowCategories is an array of categories from the HIP, e.g., ['core', 'service', 'mirror node']
-
-                    // Direct match:
-                    if (rowCategories.includes(selCat)) {
-                        return true;
-                    }
-
-                    // Alias: filter 'mirror' should match data 'mirror node'
-                    if (selCat === 'mirror' && rowCategories.includes('mirror node')) {
-                        return true;
-                    }
-                    
-                    // Add more specific aliases here if needed in the future.
-
-                    return false;
-                });
+            let typeMatch = true; 
+            if (selectedTypesForFilter.length > 0) { // Apply filter only if types are selected
+                // For Standards Track HIPs, check the category; for Informational/Process HIPs, check the type
+                if (rowType === 'standards track') {
+                    // Standards Track HIPs: check against category (core, service, mirror, application, block node)
+                    typeMatch = selectedTypesForFilter.includes(rowCategory);
+                } else {
+                    // Informational/Process HIPs: check against type (informational, process)
+                    typeMatch = selectedTypesForFilter.includes(rowType);
+                }
             }
             
-            let statusMatch;
-            if (selectedStatuses.length === 1 && selectedStatuses[0] === 'all') {
-                statusMatch = (rowStatus !== 'draft');
-            } else {
-                statusMatch = selectedStatuses.includes(rowStatus);
-            }
-
+            const statusMatch = selectedStatuses.includes('all') || 
+                            selectedStatuses.includes(rowStatus) ||
+                            (selectedStatuses.includes('approved') && rowStatus === 'accepted');
             const hederaReviewMatch = selectedHederaReview === 'all' || selectedHederaReview === rowHederaReview;
             const hieroReviewMatch = selectedHieroReview === 'all' || selectedHieroReview === rowHieroReview;
 
-            if (categoryMatch && statusMatch && hederaReviewMatch && hieroReviewMatch) {
+            if (typeMatch && statusMatch && hederaReviewMatch && hieroReviewMatch) {
                 row.style.display = '';
                 anyRowVisible = true;
             } else {
@@ -123,9 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
         noHipsMessage.style.display = anyRowVisible ? 'none' : 'block';
         updateTableVisibility();
     }
-
-    // Make filterRows globally accessible
-    window.filterRows = filterRows;
 
     function updateTableVisibility() {
         let anyTableVisible = false;
