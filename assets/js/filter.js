@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function filterRows() {
-        const rawSelectedTypes = $('#type-filter').val(); // Changed variable name for clarity
+        const rawSelectedTypes = $('#type-filter').val();
         let selectedTypesForFilter = [];
 
         if (Array.isArray(rawSelectedTypes)) {
@@ -57,11 +57,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 .map(type => (typeof type === 'string' ? type.trim().toLowerCase() : ''))
                 .filter(type => type !== '');
         } else if (typeof rawSelectedTypes === 'string' && rawSelectedTypes.trim() !== '') {
-            // Handle case where .val() might return a single string for a single selection
             selectedTypesForFilter = [rawSelectedTypes.trim().toLowerCase()];
         }
 
-        const selectedStatuses = statusSelect.val().length > 0 ? statusSelect.val() : ['all'];
+        const rawSelectedStatuses = statusSelect.val();
+        const selectedStatuses = rawSelectedStatuses && rawSelectedStatuses.length > 0 ? rawSelectedStatuses.map(s => s.toLowerCase()) : ['all'];
         const selectedHederaReview = document.querySelector('input[name="hedera-review-filter"]:checked')?.value || 'all';
         const selectedHieroReview = document.querySelector('input[name="hiero-review-filter"]:checked')?.value || 'all';
         
@@ -115,11 +115,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTableVisibility() {
         let anyTableVisible = false;
         document.querySelectorAll('.hipstable').forEach(table => {
-            const isVisible = Array.from(table.querySelectorAll('tbody tr')).some(row => row.style.display !== 'none');
+            const visibleRows = Array.from(table.querySelectorAll('tbody tr')).filter(row => row.style.display !== 'none');
+            const isVisible = visibleRows.length > 0;
             anyTableVisible = anyTableVisible || isVisible;
             table.style.display = isVisible ? '' : 'none';
             const heading = table.previousElementSibling;
-            heading.style.display = isVisible ? '' : 'none';
+            if (heading && heading.tagName === 'H2') {
+                heading.style.display = isVisible ? '' : 'none';
+            }
         });
         noHipsMessage.textContent = anyTableVisible ? '' : 'No HIPs match this filter.';
     }
