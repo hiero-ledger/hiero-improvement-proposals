@@ -1,3 +1,22 @@
+<!-- HIP Information Header -->
+<div class="hip-info-header">
+    <h2>About Hiero Improvement Proposals (HIPs)</h2>
+    <p>
+        <strong>Hiero Improvement Proposals (HIPs)</strong> are design documents that propose new features, 
+        collect community input, and document design decisions for the Hiero codebase. HIPs are the primary 
+        mechanism for proposing changes to the Hiero network and ecosystem.
+    </p>
+    <p>
+        The table below shows all HIPs organized by status. Each HIP progresses through various stages 
+        from Draft to Final implementation. To learn more about the HIP process or submit your own proposal:
+    </p>
+    <div class="hip-links">
+        <a href="HIP/hip-1.html" class="hip-process-link">📖 Read HIP-1: HIP Process</a><br>
+        <a href="https://github.com/hiero-ledger/hiero-improvement-proposals/blob/main/hip-0000-template.md" 
+           class="hip-template-link" target="_blank">🚀 Use the HIP Template</a>
+    </div>
+</div>
+
 <div class="hip-filters filter-wrap">
     <div class="filter-group">
         <h4>Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>

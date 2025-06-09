@@ -89,22 +89,6 @@ Following a successful **Last Call** period (or if **Last Call** is deemed unnec
 
 A HIP can only be reviewed by Hedera after it has been **Approved** by Hiero TSC (if Hiero TSC approval is required).
 
-- **Final** means the reference implementation has been completed, merged, and the proposal is fully realized in code.
-
-Alternatively, a HIP can be:
-- **Deferred** (no progress, but future plans to implement),
-- **Withdrawn** (the author decides to abandon it),
-- **Stagnant** (stalled draft or review for six months),
-- **Rejected** (if it's not **Approved** by Hiero TSC), or
-- **Replaced** (superseded by a newer HIP).
-
-
-The possible paths of the status of HIPs are as follows:
-
-⚠️ **NOTE**: The diagram below illustrates all valid status transitions:
-
-![HIP States](../assets/hip-1/hip-states.png)
-
 ### HIP Status Titles
 
 - **Idea** – Pre-draft, not in the repository. 
@@ -134,6 +118,9 @@ Standards Track HIPs (categories: Core, Service, Mirror or Block Node) follow th
 6.  **Final**: When a HIP is implemented in code, the HIP maintainer updates the status of the HIP to **Final** and specifies a `release` number.
 7.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: A HIP may also end up in one of these states as described in "HIP Statuses".
 
+The possible paths of the status of Standards Track HIPs are as follows:
+![HIP States](../assets/hip-1/hip-states-standards-track.png)
+
 ### Informational, Process and Application HIPs
 
 Informational and Process HIPs follow a simpler lifecycle:
@@ -148,6 +135,12 @@ Informational and Process HIPs follow a simpler lifecycle:
     *   Process and Informational HIPs: Status changes to **Active**.
     *   Application HIPs: Status changes to **Approved**.
 6.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: As described in "HIP Statuses".
+
+The possible paths of the status of Informational, Process and Application HIPs HIPs are as follows:
+
+⚠️ **NOTE**: The diagram below illustrates all valid status transitions:
+
+![HIP States](../assets/hip-1/hip-states-ipa.png)
 
 ## What belongs in a successful HIP?
 
