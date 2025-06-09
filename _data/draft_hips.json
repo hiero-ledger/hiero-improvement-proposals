@@ -265,7 +265,7 @@
     "title": "Update Terminology: Hiero Approves, Hedera Council Accepts",
     "number": 1201,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1201",
-    "headRefOid": "d9a0e9bb1df3681a1c83a2eba62ce156b3487695",
+    "headRefOid": "0c3fa951ef7192cce2144df423a24d9a738aab49",
     "files": {
       "edges": [
         {
@@ -348,8 +348,8 @@
         {
           "node": {
             "path": "_includes/hipstable.md",
-            "additions": 16,
-            "deletions": 16
+            "additions": 156,
+            "deletions": 72
           }
         },
         {
@@ -390,8 +390,8 @@
         {
           "node": {
             "path": "assets/js/filter.js",
-            "additions": 11,
-            "deletions": 3
+            "additions": 22,
+            "deletions": 29
           }
         },
         {
