@@ -45,7 +45,7 @@ jobs:
       - name: Create Script
         run: |
           mkdir -p _data
-          cat << 'EOF' > fetch-draft-hips.js
+          cat << \'EOF\' > fetch-draft-hips.js
           const https = require('https');
           const fs = require('fs');
 
@@ -88,6 +88,7 @@ jobs:
                         edges {
                           node {
                             path
+                            changeType
                             additions
                             deletions
                           }
@@ -107,6 +108,12 @@ jobs:
               
               if (result.errors) {
                 console.error('GraphQL errors:', result.errors);
+                process.exit(1); 
+              }
+
+              // Check if data and the expected path to nodes exist
+              if (!result.data || !result.data.repository || !result.data.repository.pullRequests || !result.data.repository.pullRequests.nodes) {
+                console.error('Unexpected GraphQL response structure:', result);
                 process.exit(1);
               }
 
@@ -118,21 +125,31 @@ jobs:
           }
 
           // Run the main function
-          getAllPRs().then(prs => {
-            // Ensure we're completely replacing the file by writing fresh data
-            // If the file exists, it will be overwritten entirely
+          getAllPRs().then(allPRs => {
+            const draftHIPPRs = allPRs.filter(pr => {
+              if (!pr.files || !pr.files.edges) {
+                return false;
+              }
+              const hipFiles = pr.files.edges.filter(edge => {
+                const fileNode = edge.node;
+                const isNewHIPFile = /^HIP\\/hip-[a-zA-Z0-9-]+\\.md$/.test(fileNode.path); // New regex
+                return fileNode.changeType === 'ADDED' && isNewHIPFile;
+              }).map(edge => edge.node);
+
+              return hipFiles.length > 0;
+            });
+
             const outputPath = '_data/draft_hips.json';
             
-            // Remove the file if it exists (optional, as writeFileSync will overwrite it anyway)
             if (fs.existsSync(outputPath)) {
               console.log(`Removing existing file: ${outputPath}`);
               fs.unlinkSync(outputPath);
             }
             
-            console.log(`Writing fresh data to: ${outputPath}`);
-            fs.writeFileSync(outputPath, JSON.stringify(prs, null, 2));
+            console.log(`Writing ${draftHIPPRs.length} filtered PRs to: ${outputPath}`);
+            fs.writeFileSync(outputPath, JSON.stringify(draftHIPPRs, null, 2));
           }).catch(error => {
-            console.error('Failed to fetch PRs:', error);
+            console.error('Failed to fetch and filter PRs:', error);
             process.exit(1);
           });
           EOF

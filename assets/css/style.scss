@@ -82,7 +82,7 @@
     border: none;
     border-bottom: 1px solid #eee;
     position: relative;
-    padding-left: 60%;
+    padding-left: calc(45% + 18px); // Ensures a gap after the 45% wide label, increased gap
     word-break: break-word;
     padding-top: 0px;
     min-height: 50px;
@@ -93,8 +93,8 @@
       left: 6px;
       width: 45%;
       padding-right: 10px;
-      white-space: nowrap;
-      word-break: break-word;
+      white-space: normal; // Allow label text to wrap
+      word-break: break-word; // Ensure long words still break
     }
   }
 
