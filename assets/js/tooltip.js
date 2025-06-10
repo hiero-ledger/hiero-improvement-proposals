@@ -17,12 +17,16 @@ document.addEventListener("DOMContentLoaded", function () {
         tooltip.addEventListener("mousemove", (event) => {
             const tooltipBox = tooltip.querySelector(".status-tooltip-box");
             if (tooltipBox) {
-                const boxRect = tooltipBox.getBoundingClientRect();
-                const contentLength = tooltipBox.innerText.length;
-                const offset = contentLength < 125 ? 100 : 200;
-                const tooltipLeft = Math.max(0, event.clientX + offset);
-                tooltipBox.style.left = tooltipLeft + "px";
-                tooltipBox.style.maxWidth = (window.innerWidth - event.clientX) * 2 + "px";
+                // Position the tooltip box relative to the cursor over the icon
+                const x = event.offsetX + 15; // 15px to the right of the cursor
+                const y = event.offsetY + 15; // 15px below the cursor
+
+                tooltipBox.style.left = x + "px";
+                tooltipBox.style.top = y + "px";
+
+                // Override any CSS that might conflict with dynamic positioning
+                tooltipBox.style.bottom = 'auto';
+                tooltipBox.style.transform = 'none';
             }
         });
 
