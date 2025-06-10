@@ -1,5 +1,25 @@
 [
   {
+    "title": "Generalized scheduled contract call",
+    "number": 1215,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
+    "headRefOid": "cc5e2a587fc6e272c1830747468c8771f0215dec",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1179.md",
+            "additions": 177,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tinker-michaelj"
+    }
+  },
+  {
     "title": "HIP: Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
     "number": 1214,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1214",
@@ -354,26 +374,6 @@
     }
   },
   {
-    "title": "Generalized Schedule Contract Call",
-    "number": 1179,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1179",
-    "headRefOid": "fd75ffdb82fffd33771eaa207c810835b5b91e9b",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "hip-0000.md",
-            "additions": 91,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "littletarzan"
-    }
-  },
-  {
     "title": "NEW HIP: Improve Hedera Sharding",
     "number": 1151,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1151",
@@ -404,13 +404,13 @@
     "title": "feat: Rollable and Fully Immutable Topic Ids",
     "number": 1139,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1139",
-    "headRefOid": "6f6b8314c9890627214ee114a34a2525a173e41c",
+    "headRefOid": "10ee488dbb5e3564e02f19f249f5138dc3b18d3d",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1139.md",
-            "additions": 191,
+            "additions": 193,
             "deletions": 0
           }
         }
