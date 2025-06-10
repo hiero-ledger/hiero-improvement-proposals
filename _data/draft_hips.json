@@ -83,7 +83,7 @@
     "title": "Update Terminology: Hiero Approves, Hedera Council Accepts",
     "number": 1201,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1201",
-    "headRefOid": "fe67e8f8fa6f862cdff0e93a55e99ccedfed194d",
+    "headRefOid": "f7cb8401d1f78e959ba661f44f3ffb73e53d877c",
     "files": {
       "edges": [
         {
@@ -186,6 +186,13 @@
         },
         {
           "node": {
+            "path": "assets/css/style.scss",
+            "additions": 70,
+            "deletions": 16
+          }
+        },
+        {
+          "node": {
             "path": "assets/hip-1/hip-states-ipa.png",
             "additions": 0,
             "deletions": 0
@@ -222,8 +229,8 @@
         {
           "node": {
             "path": "assets/js/tooltip.js",
-            "additions": 11,
-            "deletions": 12
+            "additions": 21,
+            "deletions": 18
           }
         },
         {
@@ -678,7 +685,7 @@
     "title": "Block Node",
     "number": 1081,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1081",
-    "headRefOid": "b915c5762b8cc93b71f9307e8162836768357632",
+    "headRefOid": "69186469e7fbd7b7bfa625a0153ace3bdbdf33d1",
     "files": {
       "edges": [
         {
@@ -712,7 +719,7 @@
         {
           "node": {
             "path": "assets/hip-1081/protobuf/block_stream_subscribe_service.proto",
-            "additions": 185,
+            "additions": 178,
             "deletions": 0
           }
         },
