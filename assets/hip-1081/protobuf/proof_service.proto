@@ -110,28 +110,28 @@ message BlockContentsProofResponse {
         /**
          * The response code is unspecified.
          */
-        BLOCK_CONTENT_PROOF_UNKNOWN = 0;
+        UNKNOWN = 0;
 
         /**
          * The block content proof was successfully retrieved.
          */
-        BLOCK_CONTENT_PROOF_SUCCESS = 1;
+        SUCCESS = 1;
 
         /**
          * The specified block item was not found.
          */
-        BLOCK_CONTENT_PROOF_ITEM_NOT_FOUND = 2;
+        ITEM_NOT_FOUND = 2;
 
         /**
          * The block content proof is not available for the specified block.
          */
-        BLOCK_CONTENT_PROOF_NOT_AVAILABLE = 3;
+        NOT_AVAILABLE = 3;
 
         /**
          * Duplicate hash items were found, causing ambiguity.
          * Clients MUST use the block item index to resolve the ambiguity.
          */
-        BLOCK_CONTENT_PROOF_DUPLICATE_HASH_ITEM_FOUND = 4;
+        DUPLICATE_HASH_ITEM_FOUND = 4;
     }
 
     /**
