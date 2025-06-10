@@ -7,7 +7,7 @@ option java_package = "org.hiero.block.api.protoc";
 // <<<pbj.java_package = "org.hiero.block.api">>> This comment is special code for setting PBJ Compiler java package
 option java_multiple_files = true;
 
-import "org/hiero/block/api/shared_message_types.proto";
+import "block-node/api/shared_message_types.proto";
 
 /**
  * A request to stream block items from block node to a client.
@@ -37,15 +37,14 @@ message SubscribeStreamRequest {
 
     /**
      * A block number to end the stream.<br/>
-     * This is optional, and if not set (0), the stream will be "infinite".
      * <p>
-     * This field MAY be zero (`0`) to indicate the stream SHOULD continue
+     * This field MAY be `uint64_max` to indicate the stream SHOULD continue
      * indefinitely, streaming new blocks as each becomes available.<br/>
-     * If this value is greater than zero (`0`)
+     * If this value is less than `uint64_max` (`0xFFFFFFFFFFFFFFFF`)
      * <ul>
      *   <li>This value SHALL be the number of the last block returned.</li>
      *   <li>This field MUST NOT be less than `start_block_number`.</li>
-     *   <li>This SHOULD be a block number that is immediately available
+     *   <li>This MAY be a block number that is immediately available
      *       from the block node.</li>
      *   <li>A block node SHALL continue to stream blocks until the last
      *       requested block is transmitted.</li>
@@ -73,11 +72,8 @@ message SubscribeStreamRequest {
  * The block node SHALL end the stream with a response code status of SUCCESS
  * when the stream is complete.<br/>
  * The block node SHALL end the stream with a response code status of
- * `READ_STREAM_INVALID_START_BLOCK_NUMBER` if the start block number is
+ * `INVALID_START_BLOCK_NUMBER` if the start block number is
  * greater than the end block number.<br/>
- * The block node SHALL end the stream with a response code status of
- * `READ_STREAM_INSUFFICIENT_BALANCE` if insufficient balance remains to
- * complete the requested stream.
  * The block node SHALL make every reasonable effort to fulfill as much of the
  * request as available balance supports, in the event balance is not
  * sufficient to complete the request.
@@ -95,7 +91,7 @@ message SubscribeStreamResponse {
          * This status indicates the server software failed to set a status,
          * and SHALL be considered a software defect.
          */
-        READ_STREAM_UNKNOWN = 0;
+        UNKNOWN = 0;
 
         /**
          * The request succeeded.
@@ -116,8 +112,8 @@ message SubscribeStreamResponse {
 
         /**
          * The requested end block number is not valid.<br/>
-         * The end block number is greater than the highest current block
-         * number, less than `0`, or otherwise invalid.<br/>
+         * The end block number is less than `start_block_number`
+         * or otherwise invalid.<br/>
          * The client MAY retry this request, but MUST change the
          * `end_block_number` field to a valid end block.
          */
@@ -166,17 +162,14 @@ service BlockStreamSubscribeService {
      * The blocks shall be streamed in ascending order by `block_number`.<br/>
      * The block node SHALL end the stream when the last requested block,
      * if set, has been sent.<br/>
-     * A request with an end block of `0` SHALL be interpreted to indicate the
-     * stream has no end. The block node SHALL continue to stream new blocks
-     * as soon as each becomes available.<br/>
+     * A request with an end block of `uint64_max` SHALL be interpreted to
+     * indicate the stream has no end. The block node SHALL continue to stream
+     * new blocks as soon as each becomes available.<br/>
      * The block node SHALL end the stream with response code containing a
      * status of SUCCESS when the stream is complete.<br/>
      * The block node SHALL end the stream with a response code containing a
-     * status of `READ_STREAM_INVALID_START_BLOCK_NUMBER` if the start block
+     * status of `INVALID_START_BLOCK_NUMBER` if the start block
      * number is greater than the end block number.<br/>
-     * The block node SHALL end the stream with a response code containing a
-     * status of `READ_STREAM_PAYMENT_INSUFFICIENT` if insufficient payment
-     * remains to complete the requested stream.<br/>
      * The block node SHALL make every reasonable effort to fulfill as much
      * of the request as possible in the event payment is not sufficient to
      * complete the request.
