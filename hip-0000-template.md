@@ -1,22 +1,21 @@
 ---
-hip: <HIP number (assigned by the HIP editor), usually the PR number>
-title: <Brief title describing the purpose of the HIP. Ex: "Biometric Binding Codes">
-author: <Comma separated list of the authors' names and/or usernames, or names and emails. Ex: John Doe <@johnDoeGithub1778>, Jane Smith <jane@email.com>>
-working-group: <List of the technical and business stakeholders' names and/or usernames, or names and emails. Ex: John Doe <@johnDoeGithub1778>, Jane Smith <jane@email.com>>
-requested-by: <Name(s) and/or username(s), or name(s) and email(s) of the individual(s) or project(s) requesting the HIP. Ex: Acme Corp <request@acmecorp.com>>
-type: <"Standards Track" | "Informational" | "Process">
-category: <"Core" | "Service" | "Mirror" | "Application">
-needs-hedera-review: <"Yes" | "No">
-hedera-review-date: <Date of Hedera's review in YYYY-MM-DD format>
-hedera-approval-status: <"Approved" | "Rejected">
-needs-hiero-approval: <"Yes" | "No">
-status: <"Draft" | "Review" | "Last Call" | "Active" | "Inactive" | "Deferred" | "Rejected" | "Withdrawn" | "Accepted" | "Final" | "Replaced">
-created: <Date the HIP was created on, in YYYY-MM-DD format>
-discussions-to: <A URL pointing to the official discussion thread. Ex: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/000>
-updated: <Latest date HIP was updated, in YYYY-MM-DD format.>
-requires: <HIP number(s) this HIP depends on, if applicable. Ex: 101, 102>
-replaces: <HIP number(s) this HIP replaces, if applicable. Ex: 99>
-superseded-by: <HIP number(s) that supersede this HIP, if applicable. Ex: 104>
+hip: 0000 # Assigned by HIP editor.
+title: <The HIP Title> # Keep concise and descriptive.
+author: <list of authors\' real names and GitHub handles, e.g., Jane Doe (@janedoe), John Smith (@johnsmith)>
+working-group: <optional list of key stakeholders\' real names and GitHub handles who are actively involved in shaping the HIP>
+requested-by: <optional name(s) of individual(s), project(s), or organization(s) requesting or sponsoring the HIP>
+discussions-to: <URL of the GitHub Pull Request for this HIP> # This will be filled by the HIP editor upon PR creation.
+type: <Standards Track | Informational | Process> # Refer to HIP-1 for definitions.
+category: <Core | Service | Mirror | Block Node | Application | Process> # Required for Standards Track and Process HIPs. Refer to HIP-1 for category definitions.
+needs-hiero-approval: Yes # Set to Yes if Hiero Technical Steering Committee (TSC) approval is required (typically for Standards Track & Process HIPs). Set to No for Informational HIPs or if not applicable as per HIP-1.
+needs-hedera-review: No # Set to Yes if the HIP proposes changes for the Hedera network/ecosystem and requires review/acceptance by Hedera (typically Standards Track: Core, Service, Mirror). Refer to HIP-1 for details.
+status: <Draft | Review | Last Call | Approved | Accepted | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced> # Refer to HIP-1 for status definitions and workflow.
+created: <yyyy-mm-dd> # Date of first submission as a Draft.
+updated: <yyyy-mm-dd> # Date of last modification.
+requires: <optional HIP number(s) that this HIP depends on>
+replaces: <optional HIP number(s) that this HIP renders obsolete>
+superseded-by: <optional HIP number(s) that this HIP is replaced by>
+release: <optional, target release or version number for implementation if applicable>
 ---
 
 ## Abstract
