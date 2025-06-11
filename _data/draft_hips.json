@@ -83,9 +83,16 @@
     "title": "Update Terminology: Hiero Approves, Hedera Council Accepts",
     "number": 1201,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1201",
-    "headRefOid": "f7cb8401d1f78e959ba661f44f3ffb73e53d877c",
+    "headRefOid": "009b8befa7a7b893513f5dc0053ec1ecb99b3d55",
     "files": {
       "edges": [
+        {
+          "node": {
+            "path": ".github/workflows/update-draft-hips.yml",
+            "additions": 25,
+            "deletions": 8
+          }
+        },
         {
           "node": {
             "path": "HIP/hip-1.md",
@@ -151,9 +158,23 @@
         },
         {
           "node": {
+            "path": "HIP/hip-869.md",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
             "path": "_config.yml",
             "additions": 15,
             "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "_data/draft_hips.json",
+            "additions": 31,
+            "deletions": 478
           }
         },
         {
@@ -187,8 +208,8 @@
         {
           "node": {
             "path": "assets/css/style.scss",
-            "additions": 70,
-            "deletions": 16
+            "additions": 73,
+            "deletions": 19
           }
         },
         {
@@ -222,8 +243,8 @@
         {
           "node": {
             "path": "assets/js/pr-integration.js",
-            "additions": 2,
-            "deletions": 2
+            "additions": 13,
+            "deletions": 7
           }
         },
         {
@@ -411,13 +432,13 @@
     "title": "feat: Rollable and Fully Immutable Topic Ids",
     "number": 1139,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1139",
-    "headRefOid": "10ee488dbb5e3564e02f19f249f5138dc3b18d3d",
+    "headRefOid": "f92a217c6c03ee87f65d7459695e5268a8a7912a",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1139.md",
-            "additions": 193,
+            "additions": 182,
             "deletions": 0
           }
         }
