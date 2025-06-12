@@ -1,5 +1,25 @@
 [
   {
+    "title": "chore: Refine hooks terminology and protobuf messages",
+    "number": 1216,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1216",
+    "headRefOid": "de4c50904fcc667acfce363493b8385f907c6a6f",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1195.md",
+            "additions": 344,
+            "deletions": 278
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tinker-michaelj"
+    }
+  },
+  {
     "title": "Generalized scheduled contract call",
     "number": 1215,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
@@ -60,10 +80,10 @@
     }
   },
   {
-    "title": "Block streams - update filtered item hash block item with leaf count skipped. ",
-    "number": 1147,
-    "url": "https://github.com/hashgraph/hedera-improvement-proposal/pull/1147",
-    "headRefOid": "c9862cb35495315dc05e7e3ffc341b26e589ac70",
+    "title": "Update hip-1021.md to Final",
+    "number": 1202,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1202",
+    "headRefOid": "46bfac7ea69c856886ca9289486e76c88b8f438b",
     "files": {
       "edges": [
         {
@@ -432,13 +452,13 @@
     "title": "feat: Rollable and Fully Immutable Topic Ids",
     "number": 1139,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1139",
-    "headRefOid": "f92a217c6c03ee87f65d7459695e5268a8a7912a",
+    "headRefOid": "e9f3e92c4c728184bd243ec70b5d5708cbfb0027",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1139.md",
-            "additions": 182,
+            "additions": 193,
             "deletions": 0
           }
         }
