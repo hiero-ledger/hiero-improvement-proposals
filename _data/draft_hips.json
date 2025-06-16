@@ -1,5 +1,25 @@
 [
   {
+    "title": "Add HIP Contracts/Calls API Changes",
+    "number": 1217,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1217",
+    "headRefOid": "1dd1f4b5bd80307923f8919f327eaae1027a5904",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-contracts-call-api-changes.md",
+            "additions": 156,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Reccetech"
+    }
+  },
+  {
     "title": "chore: Refine hooks terminology and protobuf messages",
     "number": 1216,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1216",
