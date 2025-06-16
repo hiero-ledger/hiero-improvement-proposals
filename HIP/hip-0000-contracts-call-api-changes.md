@@ -34,10 +34,16 @@ By modularizing the EVM flow and tightly coupling it to hedera-app, Hedera ensur
 
 ## User stories
 ### User Personas:
-**Developer:** Builds applications and tools
+**Developer:** Builds applications and tools<br>
+**Indexer:** Indexes activity and state of Hedera Smart Contracts<br>
+**Exchange Operator:** Operates exchange for users<br>
+**Wallet Operator:** Operates user wallet services and infrastructure
 
 ### User Stories
-* As a **Developer** I want to understand the state of smart contracts running on Hiero public networks
+As a **Developer** I want to understand the state of my smart contract running on Hiero public networks<br>
+As a **Indexer** I want to understand and record the activity and state of key smart contracts on Hedera<br>
+As an **Exchange Operator:** I want to understand the state of assets under control by my users<br>
+As a **Wallet Operator:** I want to understand and present smart contract assets under control of users in their wallet
 
 ## Specification
 Changes to the  /api/v1/contracts/call endpoint might have the following potential impacts for developer applications:
