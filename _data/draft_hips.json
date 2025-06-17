@@ -43,13 +43,13 @@
     "title": "Generalized scheduled contract call",
     "number": 1215,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
-    "headRefOid": "cc5e2a587fc6e272c1830747468c8771f0215dec",
+    "headRefOid": "16ec8fe5e29ace0bcbb51defdfda7d6b8595057b",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1179.md",
-            "additions": 177,
+            "additions": 165,
             "deletions": 0
           }
         }
