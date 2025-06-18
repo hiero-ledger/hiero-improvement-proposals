@@ -1,5 +1,45 @@
 [
   {
+    "title": "Update to HIP-869",
+    "number": 1221,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1221",
+    "headRefOid": "9d300ce42a0ac07ce9f0c5ab05a8dc3d9d0635a2",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-869.md",
+            "additions": 84,
+            "deletions": 34
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Mark-Swirlds"
+    }
+  },
+  {
+    "title": "HIP 1219: Hedera DID Method v2.0 - W3C Controller Alignment",
+    "number": 1219,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1219",
+    "headRefOid": "a54ff5f0bf44e985eca0bbcac625aaa57265e8f7",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1219.md",
+            "additions": 184,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "ChangoBuitrago"
+    }
+  },
+  {
     "title": "Add HIP Contracts/Calls API Changes",
     "number": 1217,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1217",
@@ -43,7 +83,7 @@
     "title": "Generalized scheduled contract call",
     "number": 1215,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
-    "headRefOid": "8c212dd8ac5f324f6666296ac74a15dccedf5e6b",
+    "headRefOid": "709152999e5b4e23672cfd7e4e83a528ad10e62b",
     "files": {
       "edges": [
         {
