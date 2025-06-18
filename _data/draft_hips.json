@@ -60,26 +60,6 @@
     }
   },
   {
-    "title": "chore: Refine hooks terminology and protobuf messages",
-    "number": 1216,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1216",
-    "headRefOid": "98ee88786302180d32f810c5c7172bee33a6015b",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1195.md",
-            "additions": 345,
-            "deletions": 278
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tinker-michaelj"
-    }
-  },
-  {
     "title": "Generalized scheduled contract call",
     "number": 1215,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
