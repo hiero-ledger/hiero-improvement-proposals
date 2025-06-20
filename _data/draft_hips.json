@@ -20,26 +20,6 @@
     }
   },
   {
-    "title": "chore: Update MAINTAINERS.md",
-    "number": 1222,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1222",
-    "headRefOid": "c495e9ef4f49db3a468129addf388ad9d020fc0b",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "MAINTAINERS.md",
-            "additions": 5,
-            "deletions": 3
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "jwagantall"
-    }
-  },
-  {
     "title": "Update to HIP-869",
     "number": 1221,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1221",
