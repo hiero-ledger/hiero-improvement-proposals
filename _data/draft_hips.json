@@ -1,5 +1,45 @@
 [
   {
+    "title": "Updated HIP-185 to have correct links for HIP-25 and HIP-26",
+    "number": 1223,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1223",
+    "headRefOid": "750925cbd39c010b984546f5f371ee3e2d2f68a0",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-185.md",
+            "additions": 3,
+            "deletions": 3
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "kpachhai"
+    }
+  },
+  {
+    "title": "chore: Update MAINTAINERS.md",
+    "number": 1222,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1222",
+    "headRefOid": "c495e9ef4f49db3a468129addf388ad9d020fc0b",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "MAINTAINERS.md",
+            "additions": 5,
+            "deletions": 3
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "jwagantall"
+    }
+  },
+  {
     "title": "Update to HIP-869",
     "number": 1221,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1221",
@@ -43,13 +83,13 @@
     "title": "Add HIP Contracts/Calls API Changes",
     "number": 1217,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1217",
-    "headRefOid": "1dd1f4b5bd80307923f8919f327eaae1027a5904",
+    "headRefOid": "382ee0a40600c9dc2ddc2db83d04c6e81fe9e0ce",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-contracts-call-api-changes.md",
-            "additions": 156,
+            "path": "HIP/hip-1217.md",
+            "additions": 151,
             "deletions": 0
           }
         }
@@ -63,12 +103,12 @@
     "title": "Generalized scheduled contract call",
     "number": 1215,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
-    "headRefOid": "709152999e5b4e23672cfd7e4e83a528ad10e62b",
+    "headRefOid": "bc34b93331edc01808cd00442cb0c09d6fc12006",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-1179.md",
+            "path": "HIP/hip-1215.md",
             "additions": 165,
             "deletions": 0
           }
