@@ -92,6 +92,34 @@
             "additions": 165,
             "deletions": 0
           }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1/hip-states.png",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/js/filter.js",
+            "additions": 37,
+            "deletions": 10
+          }
+        },
+        {
+          "node": {
+            "path": "hip-0000-template.md",
+            "additions": 30,
+            "deletions": 45
+          }
+        },
+        {
+          "node": {
+            "path": "scripts/validateHIP.js",
+            "additions": 1,
+            "deletions": 1
+          }
         }
       ]
     },
