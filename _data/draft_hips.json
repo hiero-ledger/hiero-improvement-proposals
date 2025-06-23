@@ -60,26 +60,6 @@
     }
   },
   {
-    "title": "Add HIP Contracts/Calls API Changes",
-    "number": 1217,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1217",
-    "headRefOid": "382ee0a40600c9dc2ddc2db83d04c6e81fe9e0ce",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1217.md",
-            "additions": 151,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Reccetech"
-    }
-  },
-  {
     "title": "Generalized scheduled contract call",
     "number": 1215,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
