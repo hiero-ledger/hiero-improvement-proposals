@@ -20,26 +20,6 @@
     }
   },
   {
-    "title": "Updated HIP-185 to have correct links for HIP-25 and HIP-26",
-    "number": 1223,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1223",
-    "headRefOid": "4a0bf2953008e9665abfbbb98e6ab954c0ed7257",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-185.md",
-            "additions": 3,
-            "deletions": 3
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "kpachhai"
-    }
-  },
-  {
     "title": "Update to HIP-869",
     "number": 1221,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1221",
