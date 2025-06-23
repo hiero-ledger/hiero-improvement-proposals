@@ -1,5 +1,25 @@
 [
   {
+    "title": "Bump step-security/action-discord from 0.1.1 to 0.1.2",
+    "number": 1224,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1224",
+    "headRefOid": "32599830aca5a226725fef423f4b5d05d412995c",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": ".github/workflows/send-discord-message.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "dependabot"
+    }
+  },
+  {
     "title": "Updated HIP-185 to have correct links for HIP-25 and HIP-26",
     "number": 1223,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1223",
