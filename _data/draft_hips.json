@@ -1,5 +1,25 @@
 [
   {
+    "title": "feat(HIP): Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
+    "number": 1225,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1225",
+    "headRefOid": "67d58aa5ffdf43346c26d4461d72f20aa33a137e",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-increase-cryptocreate-throttle.md",
+            "additions": 93,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tonycamero"
+    }
+  },
+  {
     "title": "Bump step-security/action-discord from 0.1.1 to 0.1.2",
     "number": 1224,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1224",
@@ -77,26 +97,6 @@
     },
     "author": {
       "login": "tinker-michaelj"
-    }
-  },
-  {
-    "title": "HIP: Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
-    "number": 1214,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1214",
-    "headRefOid": "4fc6891cd0d7b7d411f716f726a0960c51081e5c",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-0000-increase-cryptocreate-throttle.md",
-            "additions": 93,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tonycamero"
     }
   },
   {
@@ -532,13 +532,13 @@
     "title": "Transaction Cleanup",
     "number": 1127,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1127",
-    "headRefOid": "06dc0c118200c68f48d3267b7508e8d8a0ef3e6c",
+    "headRefOid": "f36619434146e8ae5e35afa2dd633d7727ac7700",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1127.md",
-            "additions": 93,
+            "additions": 151,
             "deletions": 0
           }
         },
