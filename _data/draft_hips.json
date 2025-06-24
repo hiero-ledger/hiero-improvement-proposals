@@ -1,22 +1,42 @@
 [
   {
-    "title": "Updated HIP-185 to have correct links for HIP-25 and HIP-26",
-    "number": 1223,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1223",
-    "headRefOid": "750925cbd39c010b984546f5f371ee3e2d2f68a0",
+    "title": "feat(HIP): Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
+    "number": 1225,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1225",
+    "headRefOid": "67d58aa5ffdf43346c26d4461d72f20aa33a137e",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-185.md",
-            "additions": 3,
-            "deletions": 3
+            "path": "HIP/hip-0000-increase-cryptocreate-throttle.md",
+            "additions": 93,
+            "deletions": 0
           }
         }
       ]
     },
     "author": {
-      "login": "kpachhai"
+      "login": "tonycamero"
+    }
+  },
+  {
+    "title": "Bump step-security/action-discord from 0.1.1 to 0.1.2",
+    "number": 1224,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1224",
+    "headRefOid": "32599830aca5a226725fef423f4b5d05d412995c",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": ".github/workflows/send-discord-message.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "dependabot"
     }
   },
   {
@@ -60,26 +80,6 @@
     }
   },
   {
-    "title": "Add HIP Contracts/Calls API Changes",
-    "number": 1217,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1217",
-    "headRefOid": "382ee0a40600c9dc2ddc2db83d04c6e81fe9e0ce",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1217.md",
-            "additions": 151,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Reccetech"
-    }
-  },
-  {
     "title": "Generalized scheduled contract call",
     "number": 1215,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
@@ -97,26 +97,6 @@
     },
     "author": {
       "login": "tinker-michaelj"
-    }
-  },
-  {
-    "title": "HIP: Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
-    "number": 1214,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1214",
-    "headRefOid": "4fc6891cd0d7b7d411f716f726a0960c51081e5c",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-0000-increase-cryptocreate-throttle.md",
-            "additions": 93,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tonycamero"
     }
   },
   {
@@ -552,13 +532,13 @@
     "title": "Transaction Cleanup",
     "number": 1127,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1127",
-    "headRefOid": "06dc0c118200c68f48d3267b7508e8d8a0ef3e6c",
+    "headRefOid": "f36619434146e8ae5e35afa2dd633d7727ac7700",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1127.md",
-            "additions": 93,
+            "additions": 151,
             "deletions": 0
           }
         },
