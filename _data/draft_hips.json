@@ -23,7 +23,7 @@
     "title": "Bump step-security/action-discord from 0.1.1 to 0.1.2",
     "number": 1224,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1224",
-    "headRefOid": "32599830aca5a226725fef423f4b5d05d412995c",
+    "headRefOid": "8ab216939847b0043d45171e982a205feb7acbba",
     "files": {
       "edges": [
         {
@@ -83,7 +83,7 @@
     "title": "Generalized scheduled contract call",
     "number": 1215,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
-    "headRefOid": "bc34b93331edc01808cd00442cb0c09d6fc12006",
+    "headRefOid": "1d2e0b6603f147edbd165cace3e6d0233ee707e8",
     "files": {
       "edges": [
         {
