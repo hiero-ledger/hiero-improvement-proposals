@@ -1,5 +1,25 @@
 [
   {
+    "title": "Update hip-1086.md to Final",
+    "number": 1227,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1227",
+    "headRefOid": "b1b0be67d8d5ba3ab71d021e7cd4564d1140ad38",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1086.md",
+            "additions": 3,
+            "deletions": 2
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
     "title": "Update hip-1084.md to Final",
     "number": 1226,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1226",
