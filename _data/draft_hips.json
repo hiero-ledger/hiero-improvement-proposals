@@ -1,5 +1,25 @@
 [
   {
+    "title": "Update hip-1084.md to Final",
+    "number": 1226,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1226",
+    "headRefOid": "18fb78aa41945c2d076ec0e54717de3e561486a8",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1084.md",
+            "additions": 3,
+            "deletions": 2
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
     "title": "feat(HIP): Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
     "number": 1225,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1225",
