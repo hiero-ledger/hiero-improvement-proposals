@@ -8,8 +8,168 @@
       "edges": [
         {
           "node": {
-            "path": ".github/CODEOWNERS",
-            "additions": 8,
+            "path": "HIP/hip-1086.md",
+            "additions": 3,
+            "deletions": 2
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "Update hip-1084.md to Final",
+    "number": 1226,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1226",
+    "headRefOid": "18fb78aa41945c2d076ec0e54717de3e561486a8",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1084.md",
+            "additions": 3,
+            "deletions": 2
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "feat(HIP): Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
+    "number": 1225,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1225",
+    "headRefOid": "67d58aa5ffdf43346c26d4461d72f20aa33a137e",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-increase-cryptocreate-throttle.md",
+            "additions": 93,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tonycamero"
+    }
+  },
+  {
+    "title": "Update to HIP-869",
+    "number": 1221,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1221",
+    "headRefOid": "35e8d14da615d4e829c1862f7df95493a5e38ec6",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-869.md",
+            "additions": 84,
+            "deletions": 34
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Mark-Swirlds"
+    }
+  },
+  {
+    "title": "HIP 1219: Hedera DID Method v2.0 - W3C Controller Alignment",
+    "number": 1219,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1219",
+    "headRefOid": "a54ff5f0bf44e985eca0bbcac625aaa57265e8f7",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1219.md",
+            "additions": 184,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "ChangoBuitrago"
+    }
+  },
+  {
+    "title": "Generalized scheduled contract call",
+    "number": 1215,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
+    "headRefOid": "1d2e0b6603f147edbd165cace3e6d0233ee707e8",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1215.md",
+            "additions": 165,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tinker-michaelj"
+    }
+  },
+  {
+    "title": "Create hip-xxx.md",
+    "number": 1208,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1208",
+    "headRefOid": "73472a04e33d9613d88d6e3a15ec681f4ab29de4",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1208.md",
+            "additions": 78,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "walter-hernandez"
+    }
+  },
+  {
+    "title": "Update hip-1021.md to Final",
+    "number": 1202,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1202",
+    "headRefOid": "46bfac7ea69c856886ca9289486e76c88b8f438b",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1021.md",
+            "additions": 3,
+            "deletions": 2
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "Update Terminology: Hiero Approves, Hedera Council Accepts",
+    "number": 1201,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1201",
+    "headRefOid": "3688673c1bb630a22903ac9f0f4517dde09d53df",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": ".github/workflows/update-draft-hips.yml",
+            "additions": 25,
             "deletions": 8
           }
         },
@@ -48,6 +208,81 @@
             "deletions": 1
           }
         },
+        {
+          "node": {
+            "path": "assets/hip-1/hip-states-ipa.png",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1/hip-states-standards-track.png",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1/hip-states.png",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/js/filter.js",
+            "additions": 31,
+            "deletions": 34
+          }
+        },
+        {
+          "node": {
+            "path": "assets/js/pr-integration.js",
+            "additions": 2,
+            "deletions": 2
+          }
+        },
+        {
+          "node": {
+            "path": "hip-0000-template.md",
+            "additions": 17,
+            "deletions": 18
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "The hinTS threshold signature scheme",
+    "number": 1200,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1200",
+    "headRefOid": "90446747aa47d42a27b5c47c4e710bf6d91ae879",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1200.md",
+            "additions": 478,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tinker-michaelj"
+    }
+  },
+  {
+    "title": "Bump step-security/action-send-mail from 3.12.0 to 5.0.0",
+    "number": 1198,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1198",
+    "headRefOid": "a6eb8237a6cac55875387988dc1b3e0910057f50",
+    "files": {
+      "edges": [
         {
           "node": {
             "path": ".github/workflows/send-email.yml",
@@ -370,15 +605,64 @@
   {
     "title": "Transaction Cleanup",
     "number": 1127,
-    "url": "https://github.com/hashgraph/hedera-improvement-proposal/pull/1127",
-    "headRefOid": "7f0c9b7f36d60762bef5028a53b4ce5a98b272c0",
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1127",
+    "headRefOid": "1c4e6141d07a9dfae24205ca3b90ffd4dc3ddbbd",
     "files": {
       "edges": [
         {
           "node": {
+            "path": ".github/workflows/add-hip-number.yml",
+            "additions": 2,
+            "deletions": 2
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/notifications.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/send-discord-message.yml",
+            "additions": 2,
+            "deletions": 2
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/send-email.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/update-draft-hips.yml",
+            "additions": 9,
+            "deletions": 33
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/validateHeaders.yml",
+            "additions": 2,
+            "deletions": 3
+          }
+        },
+        {
+          "node": {
             "path": "HIP/hip-1127.md",
-            "additions": 93,
+            "additions": 151,
             "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "_data/draft_hips.json",
+            "additions": 523,
+            "deletions": 344
           }
         }
       ]
