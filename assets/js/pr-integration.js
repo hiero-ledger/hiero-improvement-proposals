@@ -248,21 +248,15 @@ class HIPPRIntegration {
                 return;
             }
 
-            // Specific check for Hiero Approval for the Draft table's "Needs Hiero Approval" column
-            let hipNeedsHieroApproval = String(metadata['needs-hiero-approval']).toLowerCase() === 'true';
-
-            // If 'needs-hiero-approval' is not explicitly set (i.e., undefined in metadata),
-            // and the HIP type is 'Standards Track', then assume it needs Hiero approval.
-            // Otherwise, if not set and not Standards Track, it defaults to false (as String(undefined) !== 'true').
-            if (metadata['needs-hiero-approval'] === undefined && metadata.type?.toLowerCase() === 'standards track') {
-                hipNeedsHieroApproval = true;
-            }
+            const needsApproval = String(metadata['needs-council-approval']).toLowerCase() === 'true' ||
+                String(metadata['needs-hiero-approval']).toLowerCase() === 'true' ||
+                String(metadata.needs_council_approval).toLowerCase() === 'true' ||
+                metadata.type?.toLowerCase() === 'standards track';
 
             const row = document.createElement('tr');
             row.dataset.type = (metadata.type || 'core').toLowerCase();
             row.dataset.status = 'draft';
-            // Set data attribute for filtering based on Hiero approval status
-            row.dataset.hieroReview = hipNeedsHieroApproval.toString();
+            row.dataset.councilApproval = needsApproval.toString();
             row.dataset.category = metadata.category || '';
 
             const authors = metadata.author.split(',').map(author => {
@@ -287,7 +281,7 @@ class HIPPRIntegration {
                 <td class="hip-number"><a href="${pr.url}" target="_blank">PR-${pr.number}</a></td>
                 <td class="title"><a href="${pr.url}" target="_blank">${metadata.title}</a></td>
                 <td class="author">${authors.join(', ')}</td>
-                <td class="hiero-review">${hipNeedsHieroApproval ? 'Yes' : 'No'}</td>
+                <td class="council-approval">${needsApproval ? 'Yes' : 'No'}</td>
             `;
 
             tbody.appendChild(row);

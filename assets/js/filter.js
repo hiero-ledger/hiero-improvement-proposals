@@ -87,7 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // For Standards Track HIPs, check the category; for Informational/Process HIPs, check the type
                 if (rowType === 'standards track') {
                     // Standards Track HIPs: check against category (core, service, mirror, application, block node)
-                    typeMatch = selectedTypesForFilter.includes(rowCategory);
+                    const hipCategories = rowCategory.split(',').map(cat => cat.trim());
+                    typeMatch = selectedTypesForFilter.some(selType => hipCategories.includes(selType));
                 } else {
                     // Informational/Process HIPs: check against type (informational, process)
                     typeMatch = selectedTypesForFilter.includes(rowType);
