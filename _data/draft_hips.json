@@ -60,26 +60,6 @@
     }
   },
   {
-    "title": "Bump step-security/action-discord from 0.1.1 to 0.1.2",
-    "number": 1224,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1224",
-    "headRefOid": "8ab216939847b0043d45171e982a205feb7acbba",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": ".github/workflows/send-discord-message.yml",
-            "additions": 1,
-            "deletions": 1
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "dependabot"
-    }
-  },
-  {
     "title": "Update to HIP-869",
     "number": 1221,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1221",
