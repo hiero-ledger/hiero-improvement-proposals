@@ -1,5 +1,87 @@
 [
   {
+    "title": "Bump step-security/action-send-mail from 3.12.0 to 6.0.0",
+    "number": 1232,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1232",
+    "headRefOid": "c2ab59e4a1959e880a95c50e4967d4f9e0873224",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": ".github/workflows/send-email.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "dependabot"
+    }
+  },
+  {
+    "title": "Bump step-security/harden-runner from 2.12.1 to 2.12.2",
+    "number": 1231,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1231",
+    "headRefOid": "6f173e70ea81741517e950ce3df3db350b094c54",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": ".github/workflows/add-hip-number.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/notifications.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/schedule-last-call-date-end.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/send-discord-message.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/send-email.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/update-draft-hips.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": ".github/workflows/validateHeaders.yml",
+            "additions": 1,
+            "deletions": 1
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "dependabot"
+    }
+  },
+  {
     "title": "chore: Update Contract Service output and trace specification",
     "number": 1229,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1229",
@@ -157,7 +239,7 @@
     "title": "Generalized scheduled contract call",
     "number": 1215,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
-    "headRefOid": "1d2e0b6603f147edbd165cace3e6d0233ee707e8",
+    "headRefOid": "58f931df30eabe3b2c39a14ff55c0748c1d3f06d",
     "files": {
       "edges": [
         {
@@ -177,13 +259,13 @@
     "title": "Create hip-xxx.md",
     "number": 1208,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1208",
-    "headRefOid": "73472a04e33d9613d88d6e3a15ec681f4ab29de4",
+    "headRefOid": "b47517446dd70898b0bef2272c158554380b7c4c",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1208.md",
-            "additions": 78,
+            "additions": 151,
             "deletions": 0
           }
         }
@@ -412,26 +494,6 @@
     },
     "author": {
       "login": "tinker-michaelj"
-    }
-  },
-  {
-    "title": "Bump step-security/action-send-mail from 3.12.0 to 5.0.0",
-    "number": 1198,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1198",
-    "headRefOid": "a6eb8237a6cac55875387988dc1b3e0910057f50",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": ".github/workflows/send-email.yml",
-            "additions": 1,
-            "deletions": 1
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "dependabot"
     }
   },
   {
