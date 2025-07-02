@@ -1,5 +1,25 @@
 [
   {
+    "title": "chore: Update HIP-1064 with latest dynamic property names",
+    "number": 1233,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1233",
+    "headRefOid": "02c14623f6df66bd69d80342a33d4e0bc15e9a8e",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1064.md",
+            "additions": 4,
+            "deletions": 4
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Neeharika-Sompalli"
+    }
+  },
+  {
     "title": "Bump step-security/action-send-mail from 3.12.0 to 6.0.0",
     "number": 1232,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1232",
@@ -119,13 +139,13 @@
     "title": "Redo transaction cleanup hip",
     "number": 1228,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1228",
-    "headRefOid": "d225db755ee6f1eec322ef4f04f7c891b9061ef3",
+    "headRefOid": "82b60e9763e47e17eb1d15ddbf511e67709c7349",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1127.md",
-            "additions": 150,
+            "additions": 152,
             "deletions": 0
           }
         }
@@ -196,26 +216,6 @@
     }
   },
   {
-    "title": "Update to HIP-869",
-    "number": 1221,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1221",
-    "headRefOid": "35e8d14da615d4e829c1862f7df95493a5e38ec6",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-869.md",
-            "additions": 84,
-            "deletions": 34
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Mark-Swirlds"
-    }
-  },
-  {
     "title": "HIP 1219: Hedera DID Method v2.0 - W3C Controller Alignment",
     "number": 1219,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1219",
@@ -233,26 +233,6 @@
     },
     "author": {
       "login": "ChangoBuitrago"
-    }
-  },
-  {
-    "title": "Generalized scheduled contract call",
-    "number": 1215,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1215",
-    "headRefOid": "58f931df30eabe3b2c39a14ff55c0748c1d3f06d",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1215.md",
-            "additions": 165,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tinker-michaelj"
     }
   },
   {
