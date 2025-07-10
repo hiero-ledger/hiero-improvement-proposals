@@ -2,6 +2,9 @@
 
 [![](https://img.shields.io/discord/373889138199494658)](https://discord.com/invite/uJ5k8DkmKV)
 [![](https://img.shields.io/badge/view-published-blue)](https://hips.hedera.com)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-improvement-proposals/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-improvement-proposals)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
+[![License](https://img.shields.io/badge/license-apache2-blue.svg)](LICENSE)
 
 ## Submit a HIP
 1. Fork this repository
