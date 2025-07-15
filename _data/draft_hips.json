@@ -1,22 +1,163 @@
 [
   {
-    "title": "chore: TAC requirement - Update README.md",
-    "number": 1237,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1237",
-    "headRefOid": "5e4f89480794982dd1edf923927f09ba40ed5f26",
+    "title": "Update hip-1081.md to update headers",
+    "number": 1246,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1246",
+    "headRefOid": "e05327e5cb962c3d8e6c4272792d69a7e539b6bd",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "README.md",
-            "additions": 3,
+            "path": "HIP/hip-1081.md",
+            "additions": 2,
+            "deletions": 1
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "Update hip-1217.md to Active",
+    "number": 1245,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1245",
+    "headRefOid": "f24e413eebb81883ea0fd9c723ddfeb74dd918e9",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1217.md",
+            "additions": 2,
+            "deletions": 2
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "chore: Fix HIP-1215 system contract return values",
+    "number": 1242,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1242",
+    "headRefOid": "ddfeed99378f51da55daede078ab1c98dfe29207",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1215.md",
+            "additions": 36,
+            "deletions": 17
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tinker-michaelj"
+    }
+  },
+  {
+    "title": "chore: Add `IHieroAccountAllowancePrePostHook` variant",
+    "number": 1241,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1241",
+    "headRefOid": "0a10de1ca0283acd5160dae5d8c3879f055833a8",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1195.md",
+            "additions": 96,
+            "deletions": 11
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tinker-michaelj"
+    }
+  },
+  {
+    "title": "HIP 1056 Amendment",
+    "number": 1240,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1240",
+    "headRefOid": "5eaaaa0b8c5d9f144739178f8084aece6748e042",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1056.md",
+            "additions": 111,
+            "deletions": 75
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1056/block-stream-merkle.svg",
+            "additions": 1,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1056/protobuf/stream/block_item.proto",
+            "additions": 30,
+            "deletions": 19
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1056/root-hashes.svg",
+            "additions": 1,
+            "deletions": 1
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "jsync-swirlds"
+    }
+  },
+  {
+    "title": "chore: Add failure status details for token type/transfer spec mismatches",
+    "number": 1239,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1239",
+    "headRefOid": "58f5fb36af16c322e7c3ad04f70ab0a0ca73e3a4",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-17.md",
+            "additions": 2,
             "deletions": 0
           }
         }
       ]
     },
     "author": {
-      "login": "jwagantall"
+      "login": "tinker-michaelj"
+    }
+  },
+  {
+    "title": "Quiescence HIP",
+    "number": 1238,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1238",
+    "headRefOid": "5e0b90be522b599c70ef461ded31554c2ee5aa22",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1238.md",
+            "additions": 210,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "lpetrovic05"
     }
   },
   {
@@ -43,14 +184,14 @@
     "title": "chore: Update HIP-1127 with review comments",
     "number": 1235,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1235",
-    "headRefOid": "40148bd075de2feba3d0811cd1db2d4fbf852bf2",
+    "headRefOid": "d0d9c9bd53b245731140c86d9152b196eef42a71",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1127.md",
-            "additions": 21,
-            "deletions": 7
+            "additions": 33,
+            "deletions": 17
           }
         }
       ]
@@ -608,82 +749,6 @@
           "node": {
             "path": "HIP/hip-1082.md",
             "additions": 248,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Nana-EC"
-    }
-  },
-  {
-    "title": "Block Node",
-    "number": 1081,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1081",
-    "headRefOid": "236154a336bb4c8f0ac45ef98c8f4819486cd026",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1081.md",
-            "additions": 890,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1081/images/block_node_network_architecture.svg",
-            "additions": 1,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1081/protobuf/block_access_service.proto",
-            "additions": 128,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1081/protobuf/block_stream_publish_service.proto",
-            "additions": 441,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1081/protobuf/block_stream_subscribe_service.proto",
-            "additions": 178,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1081/protobuf/node_service.proto",
-            "additions": 112,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1081/protobuf/proof_service.proto",
-            "additions": 259,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1081/protobuf/shared_message_types.proto",
-            "additions": 33,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1081/protobuf/state_service.proto",
-            "additions": 119,
             "deletions": 0
           }
         }
