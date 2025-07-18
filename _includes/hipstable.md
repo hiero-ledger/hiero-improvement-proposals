@@ -8,6 +8,7 @@
             <option value="application">Application</option>
             <option value="informational">Informational</option>
             <option value="process">Process</option>
+            <option value="block node">Block Node</option> {# Added Block Node #}
         </select>
     </div>
     
@@ -70,8 +71,9 @@
 
 <!-- Then render the rest of the statuses -->
 {% for status in site.data.statuses %}
-    {% assign hips = include.hips | where: "status", status | where: "category", category | where: "type", type | sort: "hip" | reverse %}
-    {% assign count = hips.size %}
+    {% comment %} Filter HIPS by the current status from site.data.statuses {% endcomment %}
+    {% assign status_hips = include.hips | where_exp: "item", "item.status == status" | sort: "hip" | reverse %}
+    {% assign count = status_hips.size %}
     {% if count > 0 %}
         <h2 id="{{ status | slugify }}">
             {{ status | capitalize }} 
@@ -94,9 +96,9 @@
                 </tr>
             </thead>
             <tbody>
-                {% for page in hips %}
+                {% for page in status_hips %}
                     <tr data-type="{{ page.type | downcase }}"
-                        data-category="{{ page.category | downcase }}"
+                        data-category="{{ page.category | join: ', ' | downcase }}" {# Ensure multi-category is comma-separated string #}
                         data-status="{{ page.status | downcase }}"
                         data-hedera-review="{{ page.needs-hedera-approval | default: page.needs-council-approval | default: false | downcase }}"
                         data-council-review="{{ page.needs-council-approval | default: false | downcase }}"
