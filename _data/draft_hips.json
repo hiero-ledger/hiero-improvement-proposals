@@ -1,25 +1,5 @@
 [
   {
-    "title": "chore: Fix HIP-1215 system contract return values",
-    "number": 1242,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1242",
-    "headRefOid": "1ac180b6692a5928e2fb4dac10d3ea81b583b7fa",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1215.md",
-            "additions": 38,
-            "deletions": 19
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tinker-michaelj"
-    }
-  },
-  {
     "title": "Quiescence HIP",
     "number": 1238,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1238",
@@ -184,7 +164,7 @@
     "title": "Update Terminology: Hiero Approves, Hedera Council Accepts",
     "number": 1201,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1201",
-    "headRefOid": "3688673c1bb630a22903ac9f0f4517dde09d53df",
+    "headRefOid": "23117bd1c194b16f7b6241ed13ef30b9b23a1e7c",
     "files": {
       "edges": [
         {
@@ -238,16 +218,9 @@
         },
         {
           "node": {
-            "path": "HIP/hip-1084.md",
-            "additions": 2,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
             "path": "HIP/hip-1086.md",
-            "additions": 3,
-            "deletions": 3
+            "additions": 0,
+            "deletions": 2
           }
         },
         {
@@ -274,8 +247,8 @@
         {
           "node": {
             "path": "_data/draft_hips.json",
-            "additions": 31,
-            "deletions": 478
+            "additions": 15,
+            "deletions": 224
           }
         },
         {
