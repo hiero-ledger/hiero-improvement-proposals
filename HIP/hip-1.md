@@ -6,7 +6,7 @@ type: Process
 status: Active
 created: 2021-02-11
 discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/54
-updated: 2025-05-20
+updated: 2025-07-23
 ---
 
 ## What is a HIP?
@@ -111,7 +111,7 @@ A HIP can only be reviewed by Hedera after it has been **Approved** by Hiero TSC
 Standards Track HIPs (categories: Core, Service, Mirror or Block Node) follow this general lifecycle:
 
 1.  **Idea**: Propose your idea to the community. Create an [issue](https://github.com/hiero-ledger/hiero-improvement-proposals/issues) to discuss the idea.
-2.  **Draft**: Create a copy of the [HIP template](./hip-0000-template.md), fill in the details, and submit it as a pull request (PR) to the HIPs repository. The HIP status should be **Draft**. `needs-hedera-review` should be `Yes`.
+2.  **Draft**: Create a copy of the [HIP template](./hip-0000-template.md), fill in the details, and submit it as a pull request (PR) to the HIPs repository. The HIP status should be **Draft**. `needs-hedera-review` and `needs-hiero-approval` should be `Yes`.
 3.  **Review**: Once the PR is submitted, the HIP editors and community will review the proposal. The status changes to **Review**.
 4.  **Last Call**: If the HIP is generally agreed upon, a HIP editor will assign a `last-call-date-time` and change the status to **Last Call**. This is a final opportunity for community feedback, typically lasting 14 days.
 5.  **Approved**: After the Last Call period, if there are no major objections that cannot be resolved, Hiero TSC will vote on the HIP and if it is approved, a HIP editor or maintainer will create a PR changing the status to **Approved**. At this point, the HIP is considered approved by the Hiero community and awaits review by Hedera where needed.
@@ -127,13 +127,11 @@ Informational and Process HIPs follow a simpler lifecycle:
 
 1.  **Idea**: Propose your idea. Create an [issue](https://github.com/hiero-ledger/hiero-improvement-proposals/issues) to discuss.
 2.  **Draft**: Create a copy of the [HIP template](./hip-0000-template.md), fill in the details, and submit it as a PR. The HIP status should be `Draft`.
-    *   For Process HIPs: `needs-hedera-review` should be `No`.
-    *   For Informational and Application HIPs: `needs-hedera-review` should be `No`.
+    *   For Process HIPs: `needs-hedera-review` and `needs-hiero-approval` should be `No`.
+    *   For Informational and Application HIPs: `needs-hedera-review` and `needs-hiero-approval` should be `No`.
 3.  **Review**: The HIP editors and community review the proposal. Status changes to **Review**.
 4.  **Last Call**: If generally agreed upon, a HIP editor assigns a `last-call-date-time` and changes status to **Last Call** (typically 14 days).
-5.  **Approved**: After Last Call, if no major objections, a HIP editor merges the PR.
-    *   Process and Informational HIPs: Status changes to **Active**.
-    *   Application HIPs: Status changes to **Approved**.
+5.  **Active**: After Last Call, if no major objections, a HIP editor merges the PR into this state.
 6.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: As described in "HIP Statuses".
 
 The possible paths of the status of Informational, Process and Application HIPs HIPs are as follows:
@@ -194,7 +192,8 @@ category: <Core | Service | Mirror | Block Node | Application | Process>
 status: <Draft | Review | Last Call | Approved | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced | Accepted [Not to be used, replaced by Approved status]>
 last-call-date-time: <optional, set by editor for last call end>
 discussions-to: <URL for official discussion thread (usually the link to the original PR of the HIP)>
-needs-hedera-review: <Yes | No> # Does the HIP require review and acceptance by the Hedera Council for implementation on its network/ecosystem?
+needs-hiero-approval: <Yes | No>
+needs-hedera-review: <Yes | No>
 hedera-acceptance-decision: <Accepted | Not Accepted> 
 hedera-reviewed-on: <dates in yyyy-mm-dd format>
 created: <date in yyyy-mm-dd format>
