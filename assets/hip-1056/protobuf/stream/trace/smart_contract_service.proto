@@ -1,5 +1,5 @@
 /**
- * # Smart Contract Service
+ * # Smart Contract Service Trace Data
  * Block stream messages that report the trace data of transactions handled
  * by the `smart contract` service.
  *
