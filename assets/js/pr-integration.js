@@ -231,7 +231,7 @@ class HIPPRIntegration {
                         <th class="numeric">Number</th>
                         <th>Title</th>
                         <th>Author</th>
-                        <th>Needs Council Approval</th>
+                        <th>Needs Hiero Approval</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -249,7 +249,7 @@ class HIPPRIntegration {
             }
 
             const needsApproval = String(metadata['needs-council-approval']).toLowerCase() === 'true' ||
-                String(metadata['needs-tsc-approval']).toLowerCase() === 'true' ||
+                String(metadata['needs-hiero-approval']).toLowerCase() === 'true' ||
                 String(metadata.needs_council_approval).toLowerCase() === 'true' ||
                 metadata.type?.toLowerCase() === 'standards track';
 
