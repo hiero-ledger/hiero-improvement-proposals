@@ -5,7 +5,7 @@ author: Bryce Doganer (@BryceDoganer), Lucas Henning (@lucashenning)
 type: Standards Track
 category: Application
 needs-council-approval: No
-status: Accepted
+status: Active
 last-call-date-time: 2021-11-23T07:00:00Z
 created: 2021-02-23
 discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/49
