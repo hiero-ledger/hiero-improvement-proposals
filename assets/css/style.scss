@@ -82,7 +82,7 @@
     border: none;
     border-bottom: 1px solid #eee;
     position: relative;
-    padding-left: 60%;
+    padding-left: calc(45% + 18px); // Ensures a gap after the 45% wide label, increased gap
     word-break: break-word;
     padding-top: 0px;
     min-height: 50px;
@@ -93,8 +93,8 @@
       left: 6px;
       width: 45%;
       padding-right: 10px;
-      white-space: nowrap;
-      word-break: break-word;
+      white-space: normal; // Allow label text to wrap
+      word-break: break-word; // Ensure long words still break
     }
   }
 
@@ -102,6 +102,8 @@
   .hipstable .title:before { content: "Title"; }
   .hipstable .author:before { content: "Author"; }
   .hipstable .council-approval:before { content: "Needs Council Approval"; }
+  .hipstable .hiero-review:before { content: "Needs Hiero Approval"; }
+  .hipstable .hedera-review:before { content: "Needs Hedera Review"; }
   .hipstable .last-call-date-time:before { content: "Last Call Period Ends"; }
   .hipstable .release:before { content: "Release"; }
 }
@@ -111,26 +113,78 @@
   position: relative;
   display: inline-block;
   cursor: pointer;
-  color: #069;
-  font-size: 14px;
+  color: #007bff; /* Updated color for better visibility */
+  font-size: 14px; /* Reverted to original fixed size */
+  text-decoration: none; /* Remove underline */
+}
 
-  .status-tooltip-box {
-    position: absolute;
+.status-tooltip .status-tooltip-box {
+  visibility: hidden; /* Hidden by default */
+  opacity: 0;
+  position: absolute;
+  left: 50%; 
+  bottom: 125%; /* Position above the icon */
+  transform: translateX(-50%);
+  background-color: #333; /* Darker background for contrast */
+  color: #fff;
+  padding: 8px 12px; /* Increased padding */
+  border-radius: 6px; /* Slightly more rounded corners */
+  white-space: normal; /* Allow text to wrap */
+  z-index: 1001; /* Ensure it's above other elements */
+  font-size: 0.9em; /* Adjust as needed */
+  line-height: 1.4;
+  min-width: 180px; /* Minimum width */
+  max-width: 300px; /* Maximum width for desktop */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Softer shadow */
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.status-tooltip:hover .status-tooltip-box {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Tooltip arrow */
+.status-tooltip .status-tooltip-box::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* At the bottom of the tooltip */
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+@media screen and (max-width: 600px) {
+  .status-tooltip .status-tooltip-box {
+    max-width: 80vw; /* Use viewport width for mobile */
+    font-size: 0.85em;
+    /* Adjust positioning for mobile if it tends to go off-screen */
+    /* For example, ensure it doesn't go too far left or right */
     left: 50%;
-    top: 100%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    padding: 5px;
-    border-radius: 3px;
-    white-space: nowrap;
-    z-index: 1000;
-    font-size: 12px;
-    line-height: 1.2;
-    max-width: 300px;
-    word-wrap: break-word;
+    transform: translateX(-50%); 
+    /* Consider bottom positioning if top is too crowded on mobile */
+  }
+
+  .hipstable td {
+    padding-left: 50%; // Adjusted padding to make more space for labels
+
+    &:before {
+      width: 45%; // Ensure this is not too wide, adjust if necessary
+    }
+  }
+
+  // Adding specific :before content for the missing labels
+  .hipstable td.hiero-review:before {
+    content: "Needs Hiero Approval";
+  }
+
+  .hipstable td.hedera-review:before {
+    content: "Needs Hedera Review";
   }
 }
+
 
 #search-container {
   position: relative;

@@ -364,6 +364,8 @@ message TokenTransferList {
 }
 ```
 
+If a HAPI client submits a `CryptoTransfer` with a `TokenTransferList` that combines a fungible token with a non-empty `nftTransfers` list, it will fail with `NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE`. Similarly, a `TokenTransferList` that combines a non-fungible token with a non-empty `transfers` list fails with `ACCOUNT_AMOUNT_TRANSFERS_ONLY_ALLOWED_FOR_FUNGIBLE_COMMON`.
+
 ### CryptoGetInfoResponse
 
 ```diff

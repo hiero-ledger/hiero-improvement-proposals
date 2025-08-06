@@ -1,55 +1,35 @@
 [
   {
-    "title": "chore: Fix HIP-1215 system contract return values",
-    "number": 1242,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1242",
-    "headRefOid": "def4eda6adef054a83c3c2c4b7688a1449f6f8aa",
+    "title": "Create HIP for Precise Smart Contract Throttling.",
+    "number": 1249,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1249",
+    "headRefOid": "6dfb2dc38a065fc0129f1842d2cb9fbaad7134b1",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-1215.md",
-            "additions": 36,
-            "deletions": 17
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tinker-michaelj"
-    }
-  },
-  {
-    "title": "chore: Add failure status details for token type/transfer spec mismatches",
-    "number": 1239,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1239",
-    "headRefOid": "58f5fb36af16c322e7c3ad04f70ab0a0ca73e3a4",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-17.md",
-            "additions": 2,
+            "path": "HIP/hip-1249.md",
+            "additions": 200,
             "deletions": 0
           }
         }
       ]
     },
     "author": {
-      "login": "tinker-michaelj"
+      "login": "rbair23"
     }
   },
   {
     "title": "Quiescence HIP",
     "number": 1238,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1238",
-    "headRefOid": "eb9209c64ea01d59a519d07b1729ae18ab4f899f",
+    "headRefOid": "eaf9c33a2724f9759652fb4f822b3abf7d83247a",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1238.md",
-            "additions": 219,
+            "additions": 215,
             "deletions": 0
           }
         }
@@ -57,26 +37,6 @@
     },
     "author": {
       "login": "lpetrovic05"
-    }
-  },
-  {
-    "title": "Update hip-1217.md to Active",
-    "number": 1236,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1236",
-    "headRefOid": "60dd73f6b01ca1cd0b08459d185d408c6bd02bf6",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1217.md",
-            "additions": 1,
-            "deletions": 1
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "mgarbs"
     }
   },
   {
@@ -103,27 +63,34 @@
     "title": "chore: Update Contract Service output and trace specification",
     "number": 1229,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1229",
-    "headRefOid": "9ed5756a404040c8d8f77208737bf2294ff5ee81",
+    "headRefOid": "c002986d030afec449831ec96799fc339516e843",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1056.md",
-            "additions": 181,
-            "deletions": 88
+            "additions": 205,
+            "deletions": 99
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1056/protobuf/services/contract_types.proto",
+            "additions": 83,
+            "deletions": 0
           }
         },
         {
           "node": {
             "path": "assets/hip-1056/protobuf/stream/output/smart_contract_service.proto",
-            "additions": 117,
-            "deletions": 205
+            "additions": 39,
+            "deletions": 204
           }
         },
         {
           "node": {
             "path": "assets/hip-1056/protobuf/stream/trace/smart_contract_service.proto",
-            "additions": 196,
+            "additions": 212,
             "deletions": 0
           }
         }
@@ -194,197 +161,16 @@
     }
   },
   {
-    "title": "Update Terminology: Hiero Approves, Hedera Council Accepts",
-    "number": 1201,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1201",
-    "headRefOid": "3688673c1bb630a22903ac9f0f4517dde09d53df",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": ".github/workflows/update-draft-hips.yml",
-            "additions": 25,
-            "deletions": 8
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-1.md",
-            "additions": 71,
-            "deletions": 58
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-1028.md",
-            "additions": 2,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-1037.md",
-            "additions": 2,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-1046.md",
-            "additions": 2,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-1049.md",
-            "additions": 1,
-            "deletions": 1
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-1064.md",
-            "additions": 2,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-1084.md",
-            "additions": 2,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-1086.md",
-            "additions": 3,
-            "deletions": 3
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-1126.md",
-            "additions": 2,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-869.md",
-            "additions": 1,
-            "deletions": 1
-          }
-        },
-        {
-          "node": {
-            "path": "_config.yml",
-            "additions": 15,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "_data/draft_hips.json",
-            "additions": 31,
-            "deletions": 478
-          }
-        },
-        {
-          "node": {
-            "path": "_data/statuses.yaml",
-            "additions": 7,
-            "deletions": 7
-          }
-        },
-        {
-          "node": {
-            "path": "_includes/hipstable.md",
-            "additions": 175,
-            "deletions": 72
-          }
-        },
-        {
-          "node": {
-            "path": "_layouts/hip.html",
-            "additions": 29,
-            "deletions": 46
-          }
-        },
-        {
-          "node": {
-            "path": "about-hips.html",
-            "additions": 11,
-            "deletions": 20
-          }
-        },
-        {
-          "node": {
-            "path": "assets/css/style.scss",
-            "additions": 73,
-            "deletions": 19
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1/hip-states-ipa.png",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1/hip-states-standards-track.png",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1/hip-states.png",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/js/filter.js",
-            "additions": 31,
-            "deletions": 34
-          }
-        },
-        {
-          "node": {
-            "path": "assets/js/pr-integration.js",
-            "additions": 2,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
-            "path": "hip-0000-template.md",
-            "additions": 17,
-            "deletions": 18
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "mgarbs"
-    }
-  },
-  {
     "title": "The hinTS threshold signature scheme",
     "number": 1200,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1200",
-    "headRefOid": "90446747aa47d42a27b5c47c4e710bf6d91ae879",
+    "headRefOid": "354c22ff5e4fa27acf31405e98cfe531a213e2ea",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1200.md",
-            "additions": 478,
+            "additions": 381,
             "deletions": 0
           }
         }
