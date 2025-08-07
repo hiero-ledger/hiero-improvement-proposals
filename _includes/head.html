@@ -49,4 +49,30 @@
     <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}" />
     {%- feed_meta -%}
     <link rel="shortcut icon" type="image/png" href="{{ '/assets/images/favicon.png' | relative_url }}">
+    
+    <!-- Mermaid diagram support -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({ 
+                startOnLoad: true,
+                theme: 'default',
+                themeVariables: {
+                    fontFamily: 'inherit'
+                }
+            });
+            
+            // Process any mermaid code blocks
+            document.querySelectorAll('pre code.language-mermaid').forEach(function(element) {
+                const preElement = element.parentElement;
+                const mermaidDiv = document.createElement('div');
+                mermaidDiv.className = 'mermaid';
+                mermaidDiv.textContent = element.textContent;
+                preElement.parentNode.replaceChild(mermaidDiv, preElement);
+            });
+            
+            // Re-render mermaid diagrams
+            mermaid.init();
+        });
+    </script>
 </head>
