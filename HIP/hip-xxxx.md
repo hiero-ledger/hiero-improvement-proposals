@@ -1,0 +1,852 @@
+---
+hip: TBD
+title: Simple Fees
+author: Richard Bair <@rbair23>
+working-group: Richard Bair <@rbair23>, Jasper Potts <@jasperpotts>, Joshua Marinacci <@joshmarinacci>, Atul Mahamuni
+  <@atul-hedera>, Keith Kowal <keith.kowal@swirldslabs.com>
+requested-by: <TBD>
+type: Standards Track
+category: Core
+needs-hiero-review: Yes
+needs-hedera-approval: Yes
+status: Draft
+created: 2025-07-02
+last-call-date-time:
+discussions-to:
+requires: HIP-XXXX Fee Collection Account
+---
+
+# Abstract
+
+This proposal introduces a simplified and transparent fee model for Hiero networks. It reduces code complexity, enhances
+network performance, and improves predictability for fee calculations. Tools like SDKs and the Mirror Node Explorer can
+accurately estimate fees using the same logic as consensus nodes. The method for converting USD fees to HBAR remains
+unchanged.
+
+# Motivation
+
+The current fee schedule configuration and implementation is complex, leading to bugs and inconsistencies. In contrast,
+this HIP makes understanding fees as easy as ordering a pizza: a base fee plus extras. It makes costs clear and
+consistent.
+
+# Rationale
+
+A transaction will have a `base` plus `extras` for each additional feature. Fees are split into three components:
+
+- Node fee: Paid to the submitting node, based on bytes and signatures. Encourages nodes to accept transactions.
+- Network fee: Covers gossip, consensus, signature verifications, fee payment, and blockchain storage.
+- Service fee: Covers execution costs, state saved in the Merkle tree, and additional costs to the blockchain storage.
+
+Configuring the fee schedule is the responsibility of the deploying network (e.g. Hedera) to set. Since fee schedules
+must be deterministic across nodes, this HIP simply defines the breakdown of base fee and extras for each transaction
+type and how to calculate the `node`, `network`, and `service` components of the fee. If new transactions are added in
+the future, their specification will include their fee structure.
+
+Some transactions are not fully executed. These transactions are priced consistently regardless of the type of
+transaction.
+
+# User Stories
+
+1. **Developer / End User**
+    1. **As an application developer**, I want a clear and concise breakdown of all fees charged for my transactions and
+       queries, so I can understand how my code impacts fees and optimize accordingly.
+    2. **As a Hiero developer**, I want to test and verify the fee logic in my implementation, so I can ensure it
+       charges users correctly across all transaction types.
+    3. **As an HBAR holder who has staked to a node**, I want to confirm that my share of staking rewards—funded by
+       transaction fees—is correctly calculated and distributed, so I can trust the network’s economic model.
+2. **Auditor / Compliance**
+    1. **As an auditor**, I want to independently verify that fees charged by the network align with the published fee
+       schedule, so I can ensure transparency and compliance.
+3. **Network Governance**
+    1. **As a Hiero network governing authority** (e.g., Hedera Council), I want to validate that the network applies
+       fees correctly across all services, so I can maintain trust and fairness in the ecosystem.
+4. **Node Operators**
+    1. **As a block node or mirror node operator**, I want to offer value-added services that provide visibility into
+       the fees charged to user accounts, so I can help users understand and audit their fee-related activity.
+    2. **As a node operator**, I want assurance that the node's portion of collected fees is accurately deposited to my
+       node account, so I can monitor revenue and maintain operations.
+
+# Specification
+
+Fees protect the network and incentivize behavior. Each transaction's fee has node, network, and service components.
+
+The *node* fee component describes the fee to be paid to the node that submitted the transaction to the network. This
+fee exists to compensate the node for the work it performed to pre-check the transaction before submitting it, and
+incentivizes the node to open ports to the world to accept new transactions from users. This fee is calculated in a
+consistent manner for *all* transactions. It is always based on the size of the transaction (in bytes) and the number of
+signatures. Every node has a specific number of bytes it can gossip to other nodes per second. From the perspective of
+the node, every transaction offers fair reward, so there is no incentive to prefer one transaction over another.
+
+The *network* fee component covers the cost of gossip, consensus, signature verifications, fee payment, and blockchain
+storage. This component is typically combined with the *service* fee to determine the total fee paid into the network’s
+Fee Collection Account (0.0.802).
+
+The *service* fee component covers the remaining cost of execution (handling the transaction) and populating the
+blockstream with any additional details. This fee depends on the inherent properties of the transaction, and sometimes
+the network state (e.g., auto-account creation).
+
+![Transaction Fee Diagram - Page 1.png](attachment:0ec5e5a3-2a42-4b24-9729-cce4abe572ca:Transaction_Fee_Diagram_-_Page_1.png)
+
+Normally a transaction fee will be made up of node, network, and service components added together. But this is not true
+for all transactions.
+
+### Unreadable Transactions
+
+If a transaction cannot be parsed, then the node that included that transaction in their event will be charged for
+sending bad bytes. Honest nodes will never send unreadable bytes. A node sending unreadable bytes may be attempting to
+attack other nodes. Unreadable transactions *are not stored in state*, and the *hash* of the transaction will be stored
+in the blockstream and not the data. See
+the [Block Stream HIP-1056](https://github.com/hiero-ledger/hiero-improvement-proposals/blob/a589eabde3099ca2de384c0f2408ffe8f2fa6ba4/HIP/hip-1056.md)
+for details.
+
+The amount a node will be charged for unreadable transactions is defined in the configuration, and is usually set to a
+punitive fee, and should *at least* be large enough to cover the cost of the maximum number of bad bytes they sent. The
+total possible number of bytes is already limited on a consensus node by the maximum network-configured limits (outside
+the scope of this HIP).
+
+Unreadable transactions simply have an *unreadable fee*, there is no *node fee* component, since a bad node should not
+earn a reward for sending bad bytes!
+
+### Invalid Transactions
+
+When a node is given a transaction from a user, it checks to make sure the payer can pay for that transaction. The node
+also verifies other properties of the transaction, such as verifying the transaction doesn’t use an incompatible set of
+fields, or specify two different transaction bodies, or by submitting more transactions than they should have based on
+the throttles, or other such problems. For all cases where a due-diligence failure has occurred, the node itself is
+charged (and not the payer). For an invalid transaction, only the *network fee* is charged, since the transaction is
+otherwise unhandled (no *service* component) and the node should not be rewarded for sending an invalid transaction (no
+*node* component).
+
+### Unhandled Transactions
+
+If a transaction has been received, can be parsed, and didn’t fail due-diligence checks, but is not handled, then the
+payer will be charged a *node fee* and a standard *network fee* to cover the cost of gossip, signature verification, fee
+charging, and inclusion in the blockchain. Examples of cases where the transaction is not handled include:
+
+1. **Throttled Transactions**. When a node is given a transaction from a user at ingest, the node checks whether the
+   throttle conditions are met for that transaction before submitting it to the network. But a malicious node may ignore
+   throttles and send too much data to the network (this would count as a due-diligence failure, see above). Or
+   sometimes, such as with smart contracts, throttling must happen during the *handle transaction* phase, and in this
+   case, the payer must pay for part of the transaction cost, even though the transaction wasn’t handled.
+2. **Atomic Batch Transactions**. In an Atomic Batch Transaction, it is possible that some of the transactions succeed,
+   and others fail, and others are not executed at all. For example, an Atomic Batch Transaction may have 4
+   transactions. The first two succeed, but the third fails, and the fourth is not executed at all. In this case, the
+   user will be charged the full cost of the first three transactions, but only the “unhandled transaction” cost for the
+   remaining one.
+3. **Duplicate Transactions**. Sometimes a user may wish to submit the same transaction to multiple nodes, possibly to
+   reduce the risk of a faulty node failing to submit its transaction to consensus in a timely manner. If two nodes both
+   receive the same transaction and neither has yet seen this transaction before, then both will submit this transaction
+   to the network. When handling transactions, we only charge the normal fee for the first such transaction. All the
+   remainder are *unhandled* transactions and charged accordingly.
+
+In all such cases, it is imperative that we determine the correct fee to charge. This fee will be based on the number of
+signatures, the number of bytes, and some base fee that covers basic handling costs and inclusion in the blockstream.
+
+### Bad Transactions
+
+If the transaction passes due-diligence, but otherwise fails during handling, then it is charged full freight — *node*,
+*network*, and *service* fee components. Examples:
+
+1. **Semantically Wrong**. For example, the transfer list in a `CryptoTransfer` transaction must balance to zero.
+2. **Inconsistent with State**. A transaction may be inconsistent with the state (e.g. a `MessageSubmit` transaction
+   isn’t signed by the `SubmitKey` but one is specified, or the destination account in a crypto transfer has
+   `receiverSigRequired` but no such signature is present).
+3. **Out of Gas**. The transaction may have a `transactionFee` (the maximum amount the payer is willing to pay for that
+   transaction), or it may have a gas limit (for smart contracts), and the transaction may end up costing more than
+   these specified maximums, leading to those maximums being charged.
+4. **Buggy Transactions**. The `FAIL_INVALID` response code indicates that a transaction failed due to a bug in the
+   consensus node software. Such failures must be charged to the payer, otherwise if an attacker find a specific set of
+   criteria to deterministically trigger `FAIL_INVALID`, they could launch a denial of service attack.
+
+Bad transactions must charge the full cost to protect the network by charging for work done, whether the transaction
+completed successfully or not.
+
+### Congestion
+
+If the TPS for a specific throttle reaches a critical sustained level, then *congestion pricing* is enabled. This exists
+today on the network. This HIP includes a method by which the congestion scaling factor, or *multiplier*, can be
+specified in configuration. After fees are computed, the multiplier is applied to determine the final fee.
+
+## Configuration
+
+Fees are configured using a JSON file and stored in file `0.0.111` on the network. All fees are defined in USD, as
+*tinycents*. 10^8 *tinycents* form a cent in USD. 10^10 tinycents are one dollar USD. By using tinycents, we provide a
+high degree of precision in pricing while avoiding floating point math which is imprecise for financial calculations.
+
+<aside>
+💡
+
+Throughout this document prices for fees are included. These prices are for **descriptive purposes only**. The actual
+values in a valid config are the responsibility of the network owners, such as the Hedera Council for the Hedera
+network. No prices in this HIP are considered authoritative.
+
+</aside>
+
+The configuration file is a JSON document in Protobuf-JSON format. The file defines:
+
+1. **Extras**: The set of extra charges which may be used for any *node*, *network*, or *service* fee.
+2. **Node**: The configuration for computing the node fee; applicable to all transactions
+3. **Network**: The configuration for computing the network fee; applicable to all transactions
+4. **Services**: The set of service fee calculations for all transactions and queries, grouped by gRPC service.
+5. **Unreadable**: Used when transaction bytes are not valid Protobuf.
+
+For each *node*, *network*, and *service* fee, there is a `base` which is the fixed price in USD, along with zero or
+more `extras` defining additional features and their associated costs. All extras are defined once within the file, and
+referenced from different transactions and queries.
+
+The basic structure of this JSON follow can be seen below:
+
+```json
+{
+  "extras": [
+    ...
+  ],
+  "node": {
+    ...
+  },
+  "network": {
+    ...
+  },
+  "services": [
+    ...
+  ],
+  "unreadable": {
+    ...
+  }
+}
+```
+
+### Extras
+
+Extras are fees *in addition to* the `base`. They are defined once in the configuration, and referenced by name
+throughout the document. The fee **must** be defined. When computing fees, we simply tally up the number of extras, and
+add the tally to the `base` to determine the fee component.
+
+```json
+{
+  "extras": [
+    {
+      "name": "Signatures",
+      "fee": 100000
+    },
+    {
+      "name": "Bytes",
+      "fee": 10000
+    },
+    {
+      "name": "Keys",
+      "fee": 10000000
+    },
+    ...
+  ]
+}
+```
+
+The following table lists each extra, its name, and the description.
+
+| Extra                      | Description                                                                                                                                                                                                                       |
+|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Signatures                 | Number of signatures on the transaction (at most one verification per signature).                                                                                                                                                 |
+| Bytes                      | Size of the transaction in protobuf bytes.                                                                                                                                                                                        |
+| Keys                       | The number of keys being defined on this transactions. For example, when creating an account, this is the number of keys on the account. A threshold key with 10 keys counts as 10 keys. Nested key structures count up all keys. |
+| TokenTypes                 | Number of token types referenced.                                                                                                                                                                                                 |
+| NFTSerials                 | Number of distinct NFT serials.                                                                                                                                                                                                   |
+| Accounts                   | Number of accounts loaded to handle the transaction.                                                                                                                                                                              |
+| StandardFungibleTokens     | Number of standard fungible tokens (no custom fees).                                                                                                                                                                              |
+| StandardNonFungibleTokens  | Number of standard NFTs (no custom fees).                                                                                                                                                                                         |
+| CustomFeeFungibleTokens    | Number of fungible tokens with custom fees.                                                                                                                                                                                       |
+| CustomFeeNonFungibleTokens | Number of NFTs with custom fees.                                                                                                                                                                                                  |
+| CreatedAutoAssociations    | Number of auto-associations created.                                                                                                                                                                                              |
+| CreatedAccounts            | Number of hollow accounts created (e.g., via transfers to aliases).                                                                                                                                                               |
+| CustomFee                  | If custom fees are defined for the created entity                                                                                                                                                                                 |
+| Gas                        | Gas cost.                                                                                                                                                                                                                         |
+| Allowances                 | Number of allowances.                                                                                                                                                                                                             |
+| Airdrops                   | Number of airdrops executed.                                                                                                                                                                                                      |
+
+### Node
+
+The *node* fee is computed exactly the same way for all transactions. It is therefore defined in one place in the
+configuration and applicable to all transactions.
+
+```json
+"node": {
+"base": 100000,
+"extras": [
+{"name": "Bytes", "includedCount": 1024},
+{"name": "Signatures", "includedCount": 1}
+]
+},
+```
+
+### Network
+
+The *network* fee is also computed exactly the same way for all transactions. It is also defined in one place in the
+configuration and applicable to all transactions. It is specified as a multiplier of the node fee.
+
+```json
+"network": {"multiplier": 9}
+```
+
+### Services
+
+A service is a grouping of transactions and queries. These match the gRPC **services defined in the HAPI specification.
+Each transaction or query is given a `name`, `base`, and a list of the `extras` that apply to that transaction. For each
+such `extra`, an `includedCount` *may* be specified, indicating how many of that extra are included in the `base`.
+
+```json
+{
+  "name": "CryptoService",
+  "transactions": [
+    {
+      "name": "CryptoCreate",
+      "base": 499000000,
+      "extras": [
+        {
+          "name": "Keys",
+          "includedCount": 1
+        }
+      ]
+    }
+  ],
+  "queries": []
+}
+```
+
+<aside>
+💡
+
+NOTE: In this transaction we see that the base price is `499000000` tinycents, or `0.0499` USD. At runtime, for a basic
+`CryptoCreate` transaction, the total fee will be *node* + *network* + *service:*
+
+```json
+totalChargedKeys = (max(1, numKeys) - 1) * costPerKey;
+```
+
+Since `Keys` has an `includedCount` of 1, if the transaction only sets a single key on the new account, then it is not
+charged for that key. But if it were to set two keys, then it would pay for one. In other words:
+
+```json
+totalFee = 100000 + 900000 + 499000000
+```
+
+</aside>
+
+`extras` are referred to by name. The `includedCount`, if specified, must be a non-negative integer value. If not
+specified, the default value for an `includedCount` is 0.
+
+### Unreadable Transactions
+
+```json
+"unreadable": {"fee": 100000000000}
+```
+
+Since an unreadable transaction could not even be parsed, it is not possible for it to have any extras. It therefore has
+a single fee, charged to the node that sent this unreadable transaction. It is intended to be punitive, but is up to the
+network owners to determine the appropriate price.
+
+### Queries
+
+The configuration for a query includes the `free` boolean field to indicate whether the query is free. If true, then no
+fees are paid at all. If false, then the *node*, *network*, and *service* fees are defined as with transactions to
+compute the cost of the query. A compliant implementation will create a `CryptoTransfer` transaction to submit to the
+network to pay for the required fees. The `node` and `network` components are not listed in the transfer list, but they
+are included in the `transactionFee` since they will be paid by the payer. The `service` fee will be included in a
+transfer list to pay the node for whatever work was required for this query.
+
+```json
+{
+  "name": "FileService",
+  "queries": [
+    {
+      "name": "FileGetContents",
+      "base": 0,
+      "extras": [
+        {
+          "name": "Bytes"
+        }
+      ]
+    },
+    {
+      "name": "FileGetInfo",
+      "free": true
+    }
+  ]
+}
+```
+
+### Validation
+
+Before a new fee schedule takes effect, the network must verify it against the rules below. If the schedule fails any
+rule, it is invalid and discarded; the network continues using the most recent valid schedule instead. These rules
+ensure the schedule is well-formed, consistent, and usable by all nodes for deterministic fee calculations.
+
+The validation process checks the following, in any order:
+
+1. **Parsing and Schema Compliance**: The JSON file must parse successfully and conform exactly to the `FeeSchedule`
+   Protobuf message defined in this HIP. This includes:
+    - All required fields are present (e.g., `node` and `network` must exist; `multiplier` must be defined in`network`).
+    - Field types match (e.g., `base_fee` and `fee` are unsigned 64-bit integers; `name` fields are strings;
+      `includedCount` is an unsigned 32-bit integer).
+    - Optional fields, if present, follow their constraints (e.g., `unreadable` may be absent or have `fee` set to 0).
+    - No extra unrecognized fields are included.
+2. **Monetary Values**: All fields representing USD amounts in tinycents (`base_fee` in node and service definitions,
+   `fee` in extras and unreadable) must be non-negative integers (0 or greater). For extras, the `fee` must be strictly
+   positive (greater than 0), as a value of 0 is not permitted.
+3. **Multiplier Constraint**: The `multiplier` in the `network` section must be a positive integer of at least 1.
+4. **Count Values**: All `includedCount` fields in extra references must be non-negative integers (0 or greater).
+5. **Name Uniqueness**:
+    - All extra names (in the `extras` list) must be unique.
+    - All service names (in the `services` list) must be unique.
+    - Within each service's `schedule` list, all transaction and query names must be unique.
+6. **Name Format**: Every `name` field (for extras, services, transactions, and queries) must match the regular
+   expression `[A-Za-z].*[A-Za-z0-9]*`—starting with a letter, followed by letters, digits, or both, and not empty.
+7. **Extra References**: Every reference to an extra (in `node.extras`, or in any service's transaction/query `extras`)
+   must point to a defined extra in the top-level `extras` list. No duplicate references to the same extra are allowed
+   within a single list of extras.
+8. **Service Definitions**: Each service in the `services` list must have a non-empty `schedule` list (at least one
+   transaction or query defined).
+9. **Free Queries and Transactions**: If a transaction or query sets `free` to true, its `base_fee` and `extras` are
+   ignored during fee calculation, but they must still comply with all other validation rules if present (e.g., valid
+   types, non-negative values, valid references).
+
+### Schema
+
+The schema is defined in Protobuf. The wire format is JSON.
+
+```protobuf
+/**
+ * Network fee schedule definition.<br/>
+ * This message defines how fees are charged for transactions.
+ */
+message FeeSchedule {
+  /**
+   * Defines how to compute the <i>node fee component</i>.
+   *
+   * <p>The node **fee component describes the fee to be paid to the node that
+   * submitted the transaction to the network. This fee exists to compensate
+   * the node for the work it performed to pre-check the transaction before
+   * submitting it, and incentivizes the node to open ports to the world to
+   * accept new transactions from users.
+   *
+   * <p>This fee is calculated in a consistent manner for *all* transactions.
+   *
+   * <p>The node fee schedule MUST be specified.
+   */
+  NodeFeeSchedule node = 1;
+
+  /**
+   * Defines the method by which the <i>network fee component</i> is computed.
+   *
+   * <p>The network fee component covers the cost of gossip, consensus, signature
+   * verifications, fee payment, and blockchain storage. This component is
+   * typically combined with the service fee to determine the total fee paid into
+   * the network’s Fee Collection Account.
+   *
+   * <p>The network fee schedule MUST be specified.
+   */
+  NetworkFeeSchedule network = 2;
+
+  /**
+   * This fee is charged to the node that submitted the transaction when a
+   * transaction's bytes cannot be parsed. The fee is deposited into the
+   * network's Fee Collection Account.
+   *
+   * <p>This configuration SHOULD be specified.
+   */
+  UnreadableTransactionFeeSchedule unreadable = 3;
+
+  /**
+   * Every "extra" that can be assigned to a given fee is defined in this list.
+   *
+   * <p>The list of extras are optional. The list MUST NOT contain extras with
+   * duplicate names.
+   */
+  repeated ExtraFeeDefinition extras = 4;
+
+  /**
+   * Fees for each service available in the network are included in this list.
+   *
+   * <p>The list of services are optional, but in practice, every existing
+   * service in the network MUST have a corresponding definition. The list
+   * MUST NOT contain services with duplicate names.
+   */
+  repeated ServiceFeeSchedule services = 5;
+}
+
+/**
+ * Defines an "extra" fee. Each fee has a name and a fee amount defined in tinycents (10^8 per cent).
+ */
+message ExtraFeeDefinition {
+  /**
+   * The name of this "extra". The name MUST be unique within the complete FeeSchedule
+   * and MUST be specified. A valid name MUST match `[A-Za-z].*[A-Za-z0-9]*`.
+   */
+  string name = 1;
+  /**
+   * The fee price, in tinycents. There are 10^8 tinycents per cent USD. The fee MUST be specified
+   * (a value of 0 is not permitted).
+   */
+  uint64 fee = 2;
+}
+
+/**
+ * The configuration for node fees. Applied to all transactions equally.
+ */
+message NodeFeeSchedule {
+  /**
+   * The base fee price, in tinycents. There are 10^8 tinycents per cent USD.
+   * The base fee, plus the extras, determine the node fee. The base_fee is
+   * optional. If omitted, the value is 0.
+   */
+  uint64 base_fee = 1;
+
+  /**
+   * References to each extra that should be used when computing the node fee.
+   * This list is optional, however, there SHOULD either be a base_fee or
+   * a list of extras, or both. This list MUST NOT contain more than one reference
+   * to the same extra.
+   */
+  repeated ExtraFeeReference extras = 2;
+}
+
+/**
+ * The configuration for computing the network fee component.
+ */
+message NetworkFeeSchedule {
+  /**
+   * Multiplied by the node fee to determine the network fee. This value MUST be
+   * specified and MUST be at least 1.
+   */
+  uint32 multiplier = 1;
+}
+
+/**
+ * The configuration for all transactions and queries within a single network service.
+ */
+message ServiceFeeSchedule {
+  /**
+   * The name of the service. This name MUST be specified and MUST match a name
+   * expected by the network service it configures (this is expected to match it
+   * exactly). The name must match `[A-Za-z].*[A-Za-z0-9]*`.
+   */
+  string name = 1;
+
+  /**
+   * The list of transaction and query fee configurations. This list MUST NOT be empty.
+   * The list MUST NOT contain entries with duplicate names.
+   */
+  repeated ServiceFeeDefinition schedule = 2;
+}
+
+/**
+ * The definition of the fee for a transaction or query within a service.
+ */
+message ServiceFeeDefinition {
+  /**
+   * The name of the transaction or query. The name MUST be specified and MUST match a name
+   * defined by the specification for the service. Each name is unique within the file the
+   * context of a specific service. The name must match `[A-Za-z].*[A-Za-z0-9]*`.
+   */
+  string name = 1;
+  /**
+   * The base fee price, in tinycents. There are 10^8 tinycents per cent USD.
+   * The base fee, plus the extras, determine the service fee. The base_fee is
+   * optional. If omitted, the value is 0.
+   */
+  uint64 base_fee = 2;
+  /**
+   * References to each extra that should be used when computing the node fee.
+   * This list is optional, however, there SHOULD either be a base_fee or
+   * a list of extras, or both. Or the `free` field should be set to true.
+   * This list MUST NOT contain more than one reference to the same extra.
+   */
+  repeated ExtraFeeReference extras = 3;
+  /**
+   * If true, then `base_fee` and `extras` are ignored, and the transaction or query
+   * will be free.
+   */
+  boolean free = 4;
+}
+
+/**
+ * A reference to an "extra" defined within the `FeeSchedule`.
+ */
+message ExtraFeeReference {
+  /**
+   * The name of the referenced "extra". This name MUST match the name of an extra
+   * defined within the `FeeSchedule`.
+   */
+  string name = 1;
+
+  /**
+   * The count of this "extra" that is included for free. For example, 256 "Bytes"
+   * may be included for free. Each byte above 256 would be charged the fee defined
+   * on the "Bytes" extra.
+   */
+  uint32 includedCount = 2;
+}
+
+/**
+ * Defines the fee to levy a node that sends bytes that cannot be parsed into a Transaction.
+ */
+message UnreadableTransactionFeeSchedule {
+  /**
+   * The punitive fee, in tinycents. There are 10^8 tinycents per cent USD. This value
+   * is optional and may be zero.
+   */
+  uint64 fee = 1;
+}
+
+```
+
+## List of Transactions, Queries, and their Extras
+
+The table below lists services, APIs (transactions and queries), and extras (✅ if used).
+
+| **Service**              | **API**                    | **Signatures** | **Bytes** | **Keys** | **TokenTypes** | **NFTSerials** | **Accounts** | **StandardFungibleTokens** | **StandardNonFungibleTokens** | **CustomFeeFungibleTokens** | **CustomFeeNonFungibleTokens** | **CreatedAutoAssociations** | **CreatedAccounts** | **CustomFee** | **Gas** | **Allowances** | **Airdrops** |
+|--------------------------|----------------------------|----------------|-----------|----------|----------------|----------------|--------------|----------------------------|-------------------------------|-----------------------------|--------------------------------|-----------------------------|---------------------|---------------|---------|----------------|--------------|
+| **CryptoService**        | CryptoCreate               | ✅              |           | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **CryptoService**        | CryptoTransfer             | ✅              |           |          |                |                | ✅            | ✅                          | ✅                             | ✅                           | ✅                              | ✅                           | ✅                   |               |         |                |              |
+| **CryptoService**        | CryptoUpdate               | ✅              |           | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **CryptoService**        | CryptoDelete               | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **CryptoService**        | CryptoGetAccountRecords    | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **CryptoService**        | CryptoGetAccountBalance    |                |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **CryptoService**        | CryptoGetInfo              | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **CryptoService**        | CryptoApproveAllowance     | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         | ✅              |              |
+| **CryptoService**        | CryptoDeleteAllowance      | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         | ✅              |              |
+| **ConsensusService**     | ConsensusCreateTopic       | ✅              |           | ✅        |                |                |              |                            |                               |                             |                                |                             |                     | ✅             |         |                |              |
+| **ConsensusService**     | ConsensusUpdateTopic       | ✅              |           | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **ConsensusService**     | ConsensusDeleteTopic       | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **ConsensusService**     | ConsensusSubmitMessage     | ✅              | ✅         |          |                |                |              |                            |                               |                             |                                |                             |                     | ✅             |         |                |              |
+| **ConsensusService**     | ConsensusGetTopicInfo      | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenCreate                | ✅              |           | ✅        |                |                |              |                            |                               |                             |                                |                             |                     | ✅             |         |                |              |
+| **TokenService**         | TokenUpdate                | ✅              |           | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenUpdateNfts            | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenTransfer              | ✅              |           |          |                |                | ✅            | ✅                          | ✅                             | ✅                           | ✅                              | ✅                           | ✅                   |               |         |                |              |
+| **TokenService**         | TokenDelete                | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenMint                  | ✅              |           |          |                | ✅              |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenBurn                  | ✅              |           |          |                | ✅              |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenPause                 | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenUnpause               | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenAirdrop               | ✅              |           |          |                |                | ✅            | ✅                          | ✅                             | ✅                           | ✅                              | ✅                           | ✅                   |               |         |                | ✅            |
+| **TokenService**         | TokenClaimAirdrop          | ✅              |           |          | ✅              |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenCancelAirdrop         | ✅              |           |          | ✅              |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenReject                | ✅              |           |          | ✅              |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenFeeScheduleUpdate     | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenAssociateToAccount    | ✅              |           |          | ✅              |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenDissociateFromAccount | ✅              |           |          | ✅              |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenGrantKycToAccount     | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenRevokeKycFromAccount  | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenFreezeAccount         | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenUnfreezeAccount       | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenAccountWipe           | ✅              |           |          |                | ✅              |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenGetInfo               | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **TokenService**         | TokenGetNftInfos           | ✅              |           |          |                | ✅              |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **SmartContractService** | ContractCreate             | ✅              |           | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               | ✅       |                |              |
+| **SmartContractService** | ContractUpdate             | ✅              |           | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **SmartContractService** | ContractDelete             | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **SmartContractService** | ContractCall               | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               | ✅       |                |              |
+| **SmartContractService** | EthereumTransaction        | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               | ✅       |                |              |
+| **SmartContractService** | ContractGetInfo            | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **SmartContractService** | ContractCallLocal          | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **SmartContractService** | ContractGetBytecode        | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **FileService**          | FileCreate                 | ✅              | ✅         | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **FileService**          | FileUpdate                 | ✅              | ✅         | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **FileService**          | FileDelete                 | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **FileService**          | FileAppend                 | ✅              | ✅         | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **FileService**          | FileGetContents            | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **FileService**          | FileGetInfo                | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **FileService**          | SystemDelete               | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **FileService**          | SystemUndelete             | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **ScheduleService**      | ScheduleCreate             | ✅              |           | ✅        |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **ScheduleService**      | ScheduleSign               | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **ScheduleService**      | ScheduleDelete             | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **ScheduleService**      | ScheduleGetInfo            | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **NetworkService**       | GetVersionInfo             | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **NetworkService**       | TransactionGetReceipt      |                |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **NetworkService**       | TransactionGetRecord       | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **UtilService**          | PrngTransaction            | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **UtilService**          | BatchTransaction           | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **AddressBookService**   | CreateNode                 | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **AddressBookService**   | DeleteNode                 | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+| **AddressBookService**   | UpdateNode                 | ✅              |           |          |                |                |              |                            |                               |                             |                                |                             |                     |               |         |                |              |
+
+### Mirror Nodes
+
+Mirror nodes ingest and index data from the Hiero network, providing queryable access to historical and real-time state.
+To support fee transparency, this HIP introduces a new REST API endpoint on mirror nodes for estimating transaction
+fees. This endpoint allows users, SDKs, and tools to compute expected fees without submitting transactions to the
+network.
+
+The endpoint accepts a `Transaction` (as defined in the Hiero API protobufs) in either binary protobuf or JSON format.
+It returns a JSON document breaking down the fee into node, network, and service components, including the base fee and
+any applicable extras. Fees are reported in tinycents (USD-denominated, with 10^10 tinycents equaling $1 USD) to match
+the configuration format.
+
+Fee estimation may depend on network state (e.g., whether an account exists or requires creation during a transfer). To
+handle this, the endpoint includes an optional `mode` query parameter with two values:
+
+- `intrinsic`: Estimate based solely on the transaction's inherent properties (e.g., size, signatures, keys). Ignores
+  state-dependent factors.
+- `state`: Estimate based on intrinsic properties plus the mirror node's latest known state (e.g., check if accounts
+  exist, load token associations). This is the default if no `mode` is specified.
+
+If the provided transaction is invalid (e.g., cannot be parsed), the response includes an error. For `state` mode, if
+required state is unavailable (e.g., due to pruning), the endpoint falls back to `intrinsic` and notes this in the
+response.
+
+### Endpoint Definition
+
+- **Method**: `POST`
+- **Path**: `/api/v1/fees/estimate`
+- **Query Parameters**:
+    - `mode` (string, optional): One of `intrinsic`, or `state`. Defaults to `state`.
+- **Request Headers**:
+    - `Content-Type`: `application/octet-stream` for binary protobuf; `application/json` for protobuf JSON.
+- **Request Body**: The `Transaction` protobuf message (binary or JSON-serialized).
+- **Response Headers**:
+    - `Content-Type`: `application/json`
+- **Response Status Codes**:
+    - `200 OK`: Successful estimation.
+    - `400 Bad Request`: Invalid transaction or mode.
+    - `500 Internal Server Error`: Estimation failed (e.g., configuration unavailable).
+- **Response Body**: A JSON object with the fee breakdown. All monetary values are in tinycents as unsigned integers.
+
+Example Request (JSON body, abbreviated for brevity):
+
+```json
+{
+  "body": {
+    "cryptoTransfer": {
+      "transfers": {
+        "accountAmounts": [
+          {
+            "accountID": {
+              "shardNum": 0,
+              "realmNum": 0,
+              "accountNum": 1000
+            },
+            "amount": -1000
+          },
+          {
+            "accountID": {
+              "shardNum": 0,
+              "realmNum": 0,
+              "accountNum": 2000
+            },
+            "amount": 1000
+          }
+        ]
+      }
+    }
+  },
+  "transactionID": {
+    "accountID": {
+      "shardNum": 0,
+      "realmNum": 0,
+      "accountNum": 1000
+    },
+    "transactionValidStart": {
+      "seconds": 1697059200,
+      "nanos": 0
+    }
+  },
+  "nodeAccountID": {
+    "shardNum": 0,
+    "realmNum": 0,
+    "accountNum": 3
+  },
+  "sigs": [
+    {
+      "ed25519": "base64_encoded_signature_here"
+    }
+  ]
+}
+```
+
+Example Response (for `mode=state`, assuming a basic `CryptoCreate` with one key):
+
+```json
+{
+  "total": 500000000,
+  "node": {
+    "base": 100000,
+    "extras": [
+      {
+        "name": "Bytes",
+        "count": 150,
+        "included": 1024,
+        "charged": 0,
+        "feePerUnit": 10000,
+        "subtotal": 0
+      },
+      {
+        "name": "Signatures",
+        "count": 1,
+        "included": 1,
+        "charged": 0,
+        "feePerUnit": 100000,
+        "subtotal": 0
+      }
+    ]
+  },
+  "network": {
+    "multiplier": 9,
+    "subtotal": 900000
+  },
+  "service": {
+    "base": 499000000,
+    "extras": [
+      {
+        "name": "Keys",
+        "count": 1,
+        "included": 1,
+        "charged": 0,
+        "feePerUnit": 10000000,
+        "subtotal": 0
+      }
+    ]
+  },
+  "mode": "state",
+  "notes": []
+}
+
+```
+
+In the response:
+
+- `total` is the sum of node, network, and service subtotals.
+- For each component, `extras` lists the name, actual count, included count (from config), charged count (
+  `max(0, count - included)`), fee per unit, and subtotal.
+- `network` shows the multiplier applied to the node subtotal.
+- `notes` is an array of strings for any caveats (e.g., ["Fallback to worst-case due to missing state"]).
+
+This API aligns with existing mirror node endpoints, using JSON responses for readability and supporting protobuf inputs
+for efficiency. Implementations must use the latest fee schedule from file 0.0.111 and, for `state` mode, query the
+mirror's indexed data.
+
+# Security Implications
+
+N/A
+
+# Rejected Ideas
+
+## Removing the Node Fee
+
+We considered removing the node fee component entirely, as a means to simplify the fee system further, and to make sure
+that a node was not incentivized by the node fee to favor one transaction over another. However, it is essential that we
+have the node fee to incentive nodes to accept as many transactions as they are allowed into the network.
+
+## Send breakdown of fees in the blockstream
+
+We could have the consensus node include in the blockstream the breakdown of fees as it was computed. However, this
+extra information doesn’t need to be sent because, given the state, it can be recomputed. Omitting the information from
+the blockstream has a significant impact on the size of the stream.
+
+## Fee HAPI
+
+There has been expressed interest in creating a proper Hiero API (HAPI) for working with properties, and this would also
+apply to fees. It would be convenient (and safer!) if there were a transaction that would allow network administrators
+to modify a single fee value, rather than having to upload an entire file. Having such an API instead of, or in addition
+to, file `0.0.111` could be interesting. But that would make this HIP much larger. We will defer this to a future HIP to
+resolve.
