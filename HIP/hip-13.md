@@ -5,7 +5,7 @@ author: H. Bart <hbart.lit@gmail.com>
 type: Standards Track
 category: Application
 needs-council-approval: No
-status: Accepted
+status: Active
 last-call-date-time: 2021-11-23T07:00:00Z
 created: 2021-03-13
 discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/56
