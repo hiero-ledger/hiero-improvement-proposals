@@ -132,7 +132,7 @@ jobs:
               }
               const hipFiles = pr.files.edges.filter(edge => {
                 const fileNode = edge.node;
-                const isNewHIPFile = /^HIP\\/hip-[a-zA-Z0-9-]+\\.md$/.test(fileNode.path); // New regex
+                const isNewHIPFile = /^HIP\/hip-[a-zA-Z0-9-]+\.md$/.test(fileNode.path);
                 return fileNode.changeType === 'ADDED' && isNewHIPFile;
               }).map(edge => edge.node);
 
