@@ -152,7 +152,6 @@ jobs:
             console.error('Failed to fetch and filter PRs:', error);
             process.exit(1);
           });
-          EOF
 
       - name: Run Script
         run: node fetch-draft-hips.js
