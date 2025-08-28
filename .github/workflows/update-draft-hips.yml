@@ -45,7 +45,7 @@ jobs:
       - name: Create Script
         run: |
           mkdir -p _data
-          cat << \'EOF\' > fetch-draft-hips.js
+          cat << 'EOF' > fetch-draft-hips.js
           const https = require('https');
           const fs = require('fs');
 
@@ -152,6 +152,7 @@ jobs:
             console.error('Failed to fetch and filter PRs:', error);
             process.exit(1);
           });
+          EOF
 
       - name: Run Script
         run: node fetch-draft-hips.js
