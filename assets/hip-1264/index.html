@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBAR Exchange Rate Oracle Analysis - Interactive Chart</title>
+    <script src="contrib/chart.umd.min.js"></script>
+    <script src="contrib/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="contrib/chartjs-plugin-zoom.min.js"></script>
+    <script src="contrib/chartjs-plugin-annotation.min.js"></script>
+    <script src="contrib/pako.min.js"></script>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <a class="github-logo" href="https://github.com/InternetOfPeers/hedera-hbar-exchange-rate-oracle-analysis"
+        target="_blank" rel="noopener noreferrer" aria-label="View source on GitHub">
+        <svg height="32" aria-hidden="true" viewBox="0 0 24 24" version="1.1" width="32" data-view-component="true">
+            <path
+                d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z">
+            </path>
+        </svg>
+    </a>
+
+    <div class="container">
+        <h1>HBAR Exchange Rate Oracle Analysis - Interactive Chart</h1>
+        <p>Compare Hedera Oracle Exchange Rate vs CMC prices with percentage differences.<br />Hedera updates prices
+            every hour. For CMC I used 5 mins, 15 mins, and 1 hour intervals in the past, but starting from mid August
+            I'll run a script for having all the new data at 5 mins interval.
+        </p>
+        <div class="controls">
+            <button onclick="resetZoom()">Reset Zoom</button>
+            <button id="last1dBtn" onclick="showLastXDays(1)">Last 1 Day</button>
+            <button id="last3dBtn" onclick="showLastXDays(3)">Last 3 Days</button>
+            <button id="last7dBtn" onclick="showLastXDays(7)" class="active">Last 7 Days</button>
+            <button id="last14dBtn" onclick="showLastXDays(14)">Last 14 Days</button>
+            <button id="last30dBtn" onclick="showLastXDays(30)">Last 30 Days</button>
+            <button id="allDataBtn" onclick="showAllData()">Show All Data</button>
+            <!--<button onclick="togglePercentageDiff()">Toggle % Difference</button>-->
+            <button id="toggleTooltipBtn" onclick="toggleTooltip()">Hide Tooltip</button>
+            <div class="threshold-control">
+                <label for="acceptableRangeInput">Threshold:</label>
+                <input type="number" id="acceptableRangeInput" value="3" min="0" step="0.1">%
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div id="loading" class="loading">Loading chart data...</div>
+            <canvas id="priceChart" style="display: none;"></canvas>
+        </div>
+
+        <div class="analytics-container">
+            <div style="flex: 1;">
+                <div class="threshold-panel">
+                    <div class="threshold-analysis">
+                        <div id="thresholdAnalysisGrid" class="threshold-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="flex: 1;">
+                <div class="stats-panel">
+                    <div class="stats-layout">
+                        <div class="time-stat-row time-stats-grid">
+                            <div class="stat-box time-stat">
+                                <div>Current Time Window</div>
+                                <div class="stat-value" id="timeWindowDisplay">-</div>
+                            </div>
+                            <div class="stat-box time-stat">
+                                <div>Outside Threshold (<span id="currentThresholdDisplay">3%</span>)</div>
+                                <div class="stat-value" id="timeOutsideThreshold">-</div>
+                            </div>
+                        </div>
+                        <div class="other-stats-grid">
+                            <div class="stat-box">
+                                <div>Minimum Difference</div>
+                                <div class="stat-value" id="minDiff">-</div>
+                            </div>
+                            <div class="stat-box">
+                                <div>Maximum Difference</div>
+                                <div class="stat-value" id="maxDiff">-</div>
+                            </div>
+                            <div class="stat-box">
+                                <div>Median</div>
+                                <div class="stat-value" id="medianDiff">-</div>
+                            </div>
+                            <div class="stat-box">
+                                <div>Average</div>
+                                <div class="stat-value" id="avgDiff">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="data-section">
+            <h2>Data Management <small class="section-note">Advanced</small></h2>
+            <div class="data-management-grid">
+                <div class="data-instructions">
+                    <p>
+                        A compressed snapshot of the CSV is embedded in this page. Paste newer or custom data to
+                        re-render the chart locally (no upload performed). The first line is ignored so you can keep
+                        headers or comments there.
+                    </p>
+                    <div class="data-example">
+                        <div class="example-title">Example Format</div>
+                        <pre><code>Date,CMC,HEDERA
+2025/07/04T07:00,0.1561745,0.15735433
+2025/07/04T08:00,0.15483,0.15604
+...
+1756170900,0.2334577,0.23047166
+1756171680,0.234483,0.23047166</code></pre>
+                        <div class="data-hint">Supports ISO date strings (YYYY/MM/DDTHH:mm) or Unix timestamps (seconds
+                            / ms).</div>
+                    </div>
+                </div>
+                <div class="data-input-panel">
+                    <div class="textarea-wrapper">
+                        <label for="dataTextarea">Custom Data</label>
+                        <textarea id="dataTextarea" placeholder="Paste your data here (Date,CMC,HEDERA)"></textarea>
+                        <br /><br />
+                        <div class="data-actions">
+                            <button id="updateChartBtn" class="update-button saved" onclick="updateDataFromTextarea()"
+                                title="Re-parse and refresh the chart">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path
+                                        d="M12 5V2L8 6l4 4V7c3.309 0 6 2.691 6 6a6 6 0 0 1-6 6 5.99 5.99 0 0 1-5.65-4H4.062A8.003 8.003 0 0 0 12 22c4.411 0 8-3.589 8-8s-3.589-9-8-9z" />
+                                </svg>
+                                Update Chart
+                            </button>
+                        </div>
+                        <div class="data-hint"><br />Changes not applied until you press Update Chart. Reload page to
+                            restore embedded dataset.<br /> Parsing runs fully in your browser. Reload the page to
+                            restore the original embedded dataset.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        const state = {
+            compressedCsvData: "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",
+            chart: null,
+            parsedData: [],
+            showPercentageDiff: true,
+            acceptableRangeLimit: 3,
+            latestActiveButton: 'last7dBtn',
+            showTooltip: true
+        };
+
+        let decompressedCsvData = null; function getDecompressedCsvData() { if (decompressedCsvData) return decompressedCsvData; try { const b = atob(state.compressedCsvData); const bytes = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) bytes[i] = b.charCodeAt(i); decompressedCsvData = pako.inflate(bytes, { to: 'string' }); } catch (_) { decompressedCsvData = ''; } return decompressedCsvData; }
+
+        // Update state to use decompressed data
+        Object.defineProperty(state, 'csvData', {
+            get: function () {
+                return getDecompressedCsvData();
+            }
+        });
+
+        // Removed duplicate state property reassignments
+
+        // Utility functions
+        const utils = {
+            parseData(s) { const lines = s.trim().split(/\n+/); const out = []; for (let i = 1; i < lines.length; i++) { const line = lines[i]; if (!line) continue; const parts = line.split(/[\t,]/); if (parts.length < 3) continue; const ds = parts[0].trim(); const cmc = parseFloat(parts[1]); const hed = parseFloat(parts[2]); if (isNaN(cmc) || isNaN(hed)) continue; let date; if (/^\d+$/.test(ds)) { const ts = parseInt(ds, 10); date = new Date(ts < 10000000000 ? ts * 1000 : ts); } else { date = new Date(ds.replace('T', ' ')); } if (!isNaN(date.getTime())) out.push({ date, cmc, hedera: hed, percentDiff: ((hed - cmc) / cmc) * 100 }); } out.sort((a, b) => a.date - b.date); return out; },
+            truncateToDecimals(v, d = 4) { const m = Math.pow(10, d); return Math.trunc(v * m) / m; },
+            isOutlier(diff, threshold = state.acceptableRangeLimit) { return Math.abs(diff) > threshold; },
+            isOutlierWithThreshold(diff, t) { return Math.abs(diff) > t; },
+            createColorMap(d, fn) { return d.map(it => fn(it.percentDiff)); }
+        };
+
+        // Chart configuration
+        const chartConfig = {
+            createDatasets() { const hederaPts = [], cmcPts = [], diffPts = []; for (let i = 0; i < state.parsedData.length; i++) { const it = state.parsedData[i]; hederaPts.push({ x: it.date, y: it.hedera }); cmcPts.push({ x: it.date, y: it.cmc }); if (state.showPercentageDiff) diffPts.push({ x: it.date, y: it.percentDiff }); } const ds = [{ label: 'Hedera Price', data: hederaPts, borderColor: '#8A2BE2', backgroundColor: 'rgba(138,43,226,.2)', fill: false, yAxisID: 'y' }, { label: 'CMC Price', data: cmcPts, borderColor: '#00BFFF', backgroundColor: 'rgba(0,191,255,.2)', fill: false, yAxisID: 'y' }]; if (state.showPercentageDiff) { const outlierMap = utils.createColorMap(state.parsedData, utils.isOutlier); ds.push({ type: 'bar', label: 'Hedera vs CMC Difference', data: diffPts, borderColor: outlierMap.map(o => o ? 'rgb(255, 0, 0)' : 'rgb(255, 206, 86)'), backgroundColor: outlierMap.map(o => o ? 'rgba(255,0,0,1)' : 'rgba(255,206,86,.7)'), yAxisID: 'y1', barPercentage: 0.98, categoryPercentage: 0.98 }); } return ds; },
+
+            createAnnotations() {
+                if (!state.showPercentageDiff) return { display: false, annotations: {} };
+
+                return {
+                    display: true,
+                    annotations: {
+                        acceptableRange: {
+                            type: 'box',
+                            yMin: -state.acceptableRangeLimit,
+                            yMax: state.acceptableRangeLimit,
+                            backgroundColor: 'rgba(0, 255, 0, 0.05)',
+                            borderColor: 'rgba(0, 255, 0, 0.3)',
+                            borderWidth: 1,
+                            yScaleID: 'y1'
+                        },
+                        outlierLineTop: {
+                            type: 'line',
+                            yMin: state.acceptableRangeLimit,
+                            yMax: state.acceptableRangeLimit,
+                            borderColor: 'rgba(255, 0, 0, 0.8)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            yScaleID: 'y1'
+                        },
+                        outlierLineBottom: {
+                            type: 'line',
+                            yMin: -state.acceptableRangeLimit,
+                            yMax: -state.acceptableRangeLimit,
+                            borderColor: 'rgba(255, 0, 0, 0.8)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            yScaleID: 'y1'
+                        }
+                    }
+                };
+            },
+
+            getOptions() {
+                return {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    elements: {
+                        point: { pointStyle: false },
+                        line: { borderJoinStyle: 'round' }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                tooltipFormat: 'MMM dd, yyyy HH:mm',
+                                displayFormats: {
+                                    millisecond: 'HH:mm:ss.SSS',
+                                    second: 'HH:mm:ss',
+                                    minute: 'HH:mm',
+                                    hour: 'MMM dd HH:mm',
+                                    day: 'MMM dd',
+                                    week: 'MMM dd',
+                                    month: 'MMM yyyy',
+                                    quarter: 'MMM yyyy',
+                                    year: 'yyyy'
+                                }
+                            },
+                            title: { display: true, text: 'Date UTC' },
+                            ticks: {
+                                source: 'data',
+                                autoSkip: true,
+                                maxRotation: 45,
+                                callback: function (value, index, ticks) {
+                                    const date = new Date(value);
+                                    const scale = this.chart.scales.x;
+                                    const range = scale.max - scale.min;
+
+                                    // Determine format based on time range
+                                    if (range <= 24 * 60 * 60 * 1000) { // Less than 1 day
+                                        return date.toLocaleString('en-US', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false,
+                                            timeZone: 'UTC'
+                                        });
+                                    } else if (range <= 7 * 24 * 60 * 60 * 1000) { // Less than 1 week
+                                        return date.toLocaleString('en-US', {
+                                            month: 'short',
+                                            day: '2-digit',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false,
+                                            timeZone: 'UTC'
+                                        });
+                                    } else if (range <= 30 * 24 * 60 * 60 * 1000) { // Less than 1 month
+                                        return date.toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: '2-digit',
+                                            timeZone: 'UTC'
+                                        });
+                                    } else {
+                                        return date.toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            timeZone: 'UTC'
+                                        });
+                                    }
+                                }
+                            },
+                            grid: { offset: false },
+                            offset: true
+                        },
+                        y: {
+                            position: 'left',
+                            title: { display: true, text: 'Price (USD)' },
+                            ticks: {
+                                callback: value => '$' + utils.truncateToDecimals(value).toFixed(4)
+                            }
+                        },
+                        y1: {
+                            display: state.showPercentageDiff,
+                            position: 'right',
+                            title: { display: true, text: 'Percentage Difference (%)' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            onClick: chartEvents.onLegendClick,
+                            labels: {
+                                generateLabels: function (chart) {
+                                    const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                                    const labels = original.call(this, chart);
+                                    // Override color for the percentage difference dataset
+                                    labels.forEach(label => {
+                                        if (label.text === 'Hedera vs CMC Difference') {
+                                            label.fillStyle = 'rgb(255, 206, 86)';
+                                            label.strokeStyle = 'rgb(255, 206, 86)';
+                                        }
+                                    });
+                                    return labels;
+                                }
+                            }
+                        },
+                        zoom: {
+                            zoom: {
+                                wheel: { enabled: true },
+                                pinch: { enabled: true },
+                                mode: 'x',
+                                onZoomComplete: () => {
+                                    statsManager.update();
+                                    ui.setActiveButton(null);
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: state.showTooltip,
+                            position: 'hederaFixed',
+                            callbacks: {
+                                title: context => {
+                                    if (context.length > 0) {
+                                        const date = new Date(context[0].parsed.x);
+                                        return date.toLocaleString('en-US', {
+                                            month: 'short',
+                                            day: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false,
+                                            timeZone: 'UTC',
+                                            timeZoneName: 'short'
+                                        });
+                                    }
+                                    return '';
+                                },
+                                label: context => {
+                                    const { label } = context.dataset;
+                                    let value = context.parsed.y;
+                                    if (label.includes('Price')) {
+                                        value = utils.truncateToDecimals(value).toFixed(4);
+                                    } else if (label.includes('Difference')) {
+                                        value = value.toFixed(2) + '%';
+                                    }
+                                    return `${value}: ${label}`;
+                                }
+                            }
+                        },
+                        annotation: this.createAnnotations()
+                    }
+                };
+            }
+        };
+
+        // Chart event handlers
+        const chartEvents = {
+            onLegendClick(e, legendItem, legend) {
+                const index = legendItem.datasetIndex;
+                const chart = legend.chart;
+                chart.setDatasetVisibility(index, !chart.isDatasetVisible(index));
+                if (legendItem.text === 'Hedera vs CMC Difference') {
+                    state.showPercentageDiff = !state.showPercentageDiff;
+                    chart.options.scales.y1.display = state.showPercentageDiff;
+                    if (chart.options.plugins.annotation) {
+                        chart.options.plugins.annotation.display = state.showPercentageDiff;
+                        Object.values(chart.options.plugins.annotation.annotations || {})
+                            .forEach(annotation => annotation.display = state.showPercentageDiff);
+                    }
+                }
+                chart.update();
+            }
+        };
+
+        // Chart management
+        const chartManager = {
+            create() {
+                state.acceptableRangeLimit = parseFloat(document.getElementById('acceptableRangeInput')?.value) || 3;
+                const ctx = document.getElementById('priceChart').getContext('2d');
+
+                // Register custom tooltip positioner
+                Chart.Tooltip.positioners.fixedVerticalMouse = function (elements, eventPosition) {
+                    if (elements.length > 0 && eventPosition) {
+                        const chart = this.chart || this._chart;
+
+                        // Follow mouse vertical position with bounds checking
+                        const chartArea = chart.chartArea;
+                        const minY = chartArea.top + 20; // 20px from top
+                        const maxY = chartArea.bottom - 60; // 60px from bottom (tooltip height)
+
+                        return {
+                            x: eventPosition.x,
+                            y: Math.max(minY, Math.min(eventPosition.y, maxY))
+                        };
+                    }
+                    // Fallback to average positioning
+                    return Chart.Tooltip.positioners.average.call(this, elements);
+                };
+
+                // Register custom tooltip positioner for Hedera value positioning
+                Chart.Tooltip.positioners.hederaFixed = function (elements, eventPosition) {
+                    if (elements.length > 0 && eventPosition) {
+                        const chart = this.chart || this._chart;
+
+                        // Find the Hedera price dataset element
+                        let hederaElement = null;
+                        for (let element of elements) {
+                            const dataset = chart.data.datasets[element.datasetIndex];
+                            if (dataset.label && dataset.label.includes('Hedera Price')) {
+                                hederaElement = element;
+                                break;
+                            }
+                        }
+
+                        // If we found the Hedera element, use its Y position
+                        if (hederaElement) {
+                            const chartArea = chart.chartArea;
+                            const tooltipHeight = 60; // Approximate tooltip height
+                            const padding = 20;
+
+                            // Use the Hedera price point's Y position
+                            let targetY = hederaElement.element.y;
+
+                            // Ensure tooltip stays within chart bounds
+                            const minY = chartArea.top + padding;
+                            const maxY = chartArea.bottom - tooltipHeight - padding;
+                            targetY = Math.max(minY, Math.min(targetY, maxY));
+
+                            return {
+                                x: eventPosition.x,
+                                y: targetY
+                            };
+                        }
+                    }
+                    // Fallback to average positioning
+                    return Chart.Tooltip.positioners.average.call(this, elements);
+                };
+
+                // Register custom crosshair plugin
+                const crosshairPlugin = {
+                    id: 'crosshair',
+                    beforeDraw: (chart) => {
+                        if (chart.tooltip._active && chart.tooltip._active.length) {
+                            const ctx = chart.ctx;
+                            const activePoint = chart.tooltip._active[0];
+                            const x = activePoint.element.x;
+                            const topY = chart.scales.y.top;
+                            const bottomY = chart.scales.y.bottom;
+                            // Save the current state
+                            ctx.save();
+                            // Draw the vertical line
+                            ctx.beginPath();
+                            ctx.setLineDash([5, 5]);
+                            ctx.moveTo(x, topY);
+                            ctx.lineTo(x, bottomY);
+                            ctx.lineWidth = 1;
+                            ctx.strokeStyle = '#aaa';
+                            ctx.stroke();
+                            // Restore the state
+                            ctx.restore();
+                        }
+                    }
+                };
+
+                // Custom drag-to-pan plugin
+                const dragToPanPlugin = {
+                    id: 'dragToPan',
+                    beforeInit: function (chart) {
+                        chart._dragToPan = {
+                            isDragging: false,
+                            lastX: null,
+                            startX: null,
+                            animationFrame: null,
+                            pendingUpdate: false,
+                            mouseDownHandler: null,
+                            mouseMoveHandler: null,
+                            mouseUpHandler: null,
+                            mouseLeaveHandler: null
+                        };
+
+                        // Add direct event listeners to the canvas
+                        const canvas = chart.canvas;
+                        const dragData = chart._dragToPan;
+
+                        dragData.mouseDownHandler = function (e) {
+                            const rect = canvas.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const y = e.clientY - rect.top;
+                            const chartArea = chart.chartArea;
+
+                            // Check if click is in chart area
+                            if (x >= chartArea.left && x <= chartArea.right &&
+                                y >= chartArea.top && y <= chartArea.bottom) {
+                                dragData.isDragging = true;
+                                dragData.lastX = x;
+                                dragData.startX = x;
+                                canvas.style.cursor = 'grabbing';
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        };
+
+                        dragData.mouseMoveHandler = function (e) {
+                            const rect = canvas.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const y = e.clientY - rect.top;
+                            const chartArea = chart.chartArea;
+
+                            const isInChartArea = x >= chartArea.left && x <= chartArea.right &&
+                                y >= chartArea.top && y <= chartArea.bottom;
+
+                            if (dragData.isDragging && dragData.lastX !== null) {
+                                const deltaX = x - dragData.lastX;
+
+                                // Only proceed if there's meaningful movement
+                                if (Math.abs(deltaX) >= 2) {
+                                    const scale = chart.scales.x;
+
+                                    if (scale && scale.min !== undefined && scale.max !== undefined) {
+                                        // Calculate the time range currently displayed
+                                        const timeRange = scale.max - scale.min;
+                                        const pixelRange = scale.right - scale.left;
+
+                                        // Calculate time per pixel
+                                        const timePerPixel = timeRange / pixelRange;
+
+                                        // Calculate time delta (negative because dragging right should move timeline left)
+                                        const timeDelta = -deltaX * timePerPixel;
+
+                                        // Apply the pan
+                                        const newMin = scale.min + timeDelta;
+                                        const newMax = scale.max + timeDelta;
+
+                                        // Update the scale limits directly
+                                        chart.options.scales.x.min = newMin;
+                                        chart.options.scales.x.max = newMax;
+
+                                        // Update the chart with no animation for smooth dragging
+                                        chart.update('none');
+
+                                        // Mark that we need stats update
+                                        dragData.pendingUpdate = true;
+                                    }
+
+                                    dragData.lastX = x;
+                                }
+                                e.preventDefault();
+                                e.stopPropagation();
+                            } else if (isInChartArea && !dragData.isDragging) {
+                                canvas.style.cursor = 'grab';
+                            } else if (!isInChartArea) {
+                                canvas.style.cursor = 'default';
+                            }
+                        };
+
+                        dragData.mouseUpHandler = function (e) {
+                            if (dragData.isDragging) {
+                                dragData.isDragging = false;
+                                dragData.lastX = null;
+                                dragData.startX = null;
+
+                                const rect = canvas.getBoundingClientRect();
+                                const x = e.clientX - rect.left;
+                                const y = e.clientY - rect.top;
+                                const chartArea = chart.chartArea;
+
+                                if (x >= chartArea.left && x <= chartArea.right &&
+                                    y >= chartArea.top && y <= chartArea.bottom) {
+                                    canvas.style.cursor = 'grab';
+                                } else {
+                                    canvas.style.cursor = 'default';
+                                }
+
+                                // Update stats after dragging is complete
+                                if (dragData.pendingUpdate) {
+                                    setTimeout(() => {
+                                        statsManager.update();
+                                        ui.setActiveButton(null);
+                                        dragData.pendingUpdate = false;
+                                    }, 100);
+                                }
+                            }
+                        };
+
+                        dragData.mouseLeaveHandler = function (e) {
+                            if (dragData.isDragging) {
+                                dragData.isDragging = false;
+                                dragData.lastX = null;
+                                dragData.startX = null;
+                                canvas.style.cursor = 'default';
+
+                                // Update stats if we had pending changes
+                                if (dragData.pendingUpdate) {
+                                    setTimeout(() => {
+                                        statsManager.update();
+                                        ui.setActiveButton(null);
+                                        dragData.pendingUpdate = false;
+                                    }, 100);
+                                }
+                            } else {
+                                canvas.style.cursor = 'default';
+                            }
+                        };
+
+                        // Add event listeners
+                        canvas.addEventListener('mousedown', dragData.mouseDownHandler);
+                        canvas.addEventListener('mousemove', dragData.mouseMoveHandler);
+                        canvas.addEventListener('mouseup', dragData.mouseUpHandler);
+                        canvas.addEventListener('mouseleave', dragData.mouseLeaveHandler);
+                    },
+                    destroy: function (chart) {
+                        // Clean up event listeners and animation frames
+                        const canvas = chart.canvas;
+                        const dragData = chart._dragToPan;
+
+                        if (dragData) {
+                            if (dragData.animationFrame) {
+                                cancelAnimationFrame(dragData.animationFrame);
+                            }
+
+                            if (dragData.mouseDownHandler) {
+                                canvas.removeEventListener('mousedown', dragData.mouseDownHandler);
+                            }
+                            if (dragData.mouseMoveHandler) {
+                                canvas.removeEventListener('mousemove', dragData.mouseMoveHandler);
+                            }
+                            if (dragData.mouseUpHandler) {
+                                canvas.removeEventListener('mouseup', dragData.mouseUpHandler);
+                            }
+                            if (dragData.mouseLeaveHandler) {
+                                canvas.removeEventListener('mouseleave', dragData.mouseLeaveHandler);
+                            }
+                        }
+                    }
+                };
+                state.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets: chartConfig.createDatasets() },
+                    options: chartConfig.getOptions(),
+                    plugins: [crosshairPlugin, dragToPanPlugin]
+                });
+            },
+            updateThreshold() {
+                const { chart } = state;
+                const currentXMin = chart.scales.x.min;
+                const currentXMax = chart.scales.x.max;
+                // Update colors and annotations
+                if (state.showPercentageDiff) {
+                    const diffDataset = chart.data.datasets.find(ds => ds.label === 'Hedera vs CMC Difference');
+                    if (diffDataset) {
+                        const outlierMap = utils.createColorMap(state.parsedData, utils.isOutlier);
+                        diffDataset.borderColor = outlierMap.map(isOut => isOut ? 'rgb(255, 0, 0)' : 'rgb(255, 206, 86)');
+                        diffDataset.backgroundColor = outlierMap.map(isOut => isOut ? 'rgba(255, 0, 0, 1)' : 'rgba(255, 206, 86, 0.9)');
+                        diffDataset.barPercentage = 0.98;
+                        diffDataset.categoryPercentage = 0.98;
+                    }
+                    const annotations = chart.options.plugins.annotation?.annotations;
+                    if (annotations) {
+                        ['acceptableRange', 'outlierLineTop', 'outlierLineBottom'].forEach(key => {
+                            if (annotations[key]) {
+                                annotations[key].yMin = key === 'outlierLineTop' ? state.acceptableRangeLimit : -state.acceptableRangeLimit;
+                                annotations[key].yMax = key === 'outlierLineBottom' ? -state.acceptableRangeLimit : state.acceptableRangeLimit;
+                            }
+                        });
+                    }
+                }
+                chart.options.scales.x.min = currentXMin;
+                chart.options.scales.x.max = currentXMax;
+                chart.update();
+                statsManager.update();
+            }
+        };
+
+        // Statistics management
+        const thresholdsList = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8, 9, 10];
+        const statsManager = {
+            update() {
+                const dataToProcess = this.getVisibleData();
+                if (dataToProcess.length === 0) {
+                    this.clearStats();
+                    return;
+                }
+                const percentDiffs = []; let sum = 0, min = Infinity, max = -Infinity; for (let i = 0; i < dataToProcess.length; i++) { const v = Math.abs(dataToProcess[i].percentDiff); percentDiffs.push(v); sum += v; if (v < min) min = v; if (v > max) max = v; } percentDiffs.sort((a, b) => a - b); const avg = sum / percentDiffs.length; const median = this.calculateMedian(percentDiffs); const timeStats = this.calculateTimeBasedStats(dataToProcess, state.acceptableRangeLimit); const stats = { min, max, avg, median, timeOutside: timeStats.minutesOutside, timePercentage: timeStats.percentage, totalTimeWindow: timeStats.totalMinutes };
+                this.displayStats(stats);
+                this.updateThresholdAnalysis(dataToProcess);
+            },
+
+            calculateTimeBasedStats(data, threshold) {
+                if (data.length === 0) return { minutesOutside: 0, percentage: 0, totalMinutes: 0 };
+
+                // Calculate total time window
+                const firstDate = data[0].date;
+                const lastDate = data[data.length - 1].date;
+                const baseMinutes = (lastDate.getTime() - firstDate.getTime()) / (1000 * 60);
+                const avgInterval = data.length > 1 ? baseMinutes / (data.length - 1) : 0;
+                // Extend the window by one estimated interval to account for span of last point
+                const totalMinutes = baseMinutes + avgInterval;
+
+                // Calculate time outside threshold
+                let minutesOutside = 0;
+                for (let i = 0; i < data.length - 1; i++) {
+                    const current = data[i];
+                    const next = data[i + 1];
+
+                    if (utils.isOutlierWithThreshold(current.percentDiff, threshold)) {
+                        const timeDiff = (next.date.getTime() - current.date.getTime()) / (1000 * 60);
+                        minutesOutside += timeDiff;
+                    }
+                }
+
+                // Handle the last data point (assume it spans one average interval)
+                if (data.length > 1 && utils.isOutlierWithThreshold(data[data.length - 1].percentDiff, threshold)) {
+                    minutesOutside += avgInterval;
+                }
+
+                const percentage = totalMinutes > 0 ? (minutesOutside / totalMinutes) * 100 : 0;
+
+                return {
+                    minutesOutside: Math.max(0, minutesOutside),
+                    percentage: Math.max(0, percentage),
+                    totalMinutes: Math.max(0, totalMinutes)
+                };
+            },
+
+            updateThresholdAnalysis(data) {
+                const grid = document.getElementById('thresholdAnalysisGrid');
+                // Clear and add header row (kept inside same grid for alignment)
+                grid.innerHTML = '';
+                const headers = ['Threshold', 'Time Outside', 'Percentage Outside', 'Percentage Inside'];
+                headers.forEach(text => {
+                    const h = document.createElement('div');
+                    h.className = 'threshold-header';
+                    h.textContent = text;
+                    grid.appendChild(h);
+                });
+                thresholdsList.forEach(threshold => {
+                    const stats = this.calculateTimeBasedStats(data, threshold);
+                    const isCurrentThreshold = Math.abs(threshold - state.acceptableRangeLimit) < 0.01;
+                    const isAllInside = stats.percentage <= 0.0000001; // Treat extremely small as 0
+                    const buildClass = () => {
+                        let cls = 'threshold-cell';
+                        if (isCurrentThreshold) cls += ' current-threshold';
+                        if (isAllInside) cls += ' all-inside';
+                        return cls;
+                    };
+
+                    // Threshold cell
+                    const thresholdCell = document.createElement('div');
+                    thresholdCell.className = buildClass();
+                    thresholdCell.textContent = `${threshold}%`;
+
+                    // Time outside cell
+                    const timeCell = document.createElement('div');
+                    timeCell.className = buildClass();
+
+                    if (stats.minutesOutside < 60) {
+                        timeCell.textContent = `${Math.round(stats.minutesOutside)} mins`;
+                    } else if (stats.minutesOutside < 1440) {
+                        const hours = Math.floor(stats.minutesOutside / 60);
+                        const minutes = Math.round(stats.minutesOutside % 60);
+                        timeCell.textContent = `${hours}h ${minutes}m`;
+                    } else {
+                        const days = Math.floor(stats.minutesOutside / 1440);
+                        const hours = Math.floor((stats.minutesOutside % 1440) / 60);
+                        timeCell.textContent = `${days}d ${hours}h`;
+                    }
+
+                    // Percentage Outside cell
+                    const percentCell = document.createElement('div');
+                    percentCell.className = buildClass();
+                    percentCell.textContent = `${stats.percentage.toFixed(2)}%`;
+
+                    // Percentage Inside cell (clamped to >= 0 and <= 100)
+                    const insidePct = Math.min(100, Math.max(0, 100 - stats.percentage));
+                    const percentInsideCell = document.createElement('div');
+                    percentInsideCell.className = buildClass();
+                    percentInsideCell.textContent = `${insidePct.toFixed(2)}%`;
+
+                    grid.appendChild(thresholdCell);
+                    grid.appendChild(timeCell);
+                    grid.appendChild(percentCell);
+                    grid.appendChild(percentInsideCell);
+                });
+            },
+            getVisibleData() {
+                if (!state.chart?.scales?.x) return state.parsedData;
+                const { min, max } = state.chart.scales.x;
+                if (!min || !max) return state.parsedData;
+                return state.parsedData.filter(item => {
+                    const time = item.date.getTime();
+                    return time >= min && time <= max;
+                });
+            },
+            calculateMedian(sortedArray) {
+                const mid = Math.floor(sortedArray.length / 2);
+                return sortedArray.length % 2 === 0
+                    ? (sortedArray[mid - 1] + sortedArray[mid]) / 2
+                    : sortedArray[mid];
+            },
+            displayStats(stats) {
+                const elements = ['minDiff', 'medianDiff', 'avgDiff', 'maxDiff'];
+                const values = [stats.min, stats.median, stats.avg, stats.max];
+                elements.forEach((id, index) => {
+                    const element = document.getElementById(id);
+                    element.textContent = values[index].toFixed(4) + '%';
+                    const shouldWarn = values[index] > state.acceptableRangeLimit;
+                    element.classList.toggle('outliers-warning', shouldWarn);
+                });
+
+                // Display current visible time window (extended by one estimated interval like stats calculation)
+                const windowEl = document.getElementById('timeWindowDisplay');
+                if (windowEl) {
+                    const data = this.getVisibleData();
+                    if (data.length > 1) {
+                        const first = data[0].date;
+                        const last = data[data.length - 1].date;
+                        const baseMinutes = (last.getTime() - first.getTime()) / (1000 * 60);
+                        const avgInterval = baseMinutes / (data.length - 1);
+                        const totalMinutes = baseMinutes + avgInterval; // extended window
+                        if (totalMinutes < 60) {
+                            windowEl.textContent = `${Math.round(totalMinutes)} mins`;
+                        } else if (totalMinutes < 1440) {
+                            const hours = Math.floor(totalMinutes / 60);
+                            const minutes = Math.round(totalMinutes % 60);
+                            windowEl.textContent = `${hours}h ${minutes}m`;
+                        } else {
+                            const days = Math.floor(totalMinutes / 1440);
+                            const hours = Math.floor((totalMinutes % 1440) / 60);
+                            windowEl.textContent = `${days}d ${hours}h`;
+                        }
+                    } else {
+                        windowEl.textContent = '-';
+                    }
+                }
+
+                // Update current threshold display
+                const thresholdDisplay = document.getElementById('currentThresholdDisplay');
+                if (thresholdDisplay) {
+                    thresholdDisplay.textContent = `${state.acceptableRangeLimit}%`;
+                }
+
+                // Update time outside threshold
+                const timeElement = document.getElementById('timeOutsideThreshold');
+                if (stats.timeOutside < 60) {
+                    timeElement.textContent = `${Math.round(stats.timeOutside)} mins (${stats.timePercentage.toFixed(2)}%)`;
+                } else if (stats.timeOutside < 1440) {
+                    const hours = Math.floor(stats.timeOutside / 60);
+                    const minutes = Math.round(stats.timeOutside % 60);
+                    timeElement.textContent = `${hours}h ${minutes}m (${stats.timePercentage.toFixed(2)}%)`;
+                } else {
+                    const days = Math.floor(stats.timeOutside / 1440);
+                    const hours = Math.floor((stats.timeOutside % 1440) / 60);
+                    timeElement.textContent = `${days}d ${hours}h (${stats.timePercentage.toFixed(2)}%)`;
+                }
+
+                // Turn red if any time is spent outside the threshold (> 0 minutes)
+                //const shouldWarnTime = stats.timeOutside > 0;
+                //timeElement.classList.toggle('outliers-warning', shouldWarnTime);
+
+                // Turn red if time percentage spent outside the threshold (> 5%)
+                const shouldWarnTime = stats.timePercentage > 5;
+                timeElement.classList.toggle('outliers-warning', shouldWarnTime);
+
+            },
+            clearStats() {
+                ['minDiff', 'medianDiff', 'avgDiff', 'maxDiff', 'timeOutsideThreshold'].forEach(id => {
+                    const element = document.getElementById(id);
+                    element.textContent = '-';
+                    element.classList.remove('outliers-warning');
+                });
+
+                const windowEl = document.getElementById('timeWindowDisplay');
+                if (windowEl) windowEl.textContent = '-';
+
+                // Clear threshold analysis grid
+                const grid = document.getElementById('thresholdAnalysisGrid');
+                if (grid) grid.innerHTML = '';
+            }
+        };
+
+        // UI management
+        const ui = {
+            setActiveButton(activeId) {
+                ['resetBtn', 'last1dBtn', 'last3dBtn', 'last7dBtn', 'last14dBtn', 'last30dBtn', 'allDataBtn'].forEach(id => {
+                    document.getElementById(id)?.classList.remove('active');
+                });
+                if (activeId) {
+                    document.getElementById(activeId)?.classList.add('active');
+                    // Track the latest active button (only for time range buttons)
+                    if (['last1dBtn', 'last3dBtn', 'last7dBtn', 'last14dBtn', 'last30dBtn', 'allDataBtn'].includes(activeId)) {
+                        state.latestActiveButton = activeId;
+                    }
+                }
+            },
+            filterByTimeRange(hours, buttonId) {
+                // Use the last timestamp from the data as "now"
+                const lastDataPoint = state.parsedData[state.parsedData.length - 1];
+                const now = lastDataPoint ? lastDataPoint.date : new Date();
+                const startTime = new Date(now.getTime() - (hours * 60 * 60 * 1000));
+                state.chart.options.scales.x.min = startTime;
+                state.chart.options.scales.x.max = now;
+                state.chart.update();
+                statsManager.update();
+                this.setActiveButton(buttonId);
+            }
+        };
+
+        // Public API functions
+        function resetZoom() {
+            state.chart.resetZoom();
+            // Restore the previously active time range button
+            ui.setActiveButton(state.latestActiveButton);
+        }
+
+        function showLastXDays(days) {
+            ui.filterByTimeRange(days * 24, `last${days}dBtn`);
+        }
+
+        function showAllData() {
+            state.chart.options.scales.x.min = undefined;
+            state.chart.options.scales.x.max = undefined;
+            state.chart.update();
+            statsManager.update();
+            ui.setActiveButton('allDataBtn');
+        }
+
+        function togglePercentageDiff() {
+            state.showPercentageDiff = !state.showPercentageDiff;
+            state.chart.destroy();
+            chartManager.create();
+            statsManager.update();
+        }
+
+        function updateDataFromTextarea() {
+            const newData = document.getElementById('dataTextarea').value;
+            if (newData.trim()) {
+                state.parsedData = utils.parseData(newData);
+                state.chart.destroy();
+                chartManager.create();
+                statsManager.update();
+                // mark button as saved
+                const btn = document.getElementById('updateChartBtn');
+                if (btn) {
+                    btn.classList.remove('unsaved');
+                    btn.classList.add('saved');
+                }
+            } else {
+                alert('Please paste some data first.');
+            }
+        }
+
+        function toggleTooltip() {
+            state.showTooltip = !state.showTooltip;
+            const button = document.getElementById('toggleTooltipBtn');
+
+            // Update button text
+            button.textContent = state.showTooltip ? 'Hide Tooltip' : 'Show Tooltip';
+
+            // Update chart tooltip configuration
+            state.chart.options.plugins.tooltip.enabled = state.showTooltip;
+            state.chart.update();
+        }
+
+        // Optimized initialization
+        async function init() {
+            console.time('Total initialization');
+
+            // Parse data asynchronously to avoid blocking
+            await new Promise(resolve => {
+                setTimeout(() => {
+                    state.parsedData = utils.parseData(state.csvData);
+                    resolve();
+                }, 0);
+            });
+
+            // Hide loading indicator and show chart
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('priceChart').style.display = 'block';
+
+            document.getElementById('dataTextarea').value = state.csvData;
+
+            // Create chart
+            chartManager.create();
+
+            // Show initial data
+            showLastXDays(7);
+
+            // Update stats
+            statsManager.update();
+
+            // Setup threshold input listener
+            const input = document.getElementById('acceptableRangeInput');
+            if (input && !input._listenerAdded) {
+                input.addEventListener('change', function () {
+                    state.acceptableRangeLimit = parseFloat(this.value) || 3;
+                    if (state.chart) chartManager.updateThreshold();
+                });
+                input._listenerAdded = true;
+            }
+
+            // Track textarea changes for unsaved indicator
+            const dataTextarea = document.getElementById('dataTextarea');
+            const updateBtn = document.getElementById('updateChartBtn');
+            if (dataTextarea && updateBtn && !dataTextarea._listenerAdded) {
+                const markUnsaved = () => {
+                    updateBtn.classList.remove('saved');
+                    updateBtn.classList.add('unsaved');
+                };
+                ['input', 'change', 'paste'].forEach(evt => dataTextarea.addEventListener(evt, markUnsaved));
+                dataTextarea._listenerAdded = true;
+            }
+
+            console.timeEnd('Total initialization');
+        }
+
+        // Use DOMContentLoaded for faster startup
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>
