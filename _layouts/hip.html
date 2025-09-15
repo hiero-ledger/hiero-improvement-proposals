@@ -56,52 +56,36 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for new header: needs-hedera-approval -->
-    {% if page.needs-hedera-approval != undefined %}
+    {% if page.needs-hedera-review != undefined %}
     <tr>
       <th>
-        Needs Hedera Approval
+        Needs Hedera Review
       </th>
       <td>
-        {% if page.needs-hedera-approval %}
-        Yes <span class="tooltip" data-tooltip="needs-hedera-approval-yes" style="text-decoration:none">ⓘ</span>
+        {% if page.needs-hedera-review %}
+        Yes <span class="tooltip" data-tooltip="needs-hedera-review-yes" style="text-decoration:none">ⓘ</span>
         {% else %}
-        No <span class="tooltip" data-tooltip="needs-hedera-approval-no" style="text-decoration:none">ⓘ</span>
+        No <span class="tooltip" data-tooltip="needs-hedera-review-no" style="text-decoration:none">ⓘ</span>
         {% endif %}
       </td>
     </tr>
     {% endif %}
-    <!-- Support for legacy header: needs-hiero-review -->
-    {% if page.needs-hiero-review != undefined %}
+    {% if page.needs-hiero-approval != undefined %}
     <tr>
       <th>
-        Needs Hiero Review
+        Needs Hiero Approval
       </th>
       <td>
-        {% if page.needs-hiero-review %}
-        Yes <span class="tooltip" data-tooltip="{{ page.needs-hiero-review | jsonify }}"
+        {% if page.needs-hiero-approval %}
+        Yes <span class="tooltip" data-tooltip="{{ page.needs-hiero-approval | jsonify }}"
           style="text-decoration:none">ⓘ</span>
         {% else %}
-        No <span class="tooltip" data-tooltip="{{ page.needs-hiero-review | jsonify }}"
+        No <span class="tooltip" data-tooltip="{{ page.needs-hiero-approval | jsonify }}"
           style="text-decoration:none">ⓘ</span>
         {% endif %}
       </td>
     </tr>
     {% endif %}
-    <!-- Support for legacy header: hedera-approval -->
-    {% if page.hedera-approval != undefined %}
-    <tr>
-      <th>Hedera Approval <span class="tooltip" data-tooltip="hederaApproval" style="text-decoration:none">ⓘ</span></th>
-      <td>
-        {% if page.hedera-approval == "N/A" %}
-          Not Approved
-        {% else %}
-          {{ page.hedera-approval | date_to_rfc822 }}
-        {% endif %}
-      </td>
-    </tr>
-    {% endif %}
-    <!-- Support for new header: hedera-reviewed-date -->
     {% if page.hedera-reviewed-date != undefined %}
     <tr>
       <th>Hedera Reviewed Date <span class="tooltip" data-tooltip="hedera-reviewed-date" style="text-decoration:none">ⓘ</span></th>
@@ -114,7 +98,6 @@ layout: default
       </td>
     </tr>
     {% endif %}
-    <!-- Support for new header: hedera-approval-status -->
     {% if page.hedera-approval-status != undefined %}
     <tr>
       <th>Hedera Approval Status <span class="tooltip" data-tooltip="hedera-approval-status" style="text-decoration:none">ⓘ</span></th>
@@ -125,7 +108,7 @@ layout: default
     {% endif %}
     {% if page.last-call-date-time != undefined %}
     <tr>
-      <th>Review period ends <span class="tooltip" data-tooltip="reviewPeriodEnds" style="text-decoration:none">ⓘ</span>
+      <th>Last Call Period Ends <span class="tooltip" data-tooltip="reviewPeriodEnds" style="text-decoration:none">ⓘ</span>
       </th>
       <td>
         {{ page.last-call-date-time | date_to_rfc822 }}
@@ -239,40 +222,40 @@ https://schema.org/TechArticle
   document.addEventListener("DOMContentLoaded", function () {
     const tooltipData = {
       status: {
-        Draft: "⚠️ Initial stage. Formally tracked once merged by a HIP Editor when properly formatted.",
-        Review: "📖 Ready for Editorial Review. Subject to changes; feedback appreciated.",
-        Deferred: "⏸ Addressed in another HIP. Paused in progress.",
-        Withdrawn: "🛑 Withdrawn by the Author(s), finality achieved. Can be resurrected as a new proposal.",
-        Stagnant: "🚧 No activity for 6+ months. Can return to Draft by Authors or Editors.",
-        Rejected: "❌ Not accepted. Rejected ideas are recorded with reasoning.",
-        "Last Call": "📢 Final review window before 'Accepted'. Subject to change if issues found.",
-        "Council Review": "⚖️ Under Council review. Awaiting approval, subject to feedback.",
-        Accepted: "👍 Went through 'Last Call' without content changes. Ready for implementation.",
-        Final: "✅ Implemented in code and released. Represents a standard in a state of finality.",
-        Active: "🌟 Informational/Process HIPs that made it through Last Call. Can be 'Withdrawn' or 'Replaced'.",
-        Replaced: "🔄 Overwritten by a newer standard or implementation."
+        Draft: "⚠️ The formal starting point of a HIP. The HIP is currently being drafted and is not yet ready for review.",
+        Review: "📖 The HIP is ready for review by the community and HIP editors.",
+        "Last Call": "📢 The HIP is in a final review window, typically 14 days, before being moved to a Hiero TSC approval vote (Service, Core, Mirror or Block Node HIPs) or Active (Application HIPs).",
+        Approved: "👍 A Standards Track HIP has been approved by Hiero TSC.",
+        Final: "✅ A Standards Track HIP has been reviewed and approved by Hiero TSC and its reference implementation has been merged.",
+        Active: "🌟 A Process Informational or Application HIP that is currently in effect.",
+        Deferred: "⏸ A HIP that is not currently being pursued but may be revisited in the future.",
+        Withdrawn: "🛑 Author has withdrawn the HIP.",
+        Stagnant: "🚧 A HIP that has been inactive for a significant period (e.g., 6+ months) may be marked as Stagnant by the HIP editors.",
+        Rejected: "❌ The HIP has been rejected by the HIP editors, the community, or a Hiero TSC vote.",
+        Replaced: "🔄 The HIP has been replaced by a newer HIP."
       },
       type: {
-        "Standards Track": "📜 Standards Track HIPs describe protocol changes or new features.",
-        Informational: "📚 Informational HIPs describe a design issue or provide general guidelines.",
-        Process: "⚙️ Process HIPs propose changes to the HIP process or environment.",
+        "Standards Track": "📜 Describes a new feature or implementation for the Hiero codebase or an interoperability standard recognized by Hiero.",
+        Informational: "📚 Describes a Hiero design issue or provides general guidelines to the community but does not propose a new feature or standard.",
+        Process: "⚙️ Describes a process surrounding the Hiero codebase, or proposes a change to one."
       },
       category: {
         Core: "💠 Core HIPs relate to the core protocol or infrastructure.",
         Service: "🌐 Service HIPs address Hedera Services",
         Mirror: "🔍 Mirror HIPs relate to the Hedera Mirror Node",
+        "Block Node": "🔍 Mirror HIPs relate to the Hedera Mirror Node",
         Application: "📱 Application HIPs are specific to applications built on top of the Hedera platform.",
       },
       "needs-council-approval": {
         true: "👥 This HIP requires council approval for implementation because it makes changes at the protocol level.",
         false: "✅ This HIP does not require council approval for implementation.",
       },
-      "needs-hedera-approval-yes": "👥 This HIP requires Hedera approval for implementation because it makes changes at the protocol level.",
-      "needs-hedera-approval-no": "✅ This HIP does not require Hedera approval for implementation.",
+      "needs-hedera-review-yes": "👥 This HIP requires Hedera approval for implementation because it makes changes at the protocol level.",
+      "needs-hedera-review-no": "✅ This HIP does not require Hedera approval for implementation.",
       "hedera-reviewed-date": "📅 The date when Hedera reviewed this HIP. 'Not Reviewed' means it has not yet been reviewed by Hedera.",
       "hedera-approval-status": "👍/👎 Indicates whether Hedera has approved or rejected the HIP, or if approval is not applicable (N/A).",
       "hederaApproval": "📅 The date when this HIP received official approval from Hedera. 'Not Approved' means it has not yet received official approval.",
-      "reviewPeriodEnds": "⏳ The last call review period ends on this date, after which the HIP's status may change.",
+      "reviewPeriodEnds": "⏳ The last call Last Call Period Ends on this date, after which the HIP's status may change.",
     };
 
     const tooltipElements = document.querySelectorAll(".tooltip");
