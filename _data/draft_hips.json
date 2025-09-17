@@ -1,15 +1,122 @@
 [
   {
-    "title": "Create HIP for Precise Smart Contract Throttling.",
-    "number": 1249,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1249",
-    "headRefOid": "6dfb2dc38a065fc0129f1842d2cb9fbaad7134b1",
+    "title": "feat: add entity hip",
+    "number": 1272,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1272",
+    "headRefOid": "0e3a0216c1dfd1f6d5e28846ba837e4ddcf5cb27",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-1249.md",
-            "additions": 200,
+            "path": "HIP/hip-1272.md",
+            "changeType": "ADDED",
+            "additions": 117,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "kantorcodes"
+    }
+  },
+  {
+    "title": "HIP-1264: Dollar-denominated values",
+    "number": 1264,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1264",
+    "headRefOid": "4a3bfb49fed1e04be1208d9754a2f012d8569534",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1264.md",
+            "changeType": "ADDED",
+            "additions": 286,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/chart.umd.min.js",
+            "changeType": "ADDED",
+            "additions": 14,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/chartjs-adapter-date-fns.bundle.min.js",
+            "changeType": "ADDED",
+            "additions": 7,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/chartjs-plugin-annotation.min.js",
+            "changeType": "ADDED",
+            "additions": 7,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/chartjs-plugin-zoom.min.js",
+            "changeType": "ADDED",
+            "additions": 7,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/pako.min.js",
+            "changeType": "ADDED",
+            "additions": 2,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/index.css",
+            "changeType": "ADDED",
+            "additions": 576,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/index.html",
+            "changeType": "ADDED",
+            "additions": 1033,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Neurone"
+    }
+  },
+  {
+    "title": "HIP-1261: Simple fees",
+    "number": 1261,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1261",
+    "headRefOid": "6d74513309cd2e26ecd72ce93bc4e43aa017c4f3",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1261.md",
+            "changeType": "ADDED",
+            "additions": 847,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1261/tx-fees.png",
+            "changeType": "ADDED",
+            "additions": 0,
             "deletions": 0
           }
         }
@@ -17,87 +124,6 @@
     },
     "author": {
       "login": "rbair23"
-    }
-  },
-  {
-    "title": "Quiescence HIP",
-    "number": 1238,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1238",
-    "headRefOid": "eaf9c33a2724f9759652fb4f822b3abf7d83247a",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1238.md",
-            "additions": 215,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "lpetrovic05"
-    }
-  },
-  {
-    "title": "Bump step-security/action-send-mail from 3.12.0 to 6.0.0",
-    "number": 1232,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1232",
-    "headRefOid": "c2ab59e4a1959e880a95c50e4967d4f9e0873224",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": ".github/workflows/send-email.yml",
-            "additions": 1,
-            "deletions": 1
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "dependabot"
-    }
-  },
-  {
-    "title": "chore: Update Contract Service output and trace specification",
-    "number": 1229,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1229",
-    "headRefOid": "c002986d030afec449831ec96799fc339516e843",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1056.md",
-            "additions": 205,
-            "deletions": 99
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1056/protobuf/services/contract_types.proto",
-            "additions": 83,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1056/protobuf/stream/output/smart_contract_service.proto",
-            "additions": 39,
-            "deletions": 204
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1056/protobuf/stream/trace/smart_contract_service.proto",
-            "additions": 212,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tinker-michaelj"
     }
   },
   {
@@ -110,6 +136,7 @@
         {
           "node": {
             "path": "HIP/hip-0000-increase-cryptocreate-throttle.md",
+            "changeType": "ADDED",
             "additions": 93,
             "deletions": 0
           }
@@ -121,36 +148,17 @@
     }
   },
   {
-    "title": "HIP 1219: Hedera DID Method v2.0 - W3C Controller Alignment",
-    "number": 1219,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1219",
-    "headRefOid": "a54ff5f0bf44e985eca0bbcac625aaa57265e8f7",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1219.md",
-            "additions": 184,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "ChangoBuitrago"
-    }
-  },
-  {
-    "title": "Create hip-xxx.md",
+    "title": "HIP-1208: Consensus Service Precompiled Contract for Smart Contract Service",
     "number": 1208,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1208",
-    "headRefOid": "b47517446dd70898b0bef2272c158554380b7c4c",
+    "headRefOid": "1ee22a30f3967785019a3b12a98708b2cd76593a",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1208.md",
-            "additions": 151,
+            "changeType": "ADDED",
+            "additions": 189,
             "deletions": 0
           }
         }
@@ -161,16 +169,17 @@
     }
   },
   {
-    "title": "The hinTS threshold signature scheme",
+    "title": "HIP-1200: The hinTS threshold signature scheme",
     "number": 1200,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1200",
-    "headRefOid": "354c22ff5e4fa27acf31405e98cfe531a213e2ea",
+    "headRefOid": "73680aa87440f6f1419bb00d09097b2cd63fac96",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1200.md",
-            "additions": 381,
+            "changeType": "ADDED",
+            "additions": 406,
             "deletions": 0
           }
         }
@@ -190,6 +199,7 @@
         {
           "node": {
             "path": "HIP/hip-1193.md",
+            "changeType": "ADDED",
             "additions": 267,
             "deletions": 0
           }
@@ -198,40 +208,6 @@
     },
     "author": {
       "login": "Mark-Swirlds"
-    }
-  },
-  {
-    "title": "Update completed hips (HIP-551, HIP-632, HIP-1064)",
-    "number": 1191,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1191",
-    "headRefOid": "05a995195caf38118cd219cbf36604ea8c707304",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1064.md",
-            "additions": 3,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-551.md",
-            "additions": 3,
-            "deletions": 2
-          }
-        },
-        {
-          "node": {
-            "path": "HIP/hip-632.md",
-            "additions": 3,
-            "deletions": 2
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "jnels124"
     }
   },
   {
@@ -244,6 +220,7 @@
         {
           "node": {
             "path": "HIP/hip-1190.md",
+            "changeType": "ADDED",
             "additions": 181,
             "deletions": 0
           }
@@ -264,6 +241,7 @@
         {
           "node": {
             "path": "HIP/hip-851.md",
+            "changeType": "ADDED",
             "additions": 217,
             "deletions": 0
           }
@@ -275,42 +253,16 @@
     }
   },
   {
-    "title": "NEW HIP: Improve Hedera Sharding",
-    "number": 1151,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1151",
-    "headRefOid": "7a4902657919383a17c62fecc4a0a290640aa6ce",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "_data/draft_hips.json",
-            "additions": 76,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "hip-0000-improve-hedera-sharding.md",
-            "additions": 175,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "jxcwu"
-    }
-  },
-  {
     "title": "HIP-1137: Block Node Discoverability",
     "number": 1137,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1137",
-    "headRefOid": "b92c0a6bc09ba741350b6757b37c038bf0f6c82b",
+    "headRefOid": "68cf26be8342fcd741fd2ac5c4cc5d293757a9e3",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1137.md",
+            "changeType": "ADDED",
             "additions": 499,
             "deletions": 0
           }
@@ -331,6 +283,7 @@
         {
           "node": {
             "path": "HIP/hip-support-for-post-quantum-cryptographic-algorithm.md",
+            "changeType": "ADDED",
             "additions": 100,
             "deletions": 0
           }
@@ -351,6 +304,7 @@
         {
           "node": {
             "path": "HIP/hip-1082.md",
+            "changeType": "ADDED",
             "additions": 248,
             "deletions": 0
           }
@@ -371,6 +325,7 @@
         {
           "node": {
             "path": "HIP/hip-1069.md",
+            "changeType": "ADDED",
             "additions": 130,
             "deletions": 0
           }
@@ -391,6 +346,7 @@
         {
           "node": {
             "path": "HIP/hip-1068.md",
+            "changeType": "ADDED",
             "additions": 540,
             "deletions": 0
           }
@@ -398,6 +354,7 @@
         {
           "node": {
             "path": "assets/hip-1068/IHRC1068.sol",
+            "changeType": "ADDED",
             "additions": 55,
             "deletions": 0
           }
@@ -406,82 +363,6 @@
     },
     "author": {
       "login": "Nana-EC"
-    }
-  },
-  {
-    "title": "Update hip-1.md in preparation to Hiero migration",
-    "number": 1062,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1062",
-    "headRefOid": "dd88208fa536f87857cd45d7bbaa24abff68fef5",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1.md",
-            "additions": 151,
-            "deletions": 123
-          }
-        },
-        {
-          "node": {
-            "path": "_config.yml",
-            "additions": 1,
-            "deletions": 1
-          }
-        },
-        {
-          "node": {
-            "path": "_includes/hipstable.md",
-            "additions": 31,
-            "deletions": 10
-          }
-        },
-        {
-          "node": {
-            "path": "_layouts/hip.html",
-            "additions": 26,
-            "deletions": 25
-          }
-        },
-        {
-          "node": {
-            "path": "about-hips.html",
-            "additions": 34,
-            "deletions": 31
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1/hip-states.png",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/js/pr-integration.js",
-            "additions": 24,
-            "deletions": 9
-          }
-        },
-        {
-          "node": {
-            "path": "assets/regex.js",
-            "additions": 1,
-            "deletions": 1
-          }
-        },
-        {
-          "node": {
-            "path": "scripts/validateHIP.js",
-            "additions": 44,
-            "deletions": 44
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "sergmetelin"
     }
   },
   {
@@ -494,6 +375,7 @@
         {
           "node": {
             "path": "HIP/hip-1009.md",
+            "changeType": "ADDED",
             "additions": 164,
             "deletions": 0
           }
@@ -502,33 +384,6 @@
     },
     "author": {
       "login": "justin-atwell"
-    }
-  },
-  {
-    "title": "Conforming Guardian’s Sustainability Assets to an Enhanced HIP412 Standard",
-    "number": 929,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/929",
-    "headRefOid": "4d0eaaffbd5bcb419bc195ee497db90b7327bae6",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "hip-0000-guardian-dea-nft.md",
-            "additions": 319,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "hip-0000-template.md",
-            "additions": 1,
-            "deletions": 1
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "mattsmithies"
     }
   },
   {
@@ -541,6 +396,7 @@
         {
           "node": {
             "path": "HIP/hip-792.md",
+            "changeType": "ADDED",
             "additions": 291,
             "deletions": 0
           }
@@ -549,26 +405,6 @@
     },
     "author": {
       "login": "bguiz"
-    }
-  },
-  {
-    "title": "Unify ContractInfo and AccountInfo Queries",
-    "number": 758,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/758",
-    "headRefOid": "84b228a9a5479a2cc754f8b2e87e5188a7f4c4a7",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-758",
-            "additions": 154,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Nana-EC"
     }
   },
   {
@@ -581,6 +417,7 @@
         {
           "node": {
             "path": "HIP/hip-0000-atomic-association-contracts.md",
+            "changeType": "ADDED",
             "additions": 115,
             "deletions": 0
           }
@@ -589,53 +426,6 @@
     },
     "author": {
       "login": "littletarzan"
-    }
-  },
-  {
-    "title": "SOC2 Proposal HIP",
-    "number": 683,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/683",
-    "headRefOid": "7633ac14079499cb39c9981bfc239b28d0499a76",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "hip-0000-template.md",
-            "additions": 1,
-            "deletions": 1
-          }
-        },
-        {
-          "node": {
-            "path": "hip-xxx-WIP.md",
-            "additions": 92,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "voycey"
-    }
-  },
-  {
-    "title": "Add a Mirror Node GraphQL API",
-    "number": 668,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/668",
-    "headRefOid": "c97d3db8588f33a65e49837b0c791e572d0b2fb1",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/HIP-668.md",
-            "additions": 2334,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "steven-sheehy"
     }
   },
   {
@@ -648,6 +438,7 @@
         {
           "node": {
             "path": "HIP/hip-0000-fractional-nfts.md",
+            "changeType": "ADDED",
             "additions": 191,
             "deletions": 0
           }
@@ -655,6 +446,7 @@
         {
           "node": {
             "path": "hip-0000-template.md",
+            "changeType": "MODIFIED",
             "additions": 1,
             "deletions": 1
           }
@@ -675,6 +467,7 @@
         {
           "node": {
             "path": "HIP/hip-498.md",
+            "changeType": "ADDED",
             "additions": 125,
             "deletions": 0
           }
@@ -683,26 +476,6 @@
     },
     "author": {
       "login": "cijujohn"
-    }
-  },
-  {
-    "title": "Create hip-362-token-freeze-amount.md",
-    "number": 395,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/395",
-    "headRefOid": "5b43f814c042f8bab8eeacd474ab6380f30fdaea",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "hip-362-token-freeze-amount.md",
-            "additions": 44,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Topachi"
     }
   }
 ]
