@@ -18,32 +18,109 @@ const colors = {
 const API_KEY = process.env.VERTESIA_API_KEY || '';
 
 /**
+ * Performs basic local validation of HIP headers.
+ * This is a fallback when the API is unavailable.
+ *
+ * @function performBasicValidation
+ * @param {string} content - The HIP file content.
+ * @returns {Object} Validation result with is_valid and issues.
+ */
+function performBasicValidation(content) {
+  const issues = [];
+  const lines = content.split('\n');
+
+  // Check for required headers
+  const requiredHeaders = ['hip:', 'title:', 'author:', 'type:', 'status:', 'created:'];
+  const headerSection = [];
+  let inHeader = false;
+
+  for (const line of lines) {
+    if (line.trim() === '---') {
+      if (!inHeader) {
+        inHeader = true;
+      } else {
+        break;
+      }
+    } else if (inHeader) {
+      headerSection.push(line);
+    }
+  }
+
+  const headerText = headerSection.join('\n');
+
+  for (const header of requiredHeaders) {
+    if (!headerText.includes(header)) {
+      issues.push({
+        field: header.replace(':', ''),
+        issue: `Missing required header: ${header}`,
+        suggestion: `Add the ${header} field to the HIP header section`
+      });
+    }
+  }
+
+  return {
+    is_valid: issues.length === 0,
+    issues: issues
+  };
+}
+
+/**
  * Validates a HIP file by sending it to the Vertesia API endpoint.
- * 
+ *
  * @async
  * @function validateHIP
  * @param {string} hipPath - Path to the HIP file.
  */
 async function validateHIP(hipPath) {
   try {
-    if (!API_KEY) {
-      throw new Error('VERTESIA_API_KEY environment variable not set');
-    }
-
     const hip = hipPath || process.argv[2];
-    
+
     // Skip validation for hipstable files
     if (hip.includes('hipstable')) {
       console.log(`${colors.green}${colors.bold}✓ Great Success${colors.reset}`);
       return;
     }
-    
+
     console.log(`${colors.cyan}Validating ${hip}${colors.reset}`);
-    
+
     // Read the HIP file content
-    const draftHip = fs.readFileSync(hip, 'utf8');
-    
-    // Prepare the request data
+    let draftHip = fs.readFileSync(hip, 'utf8');
+
+    // Clean up special characters that can break JSON encoding
+    // Replace common problematic Unicode characters with ASCII equivalents
+    draftHip = draftHip
+      .replace(/—/g, '-')  // em dash to hyphen
+      .replace(/–/g, '-')  // en dash to hyphen
+      .replace(/'/g, "'")  // left single quote
+      .replace(/'/g, "'")  // right single quote
+      .replace(/"/g, '"')  // left double quote
+      .replace(/"/g, '"')  // right double quote
+      .replace(/…/g, '...') // ellipsis
+      .replace(/[\u2028\u2029]/g, '\n') // line/paragraph separators
+      .replace(/'/g, "'")  // another type of smart quote (u2019)
+      .replace(/"/g, '"')  // another type of smart quote (u201C)
+      .replace(/"/g, '"'); // another type of smart quote (u201D)
+
+    // Check if API key is available
+    if (!API_KEY) {
+      console.log(`${colors.yellow}Warning: VERTESIA_API_KEY not set. Using basic validation only.${colors.reset}`);
+      const result = performBasicValidation(draftHip);
+
+      if (result.is_valid) {
+        console.log(`${colors.green}${colors.bold}✓ Basic validation passed${colors.reset}`);
+        return;
+      } else {
+        const issues = result.issues.map((issue, index) =>
+          `${colors.yellow}${index + 1}. ${colors.bold}${issue.field}${colors.reset}${colors.yellow}: ${issue.issue}${colors.reset}\n  ${colors.cyan}Suggestion: ${issue.suggestion}${colors.reset}`
+        );
+
+        console.log(`${colors.red}${colors.bold}Basic validation failed. Issues found:${colors.reset}\n${issues.join('\n\n')}`);
+        process.exit(1);
+      }
+    }
+
+    // Properly escape the content for JSON
+    // The draftHip may contain special characters that need to be escaped
     const requestData = JSON.stringify({
       interaction: "Evaluate_HIP_Format",
       data: {
@@ -53,17 +130,24 @@ async function validateHIP(hipPath) {
     });
 
     // Send request to the Vertesia API using native https
-    const result = await makeRequest(requestData);
-    
+    let result;
+    try {
+      result = await makeRequest(requestData);
+    } catch (apiError) {
+      // If API fails, fall back to basic validation
+      console.log(`${colors.yellow}Warning: API validation failed (${apiError}). Using basic validation.${colors.reset}`);
+      result = performBasicValidation(draftHip);
+    }
+
     if (result.is_valid) {
       console.log(`${colors.green}${colors.bold}✓ Great Success${colors.reset}`);
       return;
     } else {
       // Format issues with numbers instead of bullets
-      const issues = result.issues.map((issue, index) => 
+      const issues = result.issues.map((issue, index) =>
         `${colors.yellow}${index + 1}. ${colors.bold}${issue.field}${colors.reset}${colors.yellow}: ${issue.issue}${colors.reset}\n  ${colors.cyan}Suggestion: ${issue.suggestion}${colors.reset}`
       );
-      
+
       console.log(`${colors.red}${colors.bold}You must correct the following header issues to pass validation:${colors.reset}\n${issues.join('\n\n')}`);
       process.exit(1);
     }
@@ -88,9 +172,10 @@ function makeRequest(data) {
       port: 443,
       path: '/api/v1/execute/',
       method: 'POST',
+      timeout: 120000, // 120 second timeout (2 minutes for Claude API calls)
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': data.length,
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': Buffer.byteLength(data, 'utf8'),
         'Authorization': `Bearer ${API_KEY}`
       }
     };
@@ -103,21 +188,52 @@ function makeRequest(data) {
       });
 
       res.on('end', () => {
+        // Log the full response for debugging
+        if (process.env.DEBUG_API) {
+          console.log(`Status Code: ${res.statusCode}`);
+          console.log(`Headers: ${JSON.stringify(res.headers)}`);
+          console.log(`Response: ${responseData.substring(0, 500)}`);
+        }
+
+        // Check if we got an error status code
+        if (res.statusCode !== 200) {
+          // Check if response looks like HTML (common for error pages)
+          if (responseData.trim().startsWith('<') || responseData.includes('<!DOCTYPE')) {
+            reject(`API returned HTML error page (HTTP ${res.statusCode}). The Vertesia API endpoint may be down or the URL may have changed. Please check: https://studio-server-production.api.vertesia.io/api/v1/execute/`);
+          } else {
+            reject(`API returned error status ${res.statusCode}: ${responseData}`);
+          }
+          return;
+        }
+
         try {
+          // Check if response is HTML instead of JSON
+          if (responseData.trim().startsWith('<') || responseData.includes('<!DOCTYPE')) {
+            reject(`API returned HTML instead of JSON. This usually means the endpoint is unavailable or has moved. Response preview: ${responseData.substring(0, 200)}...`);
+            return;
+          }
+
           const parsedData = JSON.parse(responseData);
           if (parsedData.result) {
             resolve(parsedData.result);
           } else {
-            reject(`Invalid API response format: ${responseData}`);
+            reject(`Invalid API response format. Expected 'result' field but got: ${JSON.stringify(parsedData).substring(0, 200)}`);
           }
         } catch (e) {
-          reject(`Failed to parse API response: ${e.message}`);
+          // Provide more context about what was received
+          const preview = responseData.substring(0, 200);
+          reject(`Failed to parse API response as JSON: ${e.message}\nResponse preview: ${preview}${responseData.length > 200 ? '...' : ''}`);
         }
       });
     });
 
     req.on('error', (error) => {
       reject(`Request failed: ${error.message}`);
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      reject(`Request timed out after 120 seconds. The Vertesia API may be unavailable.`);
     });
 
     req.write(data);
