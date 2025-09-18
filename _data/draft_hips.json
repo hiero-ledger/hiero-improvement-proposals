@@ -101,14 +101,14 @@
     "title": "HIP-1261: Simple fees",
     "number": 1261,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1261",
-    "headRefOid": "7c93aeeccf8592be22a5e219a9123ec8d370bbc3",
+    "headRefOid": "6d74513309cd2e26ecd72ce93bc4e43aa017c4f3",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1261.md",
             "changeType": "ADDED",
-            "additions": 845,
+            "additions": 847,
             "deletions": 0
           }
         },
@@ -124,27 +124,6 @@
     },
     "author": {
       "login": "rbair23"
-    }
-  },
-  {
-    "title": "HIP-1238: Quiescence",
-    "number": 1238,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1238",
-    "headRefOid": "3e233cb99ed3f44275bf739b79fe005cf65f7caf",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1238.md",
-            "changeType": "ADDED",
-            "additions": 214,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "lpetrovic05"
     }
   },
   {
@@ -166,27 +145,6 @@
     },
     "author": {
       "login": "tonycamero"
-    }
-  },
-  {
-    "title": "HIP 1219: Hedera DID Method v2.0 - W3C Controller Alignment",
-    "number": 1219,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1219",
-    "headRefOid": "eae947832a3e23ab9b9c86f30ac5cda474139c62",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1219.md",
-            "changeType": "ADDED",
-            "additions": 184,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "ChangoBuitrago"
     }
   },
   {
@@ -214,14 +172,14 @@
     "title": "HIP-1200: The hinTS threshold signature scheme",
     "number": 1200,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1200",
-    "headRefOid": "c09da306009953cbfd217e430696282c6fba0f5d",
+    "headRefOid": "6b65c9f7e219a1f7f851c2364123e67d603b39c7",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1200.md",
             "changeType": "ADDED",
-            "additions": 390,
+            "additions": 403,
             "deletions": 0
           }
         }
