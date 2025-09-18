@@ -17,52 +17,6 @@ const colors = {
 // Get API key from environment variable or use a fallback for development
 const API_KEY = process.env.VERTESIA_API_KEY || '';
 
-/**
- * Performs basic local validation of HIP headers.
- * This is a fallback when the API is unavailable.
- *
- * @function performBasicValidation
- * @param {string} content - The HIP file content.
- * @returns {Object} Validation result with is_valid and issues.
- */
-function performBasicValidation(content) {
-  const issues = [];
-  const lines = content.split('\n');
-
-  // Check for required headers
-  const requiredHeaders = ['hip:', 'title:', 'author:', 'type:', 'status:', 'created:'];
-  const headerSection = [];
-  let inHeader = false;
-
-  for (const line of lines) {
-    if (line.trim() === '---') {
-      if (!inHeader) {
-        inHeader = true;
-      } else {
-        break;
-      }
-    } else if (inHeader) {
-      headerSection.push(line);
-    }
-  }
-
-  const headerText = headerSection.join('\n');
-
-  for (const header of requiredHeaders) {
-    if (!headerText.includes(header)) {
-      issues.push({
-        field: header.replace(':', ''),
-        issue: `Missing required header: ${header}`,
-        suggestion: `Add the ${header} field to the HIP header section`
-      });
-    }
-  }
-
-  return {
-    is_valid: issues.length === 0,
-    issues: issues
-  };
-}
 
 /**
  * Validates a HIP file by sending it to the Vertesia API endpoint.
@@ -103,20 +57,7 @@ async function validateHIP(hipPath) {
 
     // Check if API key is available
     if (!API_KEY) {
-      console.log(`${colors.yellow}Warning: VERTESIA_API_KEY not set. Using basic validation only.${colors.reset}`);
-      const result = performBasicValidation(draftHip);
-
-      if (result.is_valid) {
-        console.log(`${colors.green}${colors.bold}✓ Basic validation passed${colors.reset}`);
-        return;
-      } else {
-        const issues = result.issues.map((issue, index) =>
-          `${colors.yellow}${index + 1}. ${colors.bold}${issue.field}${colors.reset}${colors.yellow}: ${issue.issue}${colors.reset}\n  ${colors.cyan}Suggestion: ${issue.suggestion}${colors.reset}`
-        );
-
-        console.log(`${colors.red}${colors.bold}Basic validation failed. Issues found:${colors.reset}\n${issues.join('\n\n')}`);
-        process.exit(1);
-      }
+      throw new Error('VERTESIA_API_KEY environment variable not set');
     }
 
     // Properly escape the content for JSON
@@ -130,14 +71,7 @@ async function validateHIP(hipPath) {
     });
 
     // Send request to the Vertesia API using native https
-    let result;
-    try {
-      result = await makeRequest(requestData);
-    } catch (apiError) {
-      // If API fails, fall back to basic validation
-      console.log(`${colors.yellow}Warning: API validation failed (${apiError}). Using basic validation.${colors.reset}`);
-      result = performBasicValidation(draftHip);
-    }
+    const result = await makeRequest(requestData);
 
     if (result.is_valid) {
       console.log(`${colors.green}${colors.bold}✓ Great Success${colors.reset}`);
