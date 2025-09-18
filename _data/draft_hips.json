@@ -169,27 +169,6 @@
     }
   },
   {
-    "title": "HIP-1200: The hinTS threshold signature scheme",
-    "number": 1200,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1200",
-    "headRefOid": "6b65c9f7e219a1f7f851c2364123e67d603b39c7",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1200.md",
-            "changeType": "ADDED",
-            "additions": 403,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tinker-michaelj"
-    }
-  },
-  {
     "title": "HIP-1193 - Records to block streams cutover",
     "number": 1193,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1193",
