@@ -101,14 +101,14 @@
     "title": "HIP-1261: Simple fees",
     "number": 1261,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1261",
-    "headRefOid": "6d74513309cd2e26ecd72ce93bc4e43aa017c4f3",
+    "headRefOid": "a0816a7f580935c5a60562a55f532a5f7ce9b4d6",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1261.md",
             "changeType": "ADDED",
-            "additions": 847,
+            "additions": 853,
             "deletions": 0
           }
         },
@@ -166,27 +166,6 @@
     },
     "author": {
       "login": "walter-hernandez"
-    }
-  },
-  {
-    "title": "HIP-1200: The hinTS threshold signature scheme",
-    "number": 1200,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1200",
-    "headRefOid": "6b65c9f7e219a1f7f851c2364123e67d603b39c7",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1200.md",
-            "changeType": "ADDED",
-            "additions": 403,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tinker-michaelj"
     }
   },
   {
