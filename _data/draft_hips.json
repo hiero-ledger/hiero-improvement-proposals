@@ -1,5 +1,26 @@
 [
   {
+    "title": "Create hip-0000-hiero-anoncreds-method.md",
+    "number": 1292,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1292",
+    "headRefOid": "7fb99cc459a9549fc7052cab8f537c8e39f6c3c9",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-hiero-anoncreds-method.md",
+            "changeType": "ADDED",
+            "additions": 95,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Reccetech"
+    }
+  },
+  {
     "title": "feat: add entity hip",
     "number": 1272,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1272",
@@ -101,14 +122,14 @@
     "title": "HIP-1261: Simple fees",
     "number": 1261,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1261",
-    "headRefOid": "a0816a7f580935c5a60562a55f532a5f7ce9b4d6",
+    "headRefOid": "4f88d072bf1c0ac75bf91119ad6a0a81b31687f9",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1261.md",
             "changeType": "ADDED",
-            "additions": 853,
+            "additions": 944,
             "deletions": 0
           }
         },
