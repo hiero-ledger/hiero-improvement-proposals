@@ -1,0 +1,83 @@
+/**
+ * # Contract Message Types
+ * Message types used in contract transactions.
+ *
+ * ### Keywords
+ * The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+ * "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+ * document are to be interpreted as described in
+ * [RFC2119](https://www.ietf.org/rfc/rfc2119) and clarified in
+ * [RFC8174](https://www.ietf.org/rfc/rfc8174).
+ */
+syntax = "proto3";
+
+package proto;
+
+// SPDX-License-Identifier: Apache-2.0
+option java_package = "com.hederahashgraph.api.proto.java";
+// <<<pbj.java_package = "com.hedera.hapi.node.contract">>> This comment is special code for setting PBJ Compiler java package
+option java_multiple_files = true;
+
+import "services/basic_types.proto";
+import "google/protobuf/wrappers.proto";
+
+/**
+ * Context of an internal call in an EVM transaction that is not otherwise externalized.<br/>
+ * This message does not say anything about whether an EVM transaction is itself a logical
+ * transaction in a Hiero transactional unit. It simply provides context on an internal
+ * message call within an EVM transaction.
+ */
+message InternalCallContext {
+    /**
+     * The gas available for the call.<br/>
+     */
+    uint64 gas = 1;
+
+    /**
+     * The value sent with the call.<br/>
+     */
+    uint64 value = 2;
+
+    /**
+     * The call data for the call.<br/>
+     */
+    bytes call_data = 3;
+}
+
+/**
+ * Results of executing a EVM transaction.<br/>
+ */
+message EvmTransactionResult {
+    /**
+     * The Hedera id of the caller.<br/>
+     */
+    AccountID sender_id = 1;
+
+    /**
+     * The Hedera id of the contract receiving the call.<br/>
+     */
+    ContractID contract_id = 2;
+
+    /**
+     * Result data from the function call.
+     */
+    bytes result_data = 3;
+
+    /**
+     * Any error message produced by the contract call. Max size of 100 bytes.
+     * <p>
+     * This SHALL be unset if the contract call succeeded.
+     */
+    string error_message = 4;
+
+    /**
+     * EVM gas used.
+     */
+    uint64 gas_used = 5;
+
+    /**
+     * If not already externalized in a transaction body, the context of the
+     * internal call producing this result.
+     */
+    InternalCallContext internal_call_context = 6;
+}
