@@ -45,8 +45,7 @@ community thoughts and input on a particular issue, and further to document
 all these subject matters in one place. It's a great way to document these
 discussions and proposals
 [here on GitHub](https://github.com/hiero-ledger/hiero-improvement-proposals),
-because any
-[revisions made on these text files will be recorded](https://github.com/hiero-ledger/hiero-improvement-proposals/commits/master).
+because any revisions made on these text files will be recorded.
 
 ## Qualifications
 Each HIP should only be one single key proposal and/or idea. The idea should be
