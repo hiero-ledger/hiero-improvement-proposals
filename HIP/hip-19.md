@@ -3,11 +3,11 @@ hip: 19
 title: Decentralized Identifiers in Memo Fields
 author: Nick White <nick@recdefi.com>, Jonathan Padilla <jonathan@recdefi.com>, Atticus Francken <atticus@recdefi.com>, Steve Frenkel <steve@recdefi.com>, Alex McComb <alex@recdefi.com>, Daniel Norkin <daniel.norkin@envisionblockchain.com>
 type: Standards Track
-category: Application
+category: Active
 needs-council-approval: No
 status: Final
 created: 2021-06-07
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/101 
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/101 
 updated: 2023-04-03
 ---
 

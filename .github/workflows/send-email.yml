@@ -19,15 +19,15 @@ defaults:
 
 jobs:
   StatusChangeNotifications:
-    runs-on: improvement-proposals-linux-medium
+    runs-on: hiero-improvement-proposals-linux-medium
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
 
       - name: Send mail
-        uses: step-security/action-send-mail@a995831af980a0a14953f75efec85509f5315e25 # v3.12.0
+        uses: step-security/action-send-mail@7238bab69680f644f9eab409cec92179d1d2f0ce # v6.0.1
         with:
           server_address: smtp.gmail.com
           server_port: 465

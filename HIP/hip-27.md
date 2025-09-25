@@ -5,10 +5,10 @@ author: Jo Vercammen <jo.vercammen@meeco.me>
 type: Standards Track
 category: Application
 needs-council-approval: No
-status: Accepted
+status: Active
 last-call-date-time: 2022-01-19T07:00:00Z
 created: 2021-06-06
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/103
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/103
 updated: 2022-01-05
 ---
 
@@ -80,7 +80,7 @@ The Appnet application will serve as reference implementation on how an applicat
 
 The contribution for a new DID method driver to the universal resolver consists of a Docker image which exposes an HTTP interface for resolving DIDs. New contributions are submitted as Pull Requests to the Universal Resolver repository.
 
-The driver offers an HTTP GET call under the following structure: http://<your-image>:8080/1.0/identifiers/<your-did>. The driver receives an Accept header with a value in application/ld+json format. The response is a valid DID Document or a DID Resolution Result in the HTTP body. Specification on the API definition is available through the following link: https://github.com/decentralized-identity/universal-resolver/blob/master/swagger/api-driver.yml
+The driver offers an HTTP GET call under the following structure: http://<your-image>:8080/1.0/identifiers/<your-did>. The driver receives an Accept header with a value in application/ld+json format. The response is a valid DID Document or a DID Resolution Result in the HTTP body. Specification on the API definition is available through the following link: https://github.com/decentralized-identity/universal-resolver/blob/main/swagger/api-driver.yml
 
 
 

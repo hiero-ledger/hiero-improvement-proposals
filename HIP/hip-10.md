@@ -7,7 +7,7 @@ needs-council-approval: No
 status: Replaced
 last-call-date-time: 2021-11-23T07:00:00Z
 created: 2021-02-18
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/50
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/50
 updated: 2022-04-19
 superseded-by: 412
 ---
@@ -188,7 +188,7 @@ N/A
 [3] https://github.com/hashgraph/hedera-hts-demo/pull/4
 [4] https://explorer.kabuto.sh/testnet/id/0.0.411677
 [5] https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md#specification
-[6] https://github.com/hashgraph/hedera-improvement-proposal/issues/40
+[6] https://github.com/hiero-ledger/hiero-improvement-proposals/issues/40
 
 ## Copyright/license
 

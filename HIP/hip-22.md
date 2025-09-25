@@ -5,7 +5,7 @@ author: Maurizio Binello <maurizio@horizenlabs.io>, Tim McHale <@tim-mchale>
 type: Standards Track
 category: Application
 needs-council-approval: No
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/pull/806
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/806
 status: Stagnant
 created: 2023-09-13
 ---

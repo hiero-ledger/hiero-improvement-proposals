@@ -1,7 +1,10 @@
 ![](./assets/hedera_logo.png)
 
-[![](https://img.shields.io/discord/373889138199494658)](https://discord.com/channels/373889138199494658/813488589773471774)
+[![](https://img.shields.io/discord/373889138199494658)](https://discord.com/invite/uJ5k8DkmKV)
 [![](https://img.shields.io/badge/view-published-blue)](https://hips.hedera.com)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-improvement-proposals/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-improvement-proposals)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
+[![License](https://img.shields.io/badge/license-apache2-blue.svg)](LICENSE)
 
 ## Submit a HIP
 1. Fork this repository
@@ -44,9 +47,9 @@ The goal of HIPs is to have a place to propose new features, to collect
 community thoughts and input on a particular issue, and further to document
 all these subject matters in one place. It’s a great way to document these
 discussions and proposals
-[here on GitHub](https://github.com/hashgraph/hedera-improvement-proposal),
+[here on GitHub](https://github.com/hiero-ledger/hiero-improvement-proposals),
 because any
-[revisions made on these text files will be recorded](https://github.com/hashgraph/hedera-improvement-proposal/commits/master).
+[revisions made on these text files will be recorded](https://github.com/hiero-ledger/hiero-improvement-proposals/commits/master).
 
 ## Qualifications
 Each HIP should only be one single key proposal and/or idea. The idea should be

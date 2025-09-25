@@ -1,5 +1,5 @@
 # Default code owners for entire repository
-*   @mgarbs
+*                                               @hiero-ledger/hiero-improvement-proposals-maintainers
 
 #########################
 #####  Core Files  ######
@@ -8,16 +8,16 @@
 # NOTE: Must be placed last to ensure enforcement over all other rules
 
 # Protection Rules for Github Configuration Files and Actions Workflows
-/.github/                                       @hashgraph/platform-ci @hashgraph/release-engineering-managers
-/.github/workflows/                             @hashgraph/platform-ci @mgarbs
+/.github/                                       @hiero-ledger/github-maintainers
+/.github/workflows/                             @hiero-ledger/github-maintainers @hiero-ledger/hiero-improvement-proposals-maintainers
 
 # Self-protection for root CODEOWNERS files (this file should not exist and should definitely require approval)
-/CODEOWNERS                                      @hashgraph/release-engineering-managers
+/CODEOWNERS                                     @hiero-ledger/github-maintainers
 
 # Protect the repository root files
-/README.md                                      @hashgraph/platform-ci @hashgraph/release-engineering-managers
-**/LICENSE                                      @hashgraph/release-engineering-managers
+/README.md                                      @hiero-ledger/github-maintainers @hiero-ledger/hiero-improvement-proposals-maintainers
+**/LICENSE                                      @hiero-ledger/github-maintainers
 
 # Git Ignore definitions
-**/.gitignore                                   @hashgraph/platform-ci @hashgraph/release-engineering-managers
-**/.gitignore.*                                 @hashgraph/platform-ci @hashgraph/release-engineering-managers
+**/.gitignore                                   @hiero-ledger/github-maintainers
+**/.gitignore.*                                 @hiero-ledger/github-maintainers

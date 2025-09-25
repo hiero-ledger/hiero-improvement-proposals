@@ -7,7 +7,7 @@ category: Core
 needs-council-approval: Yes
 status: Final
 created: 2021-09-07
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/139
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/139
 updated: 2021-09-17
 ---
 

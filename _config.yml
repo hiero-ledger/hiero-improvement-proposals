@@ -13,13 +13,28 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Hedera Improvement Proposals
+title: Hiero Improvement Proposals
 description: >- # this means to ignore newlines until "baseurl:"
-  HIP stands for “Hedera Improvement Proposal”. These improvement proposals can range from core protocol changes, to the applications, frameworks, and protocols built on top of the Hedera public network and used by the community.
+  HIP stands for Hiero Improvement Proposal”. These improvement proposals can range from core protocol changes, to the applications, frameworks, and protocols built on top of the Hiero public network and used by the community.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: hedera
-github_username: hashgraph
+github_username: hiero-ledger
+
+# Order for displaying HIP statuses
+hip_status_order:
+  - Last Call
+  - Draft
+  - Approved
+  - Accepted
+  - Final
+  - Active
+  - Review
+  - Stagnant
+  - Deferred
+  - Withdrawn
+  - Rejected
+  - Replaced
 
 # Build settings
 markdown: kramdown

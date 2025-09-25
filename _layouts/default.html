@@ -3,22 +3,40 @@
 
 {%- include head.html -%}
 
-<body>
-{%- include header.html -%}
+<body data-layout="{{ page.layout }}" data-title="{{ page.title }}">
+    {%- include header.html -%}
 
-<main class="page-content" aria-label="Content">
-    <div class="wrapper">
-        {{ content }}
-    </div>
-</main>
+    <main class="page-content" aria-label="Content">
+        <div class="wrapper">
+            {{ content }}
+        </div>
+    </main>
 
-{%- include footer.html -%}
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="{{ '/assets/js/tooltip.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/hipstable.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/filter.js' | relative_url }}"></script>
-<script src="{{ '/assets/js/pr-integration.js' | relative_url }}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    {%- include footer.html -%}
+    
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="{{ '/assets/js/tooltip.js' | relative_url }}"></script>
+    
+    <!-- Deployment verification logging -->
+    <script>
+        console.log('=== DEPLOYMENT VERIFICATION ===');
+        console.log('Page Layout:', '{{ page.layout }}');
+        console.log('Page Title:', '{{ page.title }}');
+        console.log('Page URL:', window.location.href);
+        console.log('Page Path:', '{{ page.path }}');
+        console.log('Site Baseurl:', '{{ site.baseurl }}');
+        console.log('Page URL var:', '{{ page.url }}');
+        console.log('=== END VERIFICATION ===');
+    </script>
+
+    <!-- Load HIP-specific scripts on main page -->
+    {% if page.layout == 'page' and page.title == 'HIPs' %}
+        <script>console.log('Loading HIP-specific scripts on main page');</script>
+        <script src="{{ '/assets/js/hipstable.js' | relative_url }}"></script>
+        <script src="{{ '/assets/js/filter.js' | relative_url }}"></script>
+        <script src="{{ '/assets/js/pr-integration.js' | relative_url }}"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    {% endif %}
 </body>
-
 </html>

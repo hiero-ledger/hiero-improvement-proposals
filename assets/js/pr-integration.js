@@ -1,65 +1,108 @@
 class HIPPRIntegration {
     constructor() {
-        this.initialize();
-        this.setupStyles();
+        // Wait for full page load to ensure all elements are available
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
+    }
+
+    init() {
+        console.log('Initializing HIP PR Integration');
+        if (this.isMainPage()) {
+            this.setupStyles();
+            this.initialize();
+        } else {
+            console.log('Not on main page, skipping initialization');
+        }
+    }
+
+    isMainPage() {
+        const isMainPath = window.location.pathname === '/' || 
+                          window.location.pathname === '/index.html' ||
+                          window.location.pathname.endsWith('/HIPs/') ||
+                          window.location.pathname === '/hips/';
+                          
+        const hasMainPageElements = document.querySelector('.hip-filters') !== null;
+        const layout = document.querySelector('body')?.dataset?.layout;
+        const title = document.querySelector('body')?.dataset?.title;
+        
+        console.log('Page Check:', {
+            path: window.location.pathname,
+            isMainPath,
+            hasMainPageElements,
+            layout,
+            title
+        });
+        
+        return isMainPath || (layout === 'page' && title === 'HIPs');
     }
 
     setupStyles() {
-        const styles = `
-            .hip-modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.7);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            }
-            .hip-modal-content {
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                max-width: 80%;
-                max-height: 80vh;
-                overflow-y: auto;
-                position: relative;
-            }
-            .hip-modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                border-bottom: 1px solid #eee;
-                padding-bottom: 10px;
-            }
-            .close-button {
-                background: none;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-            }
-            .hip-modal-body {
-                line-height: 1.6;
-            }
-            .hip-modal-body img {
-                max-width: 100%;
-            }
-        `;
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = styles;
-        document.head.appendChild(styleSheet);
+        if (!document.querySelector('#hip-modal-styles')) {
+            const styles = `
+                .hip-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                }
+                .hip-modal-content {
+                    background: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    max-width: 80%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    position: relative;
+                }
+                .hip-modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    border-bottom: 1px solid #eee;
+                    padding-bottom: 10px;
+                }
+                .close-button {
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    cursor: pointer;
+                }
+                .hip-modal-body {
+                    line-height: 1.6;
+                }
+                .hip-modal-body img {
+                    max-width: 100%;
+                }
+            `;
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'hip-modal-styles';
+            styleSheet.textContent = styles;
+            document.head.appendChild(styleSheet);
+        }
     }
 
     async initialize() {
         try {
+            console.log('Starting initialization');
             const prData = await this.fetchPRData();
             if (prData) {
+                console.log('Fetched PR data successfully');
                 const validHips = await this.filterHIPPRs(prData);
                 if (validHips.length > 0) {
+                    console.log(`Found ${validHips.length} valid HIPs`);
                     this.addHIPsToTable(validHips);
+                } else {
+                    console.log('No valid HIPs found');
                 }
             }
         } catch (error) {
@@ -69,14 +112,18 @@ class HIPPRIntegration {
 
     async fetchPRData() {
         try {
-            // Try with site.baseurl if it's set in _config.yml
+            console.log('Fetching PR data...');
             const baseUrl = document.querySelector('meta[name="site-baseurl"]')?.content || '';
-            const response = await fetch(`${baseUrl}/_data/draft_hips.json`);
-
+            const url = `${baseUrl}/_data/draft_hips.json`;
+            console.log('Fetching from URL:', url);
+            
+            const response = await fetch(url);
             if (!response.ok) {
-                throw new Error('Failed to fetch draft HIPs data');
+                throw new Error(`Failed to fetch draft HIPs data: ${response.status} ${response.statusText}`);
             }
-            return await response.json();
+            const data = await response.json();
+            console.log('Successfully fetched PR data');
+            return data;
         } catch (error) {
             console.error('Error in fetchPRData:', error);
             throw error;
@@ -84,33 +131,44 @@ class HIPPRIntegration {
     }
 
     async filterHIPPRs(prs) {
+        console.log('Filtering HIPs from PRs...');
         const validHips = [];
         const seenPRs = new Set();
 
         for (const pr of prs) {
-            if (seenPRs.has(pr.number)) continue;
+            if (seenPRs.has(pr.number)) {
+                console.log(`Skipping duplicate PR: ${pr.number}`);
+                continue;
+            }
 
             const mdFiles = pr.files.edges.filter(file => file.node.path.endsWith('.md'));
+            console.log(`Found ${mdFiles.length} markdown files in PR ${pr.number}`);
+            
             let bestMetadata = null;
             let bestFile = null;
 
-            // Try all MD files and pick the one with the most complete metadata
             for (const file of mdFiles) {
                 try {
-                    const contentUrl = `https://raw.githubusercontent.com/hashgraph/hedera-improvement-proposal/${pr.headRefOid}/${file.node.path}`;
+                    const contentUrl = `https://raw.githubusercontent.com/hiero-ledger/hiero-improvement-proposals/${pr.headRefOid}/${file.node.path}`;
+                    console.log(`Fetching content from: ${contentUrl}`);
+                    
                     const response = await fetch(contentUrl);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch file content: ${response.status}`);
+                    }
+                    
                     const content = await response.text();
                     const metadata = this.parseHIPMetadata(content);
 
-                    // Skip template files and empty metadata
                     if (file.node.path.includes('template') || !metadata.title) {
+                        console.log(`Skipping template or invalid file: ${file.node.path}`);
                         continue;
                     }
 
-                    // If we don't have metadata yet, or this file has a better title
                     if (!bestMetadata ||
                         (metadata.title && metadata.title.length > 3 &&
                             (!bestMetadata.title || metadata.title.length > bestMetadata.title.length))) {
+                        console.log(`Found better metadata in file: ${file.node.path}`);
                         bestMetadata = metadata;
                         bestFile = file;
                     }
@@ -119,8 +177,8 @@ class HIPPRIntegration {
                 }
             }
 
-            // If we found valid metadata, add it to the results
             if (bestMetadata && bestFile) {
+                console.log(`Adding valid HIP from PR ${pr.number}`);
                 validHips.push({
                     pr,
                     metadata: bestMetadata,
@@ -130,35 +188,16 @@ class HIPPRIntegration {
             }
         }
 
+        console.log(`Filtering complete. Found ${validHips.length} valid HIPs`);
         return validHips;
-    }
-
-    checkForNewHipFormat(content) {
-        const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
-        if (!frontmatterMatch) return false;
-
-        const frontmatter = frontmatterMatch[1].toLowerCase();
-        const requiredPatterns = [
-            /\btitle\s*:/,
-            /\bauthor\s*:/,
-            /\bcategory\s*:/,
-            /\bcreated\s*:/
-        ];
-
-        return requiredPatterns.every(pattern => pattern.test(frontmatter));
-    }
-
-    isValidHIPContent(metadata) {
-        const essentialFields = ['title', 'type'];
-        const hasEssentialFields = essentialFields.every(field => metadata[field]);
-        const desiredFields = ['hip', 'author', 'status', 'created'];
-        const desiredFieldCount = desiredFields.filter(field => metadata[field]).length;
-        return hasEssentialFields && desiredFieldCount >= 2;
     }
 
     parseHIPMetadata(content) {
         const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
-        if (!frontmatterMatch) return {};
+        if (!frontmatterMatch) {
+            console.log('No frontmatter found in content');
+            return {};
+        }
 
         const metadata = {};
         const lines = frontmatterMatch[1].split('\n');
@@ -175,8 +214,12 @@ class HIPPRIntegration {
     }
 
     addHIPsToTable(hips) {
+        console.log('Adding HIPs to table');
         const wrapper = document.querySelector('main .wrapper');
-        if (!wrapper) return;
+        if (!wrapper) {
+            console.error('Could not find wrapper element');
+            return;
+        }
 
         const lastStatusSection = wrapper.lastElementChild;
         const draftContainer = document.createElement('div');
@@ -188,7 +231,7 @@ class HIPPRIntegration {
                         <th class="numeric">Number</th>
                         <th>Title</th>
                         <th>Author</th>
-                        <th>Needs Council Approval</th>
+                        <th>Needs Hiero Approval</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -200,10 +243,13 @@ class HIPPRIntegration {
         const table = draftContainer.querySelector('.hipstable');
 
         hips.forEach(({ pr, metadata }) => {
-            if (!metadata.title || metadata.title.trim() === '') return;
+            if (!metadata.title || metadata.title.trim() === '') {
+                console.log(`Skipping HIP with empty title from PR ${pr.number}`);
+                return;
+            }
 
             const needsApproval = String(metadata['needs-council-approval']).toLowerCase() === 'true' ||
-                String(metadata['needs-tsc-approval']).toLowerCase() === 'true' ||
+                String(metadata['needs-hiero-approval']).toLowerCase() === 'true' ||
                 String(metadata.needs_council_approval).toLowerCase() === 'true' ||
                 metadata.type?.toLowerCase() === 'standards track';
 
@@ -241,8 +287,13 @@ class HIPPRIntegration {
             tbody.appendChild(row);
         });
 
+        this.setupTableSorting(table);
+        console.log('Finished adding HIPs to table');
+    }
+
+    setupTableSorting(table) {
         table.querySelectorAll('th').forEach(header => {
-            header.addEventListener('click', function () {
+            header.addEventListener('click', function() {
                 const tbody = table.querySelector('tbody');
                 const index = Array.from(header.parentNode.children).indexOf(header);
                 const isAscending = header.classList.contains('asc');
@@ -255,21 +306,20 @@ class HIPPRIntegration {
                         let cellB = rowB.querySelectorAll('td')[index].textContent;
 
                         if (isNumeric && cellA.startsWith('PR-') && cellB.startsWith('PR-')) {
-                            // Extract numbers from PR-XXX format
                             const numA = parseInt(cellA.replace('PR-', ''));
                             const numB = parseInt(cellB.replace('PR-', ''));
                             return (numA - numB) * (isAscending ? 1 : -1);
                         }
 
-                        // Version sorting logic
                         if (isVersion) {
                             cellA = cellA.replace('v', '').split('.').map(Number);
                             cellB = cellB.replace('v', '').split('.').map(Number);
                             return cellA > cellB ? (isAscending ? 1 : -1) : cellA < cellB ? (isAscending ? -1 : 1) : 0;
                         }
 
-                        // Default sorting logic
-                        return isNumeric ? (parseFloat(cellA) - parseFloat(cellB)) * (isAscending ? 1 : -1) : cellA.localeCompare(cellB) * (isAscending ? 1 : -1);
+                        return isNumeric ? 
+                            (parseFloat(cellA) - parseFloat(cellB)) * (isAscending ? 1 : -1) : 
+                            cellA.localeCompare(cellB) * (isAscending ? 1 : -1);
                     })
                     .forEach(tr => tbody.appendChild(tr));
 
@@ -284,6 +334,6 @@ class HIPPRIntegration {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    new HIPPRIntegration();
-});
+// Initialize when the script loads
+console.log('PR Integration script loaded at:', new Date().toISOString());
+new HIPPRIntegration();

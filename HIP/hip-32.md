@@ -6,7 +6,7 @@ type: Standards Track
 category: Service
 needs-council-approval: Yes
 status: Final
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/187
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/187
 last-call-date-time: 2021-12-03T07:00:00Z
 release: v0.21.0
 created: 2021-11-01

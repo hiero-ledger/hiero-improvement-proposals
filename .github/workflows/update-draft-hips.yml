@@ -5,22 +5,31 @@ on:
     - cron: "0 */6 * * *" # Runs every 6 hours
   workflow_dispatch: # Allows manual triggering
 
+permissions:
+  contents: read
+
 jobs:
   update-draft-hips:
-    if: github.ref == 'refs/heads/main' # Only run on main branch
-    runs-on: improvement-proposals-linux-medium
+    if: ${{ github.ref == 'refs/heads/main' }} # Only run on main branch
+    runs-on: hiero-improvement-proposals-linux-medium
     permissions:
       contents: write
       pull-requests: read
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
       - name: Checkout Code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
+          ref: 'main'
 
       - name: Import GPG Key
         id: gpg_importer
-        uses: step-security/ghaction-import-gpg@6c8fe4d0126a59d57c21f87c9ae5dd3451fa3cca # v6.1.0
+        uses: step-security/ghaction-import-gpg@c86c374c0659a6c2d1284bccf8af889e73ce8fe0 # v6.3.0
         with:
           git_commit_gpgsign: true
           git_tag_gpgsign: true
@@ -29,7 +38,7 @@ jobs:
           passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
 
@@ -38,6 +47,7 @@ jobs:
           mkdir -p _data
           cat << 'EOF' > fetch-draft-hips.js
           const https = require('https');
+          const fs = require('fs');
 
           async function makeGraphQLRequest(query, token) {
             return new Promise((resolve, reject) => {
@@ -67,7 +77,7 @@ jobs:
           async function getAllPRs() {
             const query = `
               query { 
-                repository(name: "hedera-improvement-proposal", owner: "hashgraph") {
+                repository(name: "hiero-improvement-proposals", owner: "hiero-ledger") {
                   pullRequests(first: 100, states: [OPEN], orderBy: {field: CREATED_AT, direction: DESC}) {
                     nodes {
                       title
@@ -78,6 +88,7 @@ jobs:
                         edges {
                           node {
                             path
+                            changeType
                             additions
                             deletions
                           }
@@ -97,6 +108,12 @@ jobs:
               
               if (result.errors) {
                 console.error('GraphQL errors:', result.errors);
+                process.exit(1); 
+              }
+
+              // Check if data and the expected path to nodes exist
+              if (!result.data || !result.data.repository || !result.data.repository.pullRequests || !result.data.repository.pullRequests.nodes) {
+                console.error('Unexpected GraphQL response structure:', result);
                 process.exit(1);
               }
 
@@ -108,11 +125,31 @@ jobs:
           }
 
           // Run the main function
-          getAllPRs().then(prs => {
-            const fs = require('fs');
-            fs.writeFileSync('_data/draft_hips.json', JSON.stringify(prs, null, 2));
+          getAllPRs().then(allPRs => {
+            const draftHIPPRs = allPRs.filter(pr => {
+              if (!pr.files || !pr.files.edges) {
+                return false;
+              }
+              const hipFiles = pr.files.edges.filter(edge => {
+                const fileNode = edge.node;
+                const isNewHIPFile = /^HIP\/hip-[a-zA-Z0-9-]+\.md$/.test(fileNode.path);
+                return fileNode.changeType === 'ADDED' && isNewHIPFile;
+              }).map(edge => edge.node);
+
+              return hipFiles.length > 0;
+            });
+
+            const outputPath = '_data/draft_hips.json';
+            
+            if (fs.existsSync(outputPath)) {
+              console.log(`Removing existing file: ${outputPath}`);
+              fs.unlinkSync(outputPath);
+            }
+            
+            console.log(`Writing ${draftHIPPRs.length} filtered PRs to: ${outputPath}`);
+            fs.writeFileSync(outputPath, JSON.stringify(draftHIPPRs, null, 2));
           }).catch(error => {
-            console.error('Failed to fetch PRs:', error);
+            console.error('Failed to fetch and filter PRs:', error);
             process.exit(1);
           });
           EOF
@@ -124,11 +161,15 @@ jobs:
 
       - name: Commit and Push Changes
         env:
-          GITHUB_USER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
-          GITHUB_USER_NAME: ${{ secrets.GIT_USER_NAME }}
+          GITHUB_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
+          GITHUB_USER_NAME: ${{ vars.GIT_USER_NAME }}
         run: |
+          set -e
           git config --local user.email "$GITHUB_USER_EMAIL"
           git config --local user.name "$GITHUB_USER_NAME"
           git add _data/draft_hips.json
-          git commit -s -S -m "Update draft HIPs data [skip ci]" || echo "No changes to commit"
-          git push origin main || echo "No changes to push"
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          
+          git commit -s -S -m "Update draft HIPs data [skip ci]"
+          git push origin main
+          set +e
