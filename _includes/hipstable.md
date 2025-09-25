@@ -73,28 +73,92 @@
     No HIPs exist for this filter.
 </div>
 
-<!-- First render the draft section -->
-<h2 id="draft">Draft <span class="status-tooltip" data-tooltip="Draft">ⓘ</span></h2>
-<table class="hipstable draft-table">
-    <thead>
-        <tr>
-            <th class="numeric">Number</th>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Needs Hiero Approval</th>
-            <th>Needs Hedera Review</th>
-        </tr>
-    </thead>
-    <tbody class="draft-tbody"></tbody>
-</table>
-
-<!-- Then render the rest of the statuses -->
+<!-- Render all statuses -->
 {% for status in site.data.statuses %}
-    {% if status == "Accepted" %}
+    {% if status == "Accepted" or status == "Draft" %}
         {% continue %}
     {% endif %}
     
-    {% if status == "Approved" %}
+    {% if status == "Review" %}
+        <!-- Combine Draft and Review HIPs under "Review" -->
+        {% assign draft_hips = include.hips | where: "status", "Draft" | where: "category", category | where: "type", type | sort: "hip" | reverse %}
+        {% assign review_hips = include.hips | where: "status", "Review" | where: "category", category | where: "type", type | sort: "hip" | reverse %}
+        {% assign combined_review_hips = draft_hips | concat: review_hips | sort: "hip" | reverse %}
+        {% assign count = combined_review_hips.size %}
+        {% if count > 0 %}
+            <h2 id="review">
+                Review
+                <span class="status-tooltip" data-tooltip="Review">ⓘ</span>
+            </h2>
+
+            <table class="hipstable review-table">
+                <thead>
+                    <tr>
+                        <th class="numeric">Number</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Needs Hiero Approval</th>
+                        <th>Needs Hedera Review</th>
+                        <th class="numeric version">Release</th>
+                    </tr>
+                </thead>
+                <tbody class="review-tbody">
+                    {% for page in combined_review_hips %}
+                        <tr data-type="{{ page.type | downcase }}"
+                            data-category="{{ page.category | downcase }}"
+                            data-status="{{ page.status | downcase }}"
+                            data-hedera-review="{{ page.needs-hedera-review | default: page.needs-council-approval | default: false | downcase }}"
+                            data-council-review="{{ page.needs-council-approval | default: false | downcase }}"
+                            data-hedera-review-date="{{ page.hedera-review-date }}"
+                            data-hiero-review="{{ page.needs-hiero-approval | downcase }}">
+
+                            <td class="hip-number">
+                                <a href="{{ page.url | relative_url }}">{{ page.hip | xml_escape }}</a>
+                            </td>
+
+                            <td class="title">
+                                <a href="{{ page.url | relative_url }}">{{ page.title | xml_escape }}</a>
+                            </td>
+
+                            <td class="author">
+                                {% include authorslist.html authors=page.author %}
+                            </td>
+
+                            <td class="hiero-review" data-label="Needs Hiero Approval">
+                                {% if page.needs-hiero-approval %}
+                                    Yes
+                                {% else %}
+                                    No
+                                {% endif %}
+                            </td>
+
+                            <td class="hedera-review" data-label="Needs Hedera Review">
+                                {% if page.needs-hedera-review or page.needs-council-approval %}
+                                    Yes
+                                {% else %}
+                                    No
+                                {% endif %}
+                            </td>
+
+                            {% if page.category == "Mirror" %}
+                                <td class="release">
+                                    <a href="https://github.com/hiero-ledger/hiero-mirror-node/releases/tag/{{page.release}}">
+                                        {{page.release|xml_escape}}
+                                    </a>
+                                </td>
+                            {% else %}
+                                <td class="release">
+                                    <a href="https://github.com/hashgraph/hedera-services/releases/tag/{{page.release}}">
+                                        {{page.release|xml_escape}}
+                                    </a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% elsif status == "Approved" %}
         <!-- Combine Approved and Accepted HIPs under "Approved" -->
         {% assign approved_hips = include.hips | where: "status", "Approved" | where: "category", category | where: "type", type | sort: "hip" | reverse %}
         {% assign accepted_hips = include.hips | where: "status", "Accepted" | where: "category", category | where: "type", type | sort: "hip" | reverse %}
