@@ -95,9 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            const statusMatch = selectedStatuses.includes('all') || 
+            const statusMatch = selectedStatuses.includes('all') ||
                             selectedStatuses.includes(rowStatus) ||
-                            (selectedStatuses.includes('approved') && rowStatus === 'accepted');
+                            (selectedStatuses.includes('approved') && rowStatus === 'accepted') ||
+                            (selectedStatuses.includes('review') && (rowStatus === 'draft' || rowStatus === 'review'));
             const hederaReviewMatch = selectedHederaReview === 'all' || selectedHederaReview === rowHederaReview;
             const hieroReviewMatch = selectedHieroReview === 'all' || selectedHieroReview === rowHieroReview;
 

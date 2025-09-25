@@ -34,7 +34,6 @@
     <div class="filter-group">
         <h4>Status&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
         <select id="status-filter" class="status-filter" multiple>
-            <option value="draft">Draft</option>
             <option value="review">Review</option>
             <option value="last call">Last Call</option>
             <option value="approved">Approved</option>
