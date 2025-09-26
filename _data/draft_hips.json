@@ -119,35 +119,6 @@
     }
   },
   {
-    "title": "HIP-1261: Simple fees",
-    "number": 1261,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1261",
-    "headRefOid": "a5b34e265d39097df553aafb1442fa1c2c7874f8",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1261.md",
-            "changeType": "ADDED",
-            "additions": 975,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1261/tx-fees.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "rbair23"
-    }
-  },
-  {
     "title": "feat(HIP): Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
     "number": 1225,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1225",
@@ -319,14 +290,14 @@
     "title": "Enable Threshold (1-of-N) Support in HTS  Precompile",
     "number": 1069,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1069",
-    "headRefOid": "2e4a81d2b3aca4d0dcceb955f5a3f28305264b89",
+    "headRefOid": "6ed5e2ebac8476430e42edb00b0fb244198f2fcf",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1069.md",
             "changeType": "ADDED",
-            "additions": 130,
+            "additions": 152,
             "deletions": 0
           }
         }
@@ -340,14 +311,14 @@
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "54c87fc6af5c99444f6ddf85f37714f86ccdd7a9",
+    "headRefOid": "5dfd71e5d801dc5a34b6e633855bf82177e22b48",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 540,
+            "additions": 543,
             "deletions": 0
           }
         },
