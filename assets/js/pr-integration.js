@@ -214,33 +214,69 @@ class HIPPRIntegration {
     }
 
     addHIPsToTable(hips) {
-        console.log('Adding HIPs to table');
-        const wrapper = document.querySelector('main .wrapper');
-        if (!wrapper) {
-            console.error('Could not find wrapper element');
+        console.log('Adding HIPs to Review table');
+
+        // Find the existing Review table tbody
+        let reviewTbody = document.querySelector('.review-tbody');
+
+        // If Review table doesn't exist yet, check if we need to create it
+        if (!reviewTbody) {
+            console.log('Review table not found, checking if we need to create it');
+
+            // Check if there's a Review section already
+            const reviewHeading = document.querySelector('h2#review');
+            if (!reviewHeading) {
+                // Create the Review section if it doesn't exist
+                console.log('Creating Review section');
+                const wrapper = document.querySelector('main .wrapper') || document.querySelector('.wrapper') || document.querySelector('main');
+                if (!wrapper) {
+                    console.error('Could not find wrapper element');
+                    return;
+                }
+
+                // Find the appropriate position (after filters, before other status tables)
+                const filters = document.querySelector('.hip-filters');
+                const firstTable = document.querySelector('.hipstable');
+                const insertPoint = firstTable ? firstTable.parentElement : wrapper.lastElementChild;
+
+                const reviewContainer = document.createElement('div');
+                reviewContainer.innerHTML = `
+                    <h2 id="review">Review <span class="status-tooltip" data-tooltip="Review">ⓘ</span></h2>
+                    <table class="hipstable review-table">
+                        <thead>
+                            <tr>
+                                <th class="numeric">Number</th>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Needs Hiero Approval</th>
+                                <th>Needs Hedera Review</th>
+                                <th class="numeric version">Release</th>
+                            </tr>
+                        </thead>
+                        <tbody class="review-tbody"></tbody>
+                    </table>
+                `;
+
+                wrapper.insertBefore(reviewContainer, insertPoint);
+                reviewTbody = reviewContainer.querySelector('.review-tbody');
+            } else {
+                // Review section exists but might not have tbody with correct class
+                const reviewTable = reviewHeading.nextElementSibling;
+                if (reviewTable && reviewTable.classList.contains('hipstable')) {
+                    reviewTbody = reviewTable.querySelector('tbody');
+                    if (reviewTbody && !reviewTbody.classList.contains('review-tbody')) {
+                        reviewTbody.classList.add('review-tbody');
+                    }
+                }
+            }
+        }
+
+        if (!reviewTbody) {
+            console.error('Could not find or create Review table tbody');
             return;
         }
 
-        const lastStatusSection = wrapper.lastElementChild;
-        const draftContainer = document.createElement('div');
-        draftContainer.innerHTML = `
-            <h2 id="draft">Draft <span class="status-tooltip" data-tooltip="Draft">ⓘ</span></h2>
-            <table class="hipstable">
-                <thead>
-                    <tr>
-                        <th class="numeric">Number</th>
-                        <th>Title</th>
-                        <th>Author</th>
-                        <th>Needs Hiero Approval</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        `;
-
-        wrapper.insertBefore(draftContainer, lastStatusSection.nextSibling);
-        const tbody = draftContainer.querySelector('tbody');
-        const table = draftContainer.querySelector('.hipstable');
+        const table = reviewTbody.closest('.hipstable');
 
         hips.forEach(({ pr, metadata }) => {
             if (!metadata.title || metadata.title.trim() === '') {
@@ -248,15 +284,18 @@ class HIPPRIntegration {
                 return;
             }
 
-            const needsApproval = String(metadata['needs-council-approval']).toLowerCase() === 'true' ||
-                String(metadata['needs-hiero-approval']).toLowerCase() === 'true' ||
-                String(metadata.needs_council_approval).toLowerCase() === 'true' ||
+            const needsHieroApproval = String(metadata['needs-hiero-approval']).toLowerCase() === 'true' ||
                 metadata.type?.toLowerCase() === 'standards track';
+
+            const needsHederaReview = String(metadata['needs-hedera-review']).toLowerCase() === 'true' ||
+                String(metadata['needs-council-approval']).toLowerCase() === 'true' ||
+                String(metadata.needs_council_approval).toLowerCase() === 'true';
 
             const row = document.createElement('tr');
             row.dataset.type = (metadata.type || 'core').toLowerCase();
             row.dataset.status = 'draft';
-            row.dataset.councilApproval = needsApproval.toString();
+            row.dataset.hieroReview = needsHieroApproval.toString();
+            row.dataset.hederaReview = needsHederaReview.toString();
             row.dataset.category = metadata.category || '';
 
             const authors = metadata.author.split(',').map(author => {
@@ -281,10 +320,12 @@ class HIPPRIntegration {
                 <td class="hip-number"><a href="${pr.url}" target="_blank">PR-${pr.number}</a></td>
                 <td class="title"><a href="${pr.url}" target="_blank">${metadata.title}</a></td>
                 <td class="author">${authors.join(', ')}</td>
-                <td class="council-approval">${needsApproval ? 'Yes' : 'No'}</td>
+                <td class="hiero-review">${needsHieroApproval ? 'Yes' : 'No'}</td>
+                <td class="hedera-review">${needsHederaReview ? 'Yes' : 'No'}</td>
+                <td class="release"></td>
             `;
 
-            tbody.appendChild(row);
+            reviewTbody.appendChild(row);
         });
 
         this.setupTableSorting(table);
