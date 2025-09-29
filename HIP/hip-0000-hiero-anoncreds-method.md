@@ -37,7 +37,7 @@ The Hiero AnonCreds Method defines how AnonCreds objects are anchored, resolved,
 - **Revocation Registry Definitions**: Anchored on HCS for long-term persistence.  
 - **Revocation Registry Entries**: Updated dynamically on-chain, providing real-time revocation status.  
 - **Resolution**: Performed through Hiero Mirror Node APIs, allowing verifiers and wallets to retrieve the latest state.  
-- **Identifiers**: Objects are referenced using DID-compatible identifiers (e.g., `did:hedera:<network>:<topic>#<objectType>/<objectId>`).  
+- **Identifiers**: Objects are referenced using DID-compatible identifiers (`<issuer-did-on-hedera>/anoncreds/<anoncreds-version>/<object-type>/<hcs-topic-id>`).  
 
 ## Alignment with DID Methods
 
