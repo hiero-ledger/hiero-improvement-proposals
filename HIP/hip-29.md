@@ -5,7 +5,7 @@ author: Daniel Norkin <daniel.norkin@envisionblockchain.com>
 type: Standards Track
 category: Application
 needs-council-approval: No
-status: Final
+status: Active
 discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/166
 created: 2021-10-11
 updated: 2021-10-11
