@@ -290,14 +290,14 @@
     "title": "Enable Threshold (1-of-N) Support in HTS  Precompile",
     "number": 1069,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1069",
-    "headRefOid": "2e4a81d2b3aca4d0dcceb955f5a3f28305264b89",
+    "headRefOid": "6ed5e2ebac8476430e42edb00b0fb244198f2fcf",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1069.md",
             "changeType": "ADDED",
-            "additions": 130,
+            "additions": 152,
             "deletions": 0
           }
         }
