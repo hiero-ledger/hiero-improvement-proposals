@@ -1,0 +1,473 @@
+[
+  {
+    "title": "HIP - 1300 - Increased txn size max for governance accounts",
+    "number": 1300,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1300",
+    "headRefOid": "9382b87dfaf44a6868320fbef4251594c07fbb8c",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1300.md",
+            "changeType": "ADDED",
+            "additions": 122,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Mark-Swirlds"
+    }
+  },
+  {
+    "title": "HIP-1299 `account_id` updates for Address Book Node Entries.",
+    "number": 1299,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1299",
+    "headRefOid": "848a68c1e6333447de055700aafd6b802d1e0bc8",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1299.md",
+            "changeType": "ADDED",
+            "additions": 207,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "jsync-swirlds"
+    }
+  },
+  {
+    "title": "Create hip-0000-hiero-anoncreds-method.md",
+    "number": 1292,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1292",
+    "headRefOid": "1a0492a04a316ae8251578e1a8945b439b62f304",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-hiero-anoncreds-method.md",
+            "changeType": "ADDED",
+            "additions": 95,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Reccetech"
+    }
+  },
+  {
+    "title": "feat: add entity hip",
+    "number": 1272,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1272",
+    "headRefOid": "0e3a0216c1dfd1f6d5e28846ba837e4ddcf5cb27",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1272.md",
+            "changeType": "ADDED",
+            "additions": 117,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "kantorcodes"
+    }
+  },
+  {
+    "title": "HIP-1264: Dollar-denominated values",
+    "number": 1264,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1264",
+    "headRefOid": "4a3bfb49fed1e04be1208d9754a2f012d8569534",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1264.md",
+            "changeType": "ADDED",
+            "additions": 286,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/chart.umd.min.js",
+            "changeType": "ADDED",
+            "additions": 14,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/chartjs-adapter-date-fns.bundle.min.js",
+            "changeType": "ADDED",
+            "additions": 7,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/chartjs-plugin-annotation.min.js",
+            "changeType": "ADDED",
+            "additions": 7,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/chartjs-plugin-zoom.min.js",
+            "changeType": "ADDED",
+            "additions": 7,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/contrib/pako.min.js",
+            "changeType": "ADDED",
+            "additions": 2,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/index.css",
+            "changeType": "ADDED",
+            "additions": 576,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1264/index.html",
+            "changeType": "ADDED",
+            "additions": 1033,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Neurone"
+    }
+  },
+  {
+    "title": "feat(HIP): Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
+    "number": 1225,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1225",
+    "headRefOid": "ac66abbc8895525757bc3170c216f4ce8c454e98",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-increase-cryptocreate-throttle.md",
+            "changeType": "ADDED",
+            "additions": 93,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "tonycamero"
+    }
+  },
+  {
+    "title": "HIP-1208: Consensus Service Precompiled Contract for Smart Contract Service",
+    "number": 1208,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1208",
+    "headRefOid": "1ee22a30f3967785019a3b12a98708b2cd76593a",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1208.md",
+            "changeType": "ADDED",
+            "additions": 189,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "walter-hernandez"
+    }
+  },
+  {
+    "title": "HIP-1193 - Records to block streams cutover",
+    "number": 1193,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1193",
+    "headRefOid": "b6a950e96b6cd1374c424c0b6760f93dc8b06ae7",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1193.md",
+            "changeType": "ADDED",
+            "additions": 267,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Mark-Swirlds"
+    }
+  },
+  {
+    "title": "Improvements to the Wallet Connect implementation for dApps on Hedera",
+    "number": 1190,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1190",
+    "headRefOid": "faff8f1cfd575d4ed2af05a3637fb3613ba329ef",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1190.md",
+            "changeType": "ADDED",
+            "additions": 181,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "Recreate hip-851.md",
+    "number": 1182,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1182",
+    "headRefOid": "52fa4cfe17c347b4e0aa146e020aefdb7d163149",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-851.md",
+            "changeType": "ADDED",
+            "additions": 217,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "HIP-1137: Block Node Discoverability",
+    "number": 1137,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1137",
+    "headRefOid": "68cf26be8342fcd741fd2ac5c4cc5d293757a9e3",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1137.md",
+            "changeType": "ADDED",
+            "additions": 499,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "jsync-swirlds"
+    }
+  },
+  {
+    "title": "Support for Post-Quantum Cryptographic Algorithm",
+    "number": 1103,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1103",
+    "headRefOid": "a440591f358a21f33647e0b76c649e9a9d34ab1c",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-support-for-post-quantum-cryptographic-algorithm.md",
+            "changeType": "ADDED",
+            "additions": 100,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "JeremyPansier"
+    }
+  },
+  {
+    "title": "Allow Setting of EVM Address by EOA",
+    "number": 1082,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1082",
+    "headRefOid": "486b234f79348769390537845ada0e8f659f2866",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1082.md",
+            "changeType": "ADDED",
+            "additions": 248,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Nana-EC"
+    }
+  },
+  {
+    "title": "Enable Threshold (1-of-N) Support in HTS  Precompile",
+    "number": 1069,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1069",
+    "headRefOid": "6ed5e2ebac8476430e42edb00b0fb244198f2fcf",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1069.md",
+            "changeType": "ADDED",
+            "additions": 152,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "Sponsored Fees",
+    "number": 1068,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
+    "headRefOid": "5dfd71e5d801dc5a34b6e633855bf82177e22b48",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1068.md",
+            "changeType": "ADDED",
+            "additions": 543,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1068/IHRC1068.sol",
+            "changeType": "ADDED",
+            "additions": 55,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Nana-EC"
+    }
+  },
+  {
+    "title": "HIP 1009 - Native Schema Registry Service",
+    "number": 1009,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1009",
+    "headRefOid": "2f36c960e1746748bb7968dcfb11434aba2b6f66",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1009.md",
+            "changeType": "ADDED",
+            "additions": 164,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "justin-atwell"
+    }
+  },
+  {
+    "title": "Extend isAuthorized to process current transaction in HAS System Contract",
+    "number": 792,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/792",
+    "headRefOid": "8324ccf1258a89ac309accde50868b13373c8e8a",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-792.md",
+            "changeType": "ADDED",
+            "additions": 291,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "bguiz"
+    }
+  },
+  {
+    "title": "Support Fractional NFTs on HTS for ESG ",
+    "number": 543,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/543",
+    "headRefOid": "86eb0b70850b953760dbc22d214d5842f310f892",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-fractional-nfts.md",
+            "changeType": "ADDED",
+            "additions": 191,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "hip-0000-template.md",
+            "changeType": "MODIFIED",
+            "additions": 1,
+            "deletions": 1
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mattsmithies"
+    }
+  },
+  {
+    "title": "Recreate Buyable Tokens PR",
+    "number": 498,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/498",
+    "headRefOid": "6a3f72a8836e9355854bf9a36f24fcc030909981",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-498.md",
+            "changeType": "ADDED",
+            "additions": 125,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "cijujohn"
+    }
+  }
+]

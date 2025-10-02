@@ -9,7 +9,7 @@ status: Final
 last-call-date-time: 2021-12-21T07:00:00Z
 release: v0.22.0
 created: 2021-10-14
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/issues/165
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/issues/165
 updated: 2022-04-26
 ---
 

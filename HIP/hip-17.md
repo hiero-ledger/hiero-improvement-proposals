@@ -8,7 +8,7 @@ needs-council-approval: Yes
 status: Final
 release: v0.17.2
 created: 2021-04-22
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/74
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/74
 updated: 2023-02-01
 ---
 
@@ -363,6 +363,8 @@ message TokenTransferList {
 +   repeated NftTransfer nftTransfers = 3; // Applicable to tokens of type NON_FUNGIBLE_UNIQUE. Multiple list of NftTransfers, each of which has a sender and receiver account, including the serial number of the NFT
 }
 ```
+
+If a HAPI client submits a `CryptoTransfer` with a `TokenTransferList` that combines a fungible token with a non-empty `nftTransfers` list, it will fail with `NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE`. Similarly, a `TokenTransferList` that combines a non-fungible token with a non-empty `transfers` list fails with `ACCOUNT_AMOUNT_TRANSFERS_ONLY_ALLOWED_FOR_FUNGIBLE_COMMON`.
 
 ### CryptoGetInfoResponse
 

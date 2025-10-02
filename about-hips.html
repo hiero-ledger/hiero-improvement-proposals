@@ -3,112 +3,81 @@ layout: home
 title: HIPs Home
 ---
 
-<p><img src="./assets/hedera_logo.png" alt="Hedera Hashgraph logo"></p>
+<p><img src="./assets/hiero_logo.png" alt="Hiero logo"></p>
 
-<a href="https://discord.com/channels/373889138199494658/813488589773471774" target="_blank"><img
-        src="https://img.shields.io/discord/373889138199494658" alt="Discord Chat" style="margin-bottom: 20px;"></a>
+<a href="https://discord.com/channels/373889138199494658/813488589773471774" target="_blank">
+    <img src="https://img.shields.io/discord/373889138199494658" alt="Hedera Discord Chat" style="margin-bottom: 20px;">
+</a>
+<a href="https://discord.com/channels/905194001349627914/1289954446712770600" target="_blank">
+    <img src="https://img.shields.io/discord/373889138199494658" alt="LFDT Discord Chat" style="margin-bottom: 20px;">
+</a>
 
-<a href="https://github.com/hashgraph/hedera-improvement-proposal" target="_blank">
+<a href="https://github.com/hiero-ledger/hiero-improvement-proposals" target="_blank">
     <img alt="GitHub forks"
-         src="https://img.shields.io/github/forks/hashgraph/hedera-improvement-proposal?color=bright&label=fork%20me"
+         src="https://img.shields.io/github/forks/hiero-ledger/hiero-improvement-proposals?color=bright&label=fork%20me"
          style="margin-bottom: 20px;">
 </a>
 
 <h2 id="what-is-a-hip-">What is a HIP?</h2>
-<p>HIP stands for &quot;<i>Hedera Improvement Proposal</i>&quot;. These improvement proposals can range from core protocol
-    changes, to the applications, frameworks, and protocols built on top of the Hedera public network and used by the
-    community. The HIP author is responsible for building consensus within the community and documenting dissenting
-    opinions, as well as tracking their HIP through the process outlined below.</p>
-<h2 id="what-is-hedera-hashgraph-">What is Hedera Hashgraph?</h2>
-<p><a href="https://hedera.com">Hedera Hashgraph</a> is the only public network built on top of <a
-        href="http://www.leemon.com/">Dr. Leemon Baird</a>’s <a href="http://www.leemon.com/papers/2016b.pdf">Hashgraph
-    consensus algorithm</a>. Hedera goes beyond blockchain to provide the fast, fair, and secure environment needed to
-    enable enterprise adoption of distributed ledger technologies. You can learn more about Hedera by <a
-            href="https://hedera.com/whitepaper">reading the Hedera whitepaper</a>, and for a more detailed
-    understanding of the Hashgraph Consensus Algorithm you can check out the <a
-            href="http://www.leemon.com/papers/2016b.pdf">hashgraph algorithm whitepaper</a>.</p>
+<p>HIP stands for <strong>Hiero Improvement Proposal</strong>. A HIP is intended to provide information or initiate engineering efforts to update functionality under Hiero governance. The HIP should be technically clear and concise, and as granular as possible. Small, targeted HIPs are more likely to reach consensus and result in a reference implementation.</p>
+<p>HIPs are intended to be the primary mechanism for proposing new features, for collecting community input, and for documenting the design decisions that go into the Hiero codebase. The HIP author is responsible for building consensus within the community and documenting dissenting opinions. For HIPs that propose changes to the Hiero codebase (typically Standards Track HIPs for Core, Service, or Mirror Node categories), the process involves Hiero providing technical approval and Hedera providing review and acceptance if the changes are to be incorporated into the Hedera network or ecosystem. Because the HIPs are maintained as text files in a versioned repository, their revision history is the historical record of the proposal. HIPs are <strong>not</strong> meant to address *bugs* in implemented code. Bugs should be addressed using issues on the implementation\'s repository.</p>
+
+<h2 id="what-is-the-hashgraph-algorithm-">What is the Hashgraph Algorithm?</h2>
+<p>The <a href="http://www.leemon.com/papers/2016b.pdf">hashgraph consensus algorithm</a> was created by
+   <a href="http://www.leemon.com/">Dr. Leemon Baird</a>. Originally, Hedera was a public network built on top
+   of this algorithm; later, Hedera donated its codebase to the open-source Linux Foundation project now known
+   as Hiero. You can learn more by reading the
+   <a href="http://www.leemon.com/papers/2016b.pdf">hashgraph algorithm whitepaper</a>.</p>
+
 <h2 id="purpose">Purpose</h2>
-<p>The goal of HIPs is to have a place to propose new features, to collect community thoughts and input on a particular
-    issue, and further to document all these subject matters in one place. It’s a great way to document these
-    discussions and proposals <a href="https://github.com/hashgraph/hedera-improvement-proposal">here on GitHub</a>,
-    because any <a href="https://github.com/hashgraph/hedera-improvement-proposal/commits/master">revisions made on
-        these text files will be recorded</a>.</p>
+<p>The goal of HIPs is to have a transparent, collaborative place to propose new features, collect community
+   input on a particular issue, and document proposals and reasoning in one place. Publishing these proposals
+   <a href="https://github.com/hiero-ledger/hiero-improvement-proposals">on GitHub</a> means every revision is
+   recorded <a href="https://github.com/hiero-ledger/hiero-improvement-proposals/commits/master">in version history</a>.</p>
+
 <h2 id="process">Process</h2>
-<p>See <a href="HIP/hip-1.html">HIP-1</a> for details on the HIP process.</p>
+<p>See <a href="HIP/hip-1.html">HIP-1</a> for details on the current HIP process.</p>
+
 <h2 id="qualifications">Qualifications</h2>
-<p>Each HIP should only be one single key proposal and/or idea. The idea should be focused and only issue to one subject
-    matter to be successful. A HIP must meet certain minimum criteria: it must be clear and have a complete description
-    of the proposed enhancement, the enhancement must represent a net improvement, the proposed implementation, if
-    applicable, must be solid and must not complicate the protocol unduly.</p>
+<p>Each HIP should outline a single key proposal or idea, kept focused to a single subject for clarity.
+   A HIP must meet certain minimum criteria: it must be clearly written, describe the proposed enhancement
+   completely, represent a net improvement, and (if applicable) include a solid reference implementation
+   that does not unduly complicate the network.</p>
 
 <h2>HIP Types</h2>
-
-<p>There are three kinds of HIP:
-
+<p>There are three kinds of HIP:</p>
 <ol>
-
-    <li>A <b>Standards Track</b> HIP describes a new feature or implementation for Hedera. It may also describe an
-        interoperability standard that will be supported outside of the official Hedera node software stack. The
-        Standards Track HIP abstract should include which part of the Hedera ecosystem it addresses. Standards Track
-        HIPs require a specification and a reference implementation:
-
-        <ol class="ol-lower-latin">
-            <li><b>Core</b>: This includes proposals addressing the Hashgraph algorithm, peer-to-peer networking, etc.
-                These types of features are implemented on Hedera consensus nodes.
-            </li>
-
-            <li><b>Service</b>: Hedera services sit on top of the Core node software and provide the functionalities
-                that are accessed by users. These currently include the File Service, Consensus Service, Token Service,
-                and Smart Contract Service. This type of proposal should be used to add to or improve the service-layer
-                of Hedera. These types of features are implemented on Hedera consensus nodes.
-            </li>
-
-            <li><b>Mirror</b>: A mirror node runs software designed to retrieve all, or some of the records generated by
-                the Hedera consensus nodes and make those records available to users in a way that is meaningful,
-                reliable, and trustworthy.
-            </li>
-
-            <li><b>Application</b>: Application standards may be used to standardize software in the Hedera ecosystem
-                that aren't mirror or consensus nodes. This includes application network software, external contract
-                consensus nodes, multi-sig oracles, persistence mechanisms, enterprise software plugins, etc. An example of
-                an Application standard would be the Stablecoin Contract and Non-fungible Token Contract written in Java
-                as a layer-2 solution using the Hedera Consensus service to maintain trust.
-            </li>
-        </ol>
+    <li>
+      <b>Standards Track</b> &mdash; Describes a new feature or implementation for the Hiero codebase.
+      <ol class="ol-lower-latin">
+        <li><b>Core:</b> Proposals addressing the low-level protocol, algorithm, or networking layers.</li>
+        <li><b>Service:</b> Proposals that add or improve functionality at the service layer of the Hiero software stack.</li>
+        <li><b>Mirror:</b> Proposals for software designed to retrieve records (transactions, logs, etc.) from the core network and make them available to users in a meaningful way.</li>
+        <li><b>Block Node:</b> Proposals for software designed to retrieve records (transactions, logs, etc.) from the core network and make them available to users in a pruned and meaningful way.</li>
+        <li><b>Application:</b> Proposals to standardize ecosystem software that isn’t directly a Hiero node or mirror (e.g., application network software, external contract consensus services, oracles).</li>
+      </ol>
     </li>
-
-    <li>An <b>Informational</b> HIP describes a Hedera design issue, or provides general guidelines or information to
-        the Hedera community, but does not propose a new feature. Informational HIPs do not necessarily represent a
-        Hedera community consensus or recommendation, so users and implementers are free to ignore Informational HIPs or
-        follow their direction.
+    <li>
+      <b>Informational</b> &mdash; Describes a Hiero design issue or provides general guidelines to the community but does not propose a new feature or standard. Such HIPs do not necessarily represent a community consensus or recommendation.</li>
+    <li>
+      <b>Process</b> &mdash; Describes a process surrounding Hiero, or proposes a change to one. Process HIPs are similar to Standards Track HIPs but apply outside the code itself. Meta-HIPs (HIPs about HIPs, like HIP-1) are considered Process HIPs.
     </li>
-
-    <li>A <b>Process</b> HIP describes a process surrounding Hedera, or proposes a change to a process. Process HIPs are
-        like Standards Track HIPs but apply to areas other than the node and ecosystem software codebases. They may
-        propose an implementation, but not to Hedera's codebase; they often require community consensus; unlike
-        Informational HIPs, they are more than recommendations, and users are typically not free to ignore them.
-        Examples include procedures, guidelines, and changes to the decision-making process. Any meta-HIP is also
-        considered a Process HIP.
-    </li>
-
 </ol>
 
-<h2 id="before-submitting">Before Submitting</h2>
+<h2 id="before-submitting">Before Submitting a HIP</h2>
 <ol>
-    <li><p>Evaluate your idea: consider why you’d like to request changes or improvements, and how it benefits the
-        Hedera Hashgraph community.</p>
-    </li>
-    <li><p>Thoroughly look through those proposals already submitted to ensure there are no duplicates.</p>
-    </li>
-    <li><p>Ask the Hedera Hashgraph community first if your idea is original, or has already been through the HIP
-        process.</p>
-    </li>
-    <li><p>Reevaluate your proposal to ensure sure the idea is applicable to the entire community and not just to one
-        particular author, application, project, or protocol.</p>
-    </li>
+    <li><p>Evaluate your idea: consider why you’d like to request changes or improvements and how it benefits
+        the broader Hiero community.</p></li>
+    <li><p>Check existing proposals to ensure there are no duplicates.</p></li>
+    <li><p>Discuss the idea with the Hiero community (for example, on
+        <a href="https://discord.com/channels/373889138199494658/813488589773471774">Hedera’s Discord</a> or <a href="https://discord.com/channels/905194001349627914/1289954446712770600">LFDT's Discord</a>) to confirm
+        whether it’s original or if it’s been addressed before.</p></li>
+    <li><p>Reevaluate your proposal to make sure it is generally applicable and not limited to a single project
+        or narrow use case.</p></li>
 </ol>
+
 <h5 id="note">Note</h5>
 <p>An excellent place to discuss your proposal and get feedback is in the <a
-        href="https://github.com/hashgraph/hip/issues">issues section of this repository</a>, or on <a
-        href="https://hedera.com/discord">Hedera&#39;s Discord Server</a>; there you can start formalizing the language
-    around your HIP and ensuring it has broad community support.</p>
+        href="https://github.com/hiero-ledger/hiero-improvement-proposals/issues">issues section of this repository</a>
+    or on <a href="https://discord.com/channels/373889138199494658/813488589773471774">Hedera’s Discord</a> or on <a href="https://discord.com/channels/905194001349627914/1289954446712770600">LFDT's Discord</a>.
+    There, you can gather community input and refine the language around your HIP to ensure broad support.</p>

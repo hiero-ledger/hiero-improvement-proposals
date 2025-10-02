@@ -9,7 +9,7 @@ status: Final
 last-call-date-time: 2021-11-30T07:00:00Z
 release: v0.54.0
 created: 2021-06-09 
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/82
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/82
 updated: 2024-05-14
 ---
 
@@ -150,4 +150,4 @@ rpc getNetworkInfo () returns (NodeAddressBook); //Retrieves network information
 
 - https://github.com/hashgraph/hedera-protobufs/blob/main/services/basic_types.proto#L1171
 - https://github.com/hashgraph/hedera-protobufs/blob/main/services/basic_types.proto#L1194
-- https://github.com/hashgraph/hedera-mirror-node/issues/946
+- https://github.com/hiero-ledger/hiero-mirror-node/issues/946

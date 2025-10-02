@@ -1,0 +1,175 @@
+name: Update Draft HIPs Data
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # Runs every 6 hours
+  workflow_dispatch: # Allows manual triggering
+
+permissions:
+  contents: read
+
+jobs:
+  update-draft-hips:
+    if: ${{ github.ref == 'refs/heads/main' }} # Only run on main branch
+    runs-on: hiero-improvement-proposals-linux-medium
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout Code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          ref: 'main'
+
+      - name: Import GPG Key
+        id: gpg_importer
+        uses: step-security/ghaction-import-gpg@c86c374c0659a6c2d1284bccf8af889e73ce8fe0 # v6.3.0
+        with:
+          git_commit_gpgsign: true
+          git_tag_gpgsign: true
+          git_user_signingkey: true
+          gpg_private_key: ${{ secrets.GPG_KEY_CONTENTS }}
+          passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20"
+
+      - name: Create Script
+        run: |
+          mkdir -p _data
+          cat << 'EOF' > fetch-draft-hips.js
+          const https = require('https');
+          const fs = require('fs');
+
+          async function makeGraphQLRequest(query, token) {
+            return new Promise((resolve, reject) => {
+              const options = {
+                hostname: 'api.github.com',
+                path: '/graphql',
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                  'User-Agent': 'Node.js'
+                }
+              };
+
+              const req = https.request(options, (res) => {
+                let data = '';
+                res.on('data', chunk => { data += chunk; });
+                res.on('end', () => resolve(JSON.parse(data)));
+              });
+
+              req.on('error', reject);
+              req.write(JSON.stringify({ query }));
+              req.end();
+            });
+          }
+
+          async function getAllPRs() {
+            const query = `
+              query { 
+                repository(name: "hiero-improvement-proposals", owner: "hiero-ledger") {
+                  pullRequests(first: 100, states: [OPEN], orderBy: {field: CREATED_AT, direction: DESC}) {
+                    nodes {
+                      title
+                      number
+                      url
+                      headRefOid
+                      files(first: 100) {
+                        edges {
+                          node {
+                            path
+                            changeType
+                            additions
+                            deletions
+                          }
+                        }
+                      }
+                      author {
+                        login
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            try {
+              const result = await makeGraphQLRequest(query, process.env.GITHUB_TOKEN);
+              
+              if (result.errors) {
+                console.error('GraphQL errors:', result.errors);
+                process.exit(1); 
+              }
+
+              // Check if data and the expected path to nodes exist
+              if (!result.data || !result.data.repository || !result.data.repository.pullRequests || !result.data.repository.pullRequests.nodes) {
+                console.error('Unexpected GraphQL response structure:', result);
+                process.exit(1);
+              }
+
+              return result.data.repository.pullRequests.nodes;
+            } catch (error) {
+              console.error('Error fetching PRs:', error);
+              throw error;
+            }
+          }
+
+          // Run the main function
+          getAllPRs().then(allPRs => {
+            const draftHIPPRs = allPRs.filter(pr => {
+              if (!pr.files || !pr.files.edges) {
+                return false;
+              }
+              const hipFiles = pr.files.edges.filter(edge => {
+                const fileNode = edge.node;
+                const isNewHIPFile = /^HIP\/hip-[a-zA-Z0-9-]+\.md$/.test(fileNode.path);
+                return fileNode.changeType === 'ADDED' && isNewHIPFile;
+              }).map(edge => edge.node);
+
+              return hipFiles.length > 0;
+            });
+
+            const outputPath = '_data/draft_hips.json';
+            
+            if (fs.existsSync(outputPath)) {
+              console.log(`Removing existing file: ${outputPath}`);
+              fs.unlinkSync(outputPath);
+            }
+            
+            console.log(`Writing ${draftHIPPRs.length} filtered PRs to: ${outputPath}`);
+            fs.writeFileSync(outputPath, JSON.stringify(draftHIPPRs, null, 2));
+          }).catch(error => {
+            console.error('Failed to fetch and filter PRs:', error);
+            process.exit(1);
+          });
+          EOF
+
+      - name: Run Script
+        run: node fetch-draft-hips.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Commit and Push Changes
+        env:
+          GITHUB_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
+          GITHUB_USER_NAME: ${{ vars.GIT_USER_NAME }}
+        run: |
+          set -e
+          git config --local user.email "$GITHUB_USER_EMAIL"
+          git config --local user.name "$GITHUB_USER_NAME"
+          git add _data/draft_hips.json
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          
+          git commit -s -S -m "Update draft HIPs data [skip ci]"
+          git push origin main
+          set +e

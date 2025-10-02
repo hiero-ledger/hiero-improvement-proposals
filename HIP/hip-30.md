@@ -5,10 +5,10 @@ author: Danno Ferrin <danno.ferrin@hedera.com>
 type: Standards Track
 category: Application
 needs-council-approval: No
-status: Accepted
+status: Active
 last-call-date-time: 2021-11-23T07:00:00Z
 created: 2021-10-11
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/169
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/169
 updated: 2021-11-30
 ---
 
@@ -34,7 +34,7 @@ There are two key places multiple variations of the identifier could be made.
 The first is the style of the blockchain identifier. Because Hedera is intended
 to only serve a small set of purpose built networks the style that Steller
 adopted in
-[CAIP-28](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-28.md)
+[CAIP-28](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-28.md)
 seemed more appropriate.
 
 For separators of the shard, realm and identifiers replacing the dotted notation
@@ -92,8 +92,8 @@ hedera:mainnet:0.0.123-vfmkw
 There are two types of native assets defined for the `hedera` namespace, `token`
 and `nft`. Both are provided by the Hedera Token Service. Because Hedera also
 supports EVM execution in some of its services the ethereum token
-types `erc20` ([CAIP-21](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-21.md)
-and `erc721` ([CAIP-22](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-21.md))
+types `erc20` ([CAIP-21](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-21.md)
+and `erc721` ([CAIP-22](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-21.md))
 are also possible in the `hedera` namespace, although their use is expected to
 be less than the use of the Hedera Token Service.
 
@@ -221,7 +221,7 @@ standard JSON-RPC apis at this time.
 ### Using letters instead of dashes in account identifier
 
 As currently specified
-[CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md)
+[CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md)
 prohibits dashes in account identifiers. The option of using letters to separate
 decimals did not read as well (`hedera:mainnet:r0s0a720`
 / `hedera:mainnet:0-0-720`). Updating the CAIP to support dashes was viewed as a
@@ -241,11 +241,11 @@ None at this time
 
 * Chain Agnostic Improvement Proposals - https://github.com/ChainAgnostic/CAIPs
 * CAIP-2: Blockchain ID Specification
-    - https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-2.md
+    - https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
 * CAIP-10: Account ID Specification
-    - https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-10.md
+    - https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md
 * CAIP-19: Asset Type and Asset ID
-  Specification https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-19.md
+  Specification https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-19.md
 
 ## Copyright/license
 

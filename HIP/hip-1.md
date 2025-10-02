@@ -1,378 +1,237 @@
 ---
 hip: 1
-title: Hedera Improvement Proposal Process
-author: Ken Anderson (@kenthejr), Serg Metelin (@sergmetelin), Simi Hunjan (@SimiHunjan)
+title: Hiero Improvement Proposal Process
+author: Ken Anderson (@kenthejr), Serg Metelin (@sergmetelin), Simi Hunjan (@SimiHunjan), Michael Garber (@mgarbs)
 type: Process
-needs-council-approval: No
 status: Active
 created: 2021-02-11
-discussions-to: https://github.com/hashgraph/hedera-improvement-proposal/discussions/54
-updated: 2021-10-27
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/54
+updated: 2025-07-23
 ---
 
 ## What is a HIP?
 
-HIP stands for Hedera Improvement Proposal. A HIP is intended to provide information or initiate engineering efforts to update Hedera functionality. The HIP should be technically clear and concise. HIPs should be as granular as possible. Small targeted HIPs are more likely to reach consensus and result in a reference implementation. This may require breaking a bigger idea into smaller components.
+HIP stands for **Hiero Improvement Proposal**. A HIP is intended to provide information or initiate engineering efforts to update functionality under Hiero governance. The HIP should be technically clear and concise, and as granular as possible. Small, targeted HIPs are more likely to reach consensus and result in a reference implementation.
 
-HIPs are intended to be the primary mechanism for proposing new features, for collecting community input, and for documenting the design decisions that have gone into Hedera Hashgraph. The HIP author is responsible for building consensus within the community and documenting dissenting opinions.
+HIPs are intended to be the primary mechanism for proposing new features, for collecting community input, and for documenting the design decisions that go into the Hiero codebase. The HIP author is responsible for building consensus within the community and documenting dissenting opinions.
 
-Because the HIPs are maintained as text files in a versioned repository, their revision history is the historical record of the feature proposal.
+For HIPs that propose changes to the Hiero codebase (typically Standards Track HIPs for Core, Service, Mirror Node or Block Node categories), the process involves Hiero providing technical approval and Hedera providing review and acceptance if the changes are to be incorporated into the Hedera network or ecosystem.
 
-HIPs are not meant to address *bugs* in implemented code. Bugs should be addressed using issues on the implementation's repository.
+Because the HIPs are maintained as text files in a versioned repository, their revision history is the historical record of the proposal. HIPs are **not** meant to address *bugs* in implemented code. Bugs should be addressed using issues on the implementation's repository.
+
+> **Note on Hedera Adoption**  
+> While the Hiero Technical Steering Committee (TSC) decides on Approving or Rejecting HIPs into the Hiero codebase, there is an optional set of headers (`needs-hedera-review`, `hedera-reviewed-on`, `hedera-acceptance-status`) to note if/when Hedera decides to Accept the HIP to be included on mainnet. If Hedera chooses not to adopt, the `hedera-acceptance-status` can be set to `Not Accepted`. The HIP maintainer is responsible for updating these fields.
 
 ## HIP Types
 
 There are three kinds of HIP:
 
-1. A **Standards Track** HIP describes a new feature or implementation for Hedera. It may also describe an interoperability standard that will be supported outside of the official Hedera node software stack. The Standards Track HIP abstract should include which part of the Hedera ecosystem it addresses. Standards Track HIPs require a specification and a reference implementation:
+1. **Standards Track**
+   Describes a new feature or implementation for the Hiero codebase or an interoperability standard recognized by Hiero. The Standards Track HIP abstract should include which part of the Hiero ecosystem it addresses. Standards Track HIPs require both a specification and a reference implementation.
 
-    **a. Core:** This includes proposals addressing the Hashgraph algorithm, peer-to-peer networking, etc. These types of features are implemented on Hedera consensus nodes.
+   - **Core:** Proposals addressing the low-level protocol, algorithm, or networking layers.  
+   - **Service:** Proposals that add or improve functionality at the service layer of the Hiero software stack.  
+   - **Mirror, Block Node:** Proposals for software designed to retrieve records (transactions, logs, etc.) from the core network and make them available to users in a meaningful way.
+   - **Application:** Proposals to standardize ecosystem 
+   software that isn’t directly a Hiero node or mirror (e.g., application network software, external contract consensus services, oracles).
 
-    **b. Service:** Hedera services sit on top of the Core node software and provide the functionalities that are accessed by users. These currently include the File Service, Consensus Service, Token Service, and Smart Contract Service. This type of proposal should be used to add to or improve the service-layer of Hedera. These types of features are implemented on Hedera consensus nodes.
+2. **Informational**  
+   Describes a Hiero design issue or provides general guidelines to the community but does not propose a new feature or standard. Such HIPs do not necessarily represent a community consensus or recommendation.
 
-    **c. Mirror:** A mirror node runs software designed to retrieve all, or some of the records generated by the Hedera consensus nodes and make those records available to users in a way that is meaningful, reliable, and trustworthy.
-
-    **d. Application:** Application standards may be used to standardize software in the Hedera ecosystem that aren't mirror or consensus nodes. This includes application network software, external contract consensus nodes, multi-sig oracles, persistence mechanisms, enterprise software plugins, etc. An example of an Application standard would be the Stablecoin Contract and Non-fungible Token Contract written in Java as a layer-2 solution using the Hedera Consensus service to maintain trust.
-
-2. An **Informational** HIP describes a Hedera design issue or provides general guidelines or information to the Hedera community but does not propose a new feature. Informational HIPs do not necessarily represent a Hedera community consensus or recommendation, so users and implementers are free to ignore Informational HIPs or follow their directions.
-
-3. A **Process** HIP describes a process surrounding Hedera, or proposes a change to a process. Process HIPs are like Standards Track HIPs but apply to areas other than the node and ecosystem software codebases. They may propose an implementation, but not to Hedera's codebase; they often require community consensus; unlike Informational HIPs, they are more than recommendations, and users are typically not free to ignore them. Examples include procedures, guidelines, and changes to the decision-making process. Any meta-HIP is also considered a Process HIP.
+3. **Process**  
+   Describes a process surrounding the Hiero codebase, or proposes a change to one. Process HIPs are similar to Standards Track HIPs but apply outside the code itself. Meta-HIPs are considered Process HIPs.
 
 ## HIP Workflow
 
-### Hedera Council
+### Hiero Technical Steering Committee
 
-The Hedera Council or "the Council" is made up of large organizations who participate in decisions related to the technical development roadmap, treasury management, and general governance. The Council has the final say on Core, Service, and Mirror node Standards Track HIPs.
+The Hiero Technical Steering Committee (Hiero TSC) is the body that makes final decisions on whether or not to Approve Standards Track HIPs pertaining to Hiero’s core or service layers. The Committee is also responsible for decisions regarding the technical governance of the open-source codebase donated by Hedera.
 
-### Hedera Core Developers
+### Core Developers
 
-Hedera Core Developers or "core developers" include those who are tasked with the development of any part of the Hedera platform or ecosystem; this includes employees of Hedera, contractors hired by Hedera directly, and community developers who have received grants to develop and maintain a project.
+Hiero’s “core developers” include those contributing to the open-source project under the Hiero Organizatioon—employees, contractors, or community members recognized by Hiero.
 
 ### HIP Editors
 
-The HIP editors or "editors" are individuals responsible for managing the administrative and editorial aspects of the HIP workflow. HIP editorship is by invitation of the current editors or by assignment by the Council.
+HIP editors are individuals responsible for the administrative and editorial aspects of the HIP workflow, such as assigning HIP numbers and merging pull requests once a HIP is properly formatted.
 
-### Start with an idea for Hedera
+### Start With an Idea
 
-The HIP process begins with a new idea for Hedera. It is highly recommended that a single HIP contain a single key proposal or new idea. The more focused the HIP, the more successful it tends to be. Hedera collaborators and maintainers reserve the right to reject a HIP if it appears too unfocused or too broad. If in doubt, split your HIP into several well-focused ones.
+The HIP process begins with a new idea. It is highly recommended that a single HIP contains a single key proposal or new idea. HIP editors reserve the right to reject a HIP if it appears too unfocused or broad. If in doubt, split your HIP into several well-focused ones.
 
-Each HIP must have a champion -- someone who writes the HIP using the style and format described below, shepherds the discussions in the appropriate forums, and attempts to build community consensus around the idea. The HIP champion (a.k.a. Author) should first attempt to ascertain whether the idea is HIP-able. Circulating the idea in Hedera's Discord server (https://hedera.com/discord) or in an issue in the Hedera HIP GitHub Repository (https://github.com/hashgraph/hedera-improvement-proposal) is the best way to do so.
-
-Vetting an idea publicly before going as far as writing a HIP is meant to save the potential author time. Asking the community first if an idea is original helps avoid too much time being spent on something that may be rejected based on prior discussions. It also helps to make sure the idea is applicable to the entire community and not just the author. The ideal place to vet ideas is in the GitHub Discussions "Ideas" category (https://github.com/hashgraph/hedera-improvement-proposal/discussions/categories/ideas).
-
-Authors should:
-
-1. Create a new discussion with the category of "Ideas."
-2. Ensure that the title of the Idea is your proposed title for the HIP.
-3. Fill out as much of the HIP template as the initial discussion comment.
-4. Update the initial comment with any updates that have received consensus.
-
-The goal is that once the Idea has been fully vetted, it should be relatively trivial to submit a formal HIP.
-
-Once the champion has discovered with the Hedera community the acceptability of the idea, the proposal should be submitted as a draft HIP via a GitHub pull request. The draft must be written in HIP style as described below, else it will fail review immediately (although minor errors may be corrected by the editors).
+Each HIP must have a champion (the “author”) who writes the HIP in the specified style, shepherds discussions, and attempts to build consensus. The champion can make a PR of their HIP against the official repository and the PR will serve as the HIP's discussion and the link to the PR will be the value of the `discussions-to` header.
 
 ### ⚠️ Setting up DCO
 
-The Hedera Improvement Proposals repository inherits security practices of the wider `hashgraph` GitHub org and requires the Developer Certificate of Origin (DCO) on Pull Requests.
-
-Make sure you set up your DCO before working on a new HIP or contributing to existing HIPs. You can read about DCO in more detail here: [https://www.secondstate.io/articles/dco/](https://www.secondstate.io/articles/dco/) and here: [https://github.com/apps/dco](https://github.com/apps/dco). If you don't set your DCO correctly, editors will not be able to merge your PR until the DCO dependency is resolved.
-
-If your DCO checks fail, your PR will not pass automatic tests, and you will see an error similar to the one below on the PR page on GitHub:
-
-![DCO Fail](../assets/hip-1/dco_fail.png)
-
-If you have set everything up correctly, your PR will pass automatic DCO tests, and you will get a green checkmark:
-
-![DCO Success](../assets/hip-1/dco_success.png)
+This repository inherits security practices requiring the Developer Certificate of Origin (DCO). Please set up your DCO sign-off before creating or updating a HIP. 
 
 ### Submitting a HIP
 
-The standard HIP workflow is:
-
-* You, the HIP author, fork the HIP repository, and create a file named `hip-0000-my-feature.md` (where "my-feature" is descriptive) that contains your new HIP. Use 0000 as your draft HIP number. This file should be created from the HIP template.
-
-* In the "Type" header field, enter "Standards Track", "Informational", or "Process" as appropriate.
-  
-* For "Status" field, enter "Draft."
-
-* Push this to your Github fork and submit a draft pull request ([https://github.blog/2019-02-14-introducing-draft-pull-requests/](https://github.blog/2019-02-14-introducing-draft-pull-requests/)).
-
-* As you iterate through the community feedback, you add changes to the HIP which will be reflected in the draft pull request.
-
-* Once you finalize the changes related to the feedback, convert the pull request from "Draft" to "Review". This will signal an editor to review your HIP.
-
-* The HIP editors review your PR for structure, formatting, and other errors. Approval criteria are:
-
-    * It is sound and complete. The ideas must make technical sense. The editors do not consider whether they seem likely to be accepted.
-
-    * The title accurately describes the content.
-
-    * The HIP's language (spelling, grammar, sentence structure, etc.) and code style should be correct and conformant.
-
-    Editors are generally quite lenient about this initial review, expecting that problems will be corrected by the reviewing process.
-
-    If the HIP isn't ready for approval, an editor will send it back to the author for revision, with specific instructions and will change the status of the HIP back to the "Draft".
-
-* Once approved, editors will assign your HIP a number, change status to "Draft" and merge your PR into the main branch.
-
-HIP editors will not unreasonably deny publication of a HIP. Reasons for denying HIP status include duplication of effort, being technically unsound, or not providing proper motivation.
-
-Developers with git push privileges for the HIP repository may claim HIP numbers directly by creating and committing a new HIP. When doing so, the developer must handle the tasks that would normally be taken care of by the HIP editors. This includes ensuring the initial version meets the expected standards for submitting a HIP. Alternatively, even developers should submit HIPs via pull request.
-
-After a HIP number has been assigned, a draft HIP may be discussed further in the Hedera Developer Discord server or in issues referencing the HIP.
-
-HIP authors are responsible for collecting community feedback on a HIP before submitting it for review.
+1. **Fork the HIP repository**, and create a markdown file named `hip-0000-my-feature.md`.  
+2. Include the standard HIP front-matter (preamble) at the top, using “Draft” for `status` and “0000” as a placeholder HIP number.  
+3. **Open a draft pull request** for your newly created file.  
+4. Iterate with the community, updating the PR as needed.  
+5. When ready, convert the PR from "Draft" to "Review" to request an editorial review.  
+6. The editors will check for correct structure, formatting, and clarity. If the HIP is sound, they will:  
+   - Assign a HIP number (usually the PR number)  
+   - Merge the PR into the repository with `Draft` status  
+7. From there, the community continues discussion—possibly leading to further commits or PRs that update the HIP.
 
 ### HIP Review & Resolution
 
-Once authors have completed a HIP, they may request a review for style and consistency from the HIP editors. They can signal this by changing the status of the HIP in the HIP header from "Draft" to "Review."
+When the HIP author believes the proposal is complete, they may request content review from the core developers and editors. A HIP must be clear and complete, presenting a net positive improvement.
 
-However, content review and final acceptance of the HIP must be requested of the core developers, which may include community developers responsible for the codebase being proposed for improvement.
+A HIP may be marked **Last Call** to gather final user feedback. 
 
-For a HIP to be accepted, it must meet certain minimum criteria. It must be a clear and complete description of the proposed improvement. The improvement must represent a net value-add. The proposed implementation, if applicable, must be solid and must not complicate the network unduly.
+Following a successful **Last Call** period (or if **Last Call** is deemed unnecessary for minor changes):
+- For HIPs requiring Hiero's technical endorsement (most Standards Track and Process HIPs), the Hiero TSC will review the HIP. If they agree, the HIP status changes to **Approved**.
+- For HIPs that also require Hedera's acceptance (e.g., changes to be implemented on the Hedera mainnet, typically Standards Track HIPs of type Core, Service, Mirror Node, Block Node where `needs-hedera-review: Yes`), Hedera will conduct a review. If Hedera agrees to adopt and implement the HIP its header property `hedera-acceptance-decision` and `hedera-reviewed-on` should be updated with the date and the decision made (**Accepted** or **Not Accepted**).
 
-To allow gathering of additional design and interface feedback before committing to long term stability, a HIP will be marked as "Last Call". This indicates that the proposal has been accepted for inclusion, but additional user feedback is needed before the full design can be considered "Accepted". A HIP in the "Last Call" status may still be Rejected or Withdrawn even after the related changes have been implemented. 
-
-This "Last Call" status stays in effect until the DateTime specified in `last-call-date-time` preamble field. This field is specified by the editor and is usually set as 14 days from the moment a pull requested is reviewed.
-
-An accepted HIP is a HIP that went through the "Last Call" period without changes and its status has been converted to "Accepted" by an editor at the end of `last-call-date-time` period.
-
-Once a HIP has been accepted, the reference implementation must be completed. When the reference implementation is complete and incorporated into the main source code repository, the status will be changed to "Final". A Standards Track HIP must include a specification, and a reference implementation in order to be considered for a "Final" status. For Process HIPs and Standards Track HIPs that introduce protocol standards, once the process or protocol has been implemented and recognized as official by a combination of the community, core developers, and the Council, the status will be changed to "Final".
-
-A HIP can also be assigned the status of "Deferred". The HIP author, or an editor can assign the HIP this status when no progress is being made on the HIP. Once a HIP is deferred, a HIP editor can re-assign to draft status.
-
-A HIP can also be "Rejected." Perhaps, after all is said and done, it was not a good idea. It is still important to have a record of this fact. The "Withdrawn" status is similar - it means that the HIP author themselves has decided that the HIP is actually a bad idea, or has accepted that a competing proposal is a better alternative.
-
-When a HIP is Accepted, Rejected or Withdrawn, the HIP should be updated accordingly.
-
-HIPs can also be superseded by a different HIP, rendering the original obsolete. This is intended for Informational HIPs, where version 2 of an API can replace version 1.
-
-Some HIPs will have to be approved by the Governing Council before getting a `Accepted` status'. This is usually the case for HIPs in the `Standards Track` type and `Core`, `Service` and `Mirror` categories, but can expand to other HIPs as well. The HIPs editors will double-check if the `Yes` flag on `needs-council-approval` header field needs to be set. If HIP needs Governing Council approval, it will have to go through a 'Council Review' status and be reviewed at the next Technical Committee meeting of the Governing Council.
-
-The Council (specifically techcom) approves the HIPs that have `needs-council-approval` field set to `yes`. The Council approves (if the HIP has reached the Council approval stage) or conditionally approves (if the HIP is still waiting in the public commenting phase) the HIPs. When a HIP goes through this approval, it may or may not have final state of the API defined. In this sense, the Council is voting on approving the feature for further design at that stage.
-
-After the Council approves the HIP, the HIP authors can add more details (like a more detailed API definition) to the HIP before it is implemented/active. Adding these details does not require re-approval from the Council. However, if the HIP deviates from its core design, it requires re-approval from the Council.
-
-The possible paths of the status of HIPs are as follows:
-
-![HIP States](../assets/hip-1/hip-states.png)
+A HIP can only be reviewed by Hedera after it has been **Approved** by Hiero TSC (if Hiero TSC approval is required).
 
 ### HIP Status Titles
 
-- __Idea__ - An idea that is pre-draft. This is not tracked within the HIP Repository.
-- __Draft__ - The first formally tracked stage of a HIP in development. A HIP is merged by a HIP Editor into the HIP repository when properly formatted.
-- __Review__ - A HIP Author marks a HIP as ready for and requesting Editorial Review.
-- __Deferred__ - A HIP under consideration for future implementation, but not set for immediate action.
-- __Withdrawn__ - The HIP Author(s) have withdrawn the proposed HIP. This state has finality and can no longer be resurrected using this HIP number. If the idea is pursued at a later date - it is considered a new proposal.
-- __Stagnant__ - Any HIP in Draft or Review if inactive for a period of 6 months or greater, is moved to Stagnant. A HIP may be resurrected from this state by Authors or HIP Editors through moving it back to Draft.
-- __Rejected__ - Throughout the discussion of a HIP, various ideas will be proposed which are not accepted. Those rejected ideas should be recorded along with the reasoning as to why they were rejected. This helps record the thought process behind the final version of the HIP and prevents people from bringing up the same rejected idea again in subsequent discussions.
-- __Last Call__ - This is the final review window for a HIP before moving to "Accepted." A HIP editor will assign Last Call status and set a review end date (`last-call-date-time`), typically 14 days later. If this period results in necessary normative changes, it will revert the HIP to Review.
-- __Council Review__ - Some HIPs will have to be approved by the Governing Council before getting a `Accepted` status'. This is usually the case for HIPs in the `Standards Track` type and `Core`, `Service` and `Mirror` categories, but can expand to other HIPs as well. The HIP editors will double-check if the `Yes` flag on `needs-council-approval` header field needs to be set. If HIP needs Governing Council approval, it will have to go through a 'Council Review' status and be reviewed at the next Technical Committee meeting of the Governing Council.
-- __Accepted__ - An accepted HIP is a HIP that went through the "Last Call" status period without changes to the content and is considered ready for implementation. This is often a base HIP proposal for the development team to start implementing IP in code.
-- __Final__ - This HIP represents the final standard implemented in code. A Final HIP exists in a state of finality and should only be updated to correct errata and add non-normative clarifications.
-- __Active__ - Some Informational or Process HIPs may also have a status of "Active" if they are never meant to be completed. An "Active" HIP may be "Withdrawn" or "Replaced" by another HIP. If the idea is pursued at a later date - it is considered a new proposal.
-- __Replaced__ - "Replaced" HIPs are overwritten by a newer standard or implementation. 
+- **Idea** – Pre-draft, not in the repository. 
+- **Draft** – The formal starting point of a HIP. The HIP is currently being drafted and is not yet ready for review.
+- **Review** – The HIP is ready for review by the community and HIP editors.
+- **Last Call** – The HIP is in a final review window, typically 14 days, before being moved to a Hiero TSC approval vote (Service, Core, Mirror or Block Node HIPs) or `Approved` (Application HIPs).
+- **Approved** – A Standards Track HIP has been approved by Hiero TSC or by the community in the case of `Application` category HIPs.
+- **Final** – A Standards Track HIP has been reviewed and approved by Hiero TSC and its reference implementation has been merged.
+- **Active** – A Process or Informational HIP that is currently in effect.
+- **Deferred** – A HIP that is not currently being pursued but may be revisited in the future.
+- **Withdrawn** – Author has withdrawn the HIP.  
+- **Stagnant** – A HIP that has been inactive for a significant period (e.g., 6+ months) may be marked as Stagnant by the HIP editors.
+- **Rejected** – The HIP has been rejected by the HIP editors, the community, or a Hiero TSC vote.
+- **Replaced** – The HIP has been replaced by a newer HIP.
 
-### HIP Maintenance
+## HIP Workflow Overview
 
-In general, Standards track HIPs are no longer modified after they have reached the Final state. Once a HIP has been completed, the Hedera codebase becomes the formal documentation of the expected behavior.
+### Standards Track HIPs
 
-If changes based on implementation experience and user feedback are made to Standards track HIPs while in Accepted state, those changes should be noted in the HIP, such that the HIP accurately describes the state of the implementation at the point where it is marked Final.
+Standards Track HIPs (categories: Core, Service, Mirror or Block Node) follow this general lifecycle:
 
-Informational and Process HIPs may be updated over time to reflect changes to the development practices and other details. The precise process followed in these cases will depend on the nature and purpose of the HIP being updated.
+1.  **Idea**: Propose your idea to the community. Create an [issue](https://github.com/hiero-ledger/hiero-improvement-proposals/issues) to discuss the idea.
+2.  **Draft**: Create a copy of the [HIP template](./hip-0000-template.md), fill in the details, and submit it as a pull request (PR) to the HIPs repository. The HIP status should be **Draft**. `needs-hedera-review` and `needs-hiero-approval` should be `Yes`.
+3.  **Review**: Once the PR is submitted, the HIP editors and community will review the proposal. The status changes to **Review**.
+4.  **Last Call**: If the HIP is generally agreed upon, a HIP editor will assign a `last-call-date-time` and change the status to **Last Call**. This is a final opportunity for community feedback, typically lasting 14 days.
+5.  **Approved**: After the Last Call period, if there are no major objections that cannot be resolved, Hiero TSC will vote on the HIP and if it is approved, a HIP editor or maintainer will create a PR changing the status to **Approved**. At this point, the HIP is considered approved by the Hiero community and awaits review by Hedera where needed.
+6.  **Final**: When a HIP is implemented in code, the HIP maintainer updates the status of the HIP to **Final** and specifies a `release` number.
+7.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: A HIP may also end up in one of these states as described in "HIP Statuses".
+
+The possible paths of the status of Standards Track HIPs are as follows:
+![HIP States](../assets/hip-1/hip-states-standards-track.png)
+
+### Informational, Process and Application HIPs
+
+Informational and Process HIPs follow a simpler lifecycle:
+
+1.  **Idea**: Propose your idea. Create an [issue](https://github.com/hiero-ledger/hiero-improvement-proposals/issues) to discuss.
+2.  **Draft**: Create a copy of the [HIP template](./hip-0000-template.md), fill in the details, and submit it as a PR. The HIP status should be `Draft`.
+    *   For Process HIPs: `needs-hedera-review` and `needs-hiero-approval` should be `No`.
+    *   For Informational and Application HIPs: `needs-hedera-review` and `needs-hiero-approval` should be `No`.
+3.  **Review**: The HIP editors and community review the proposal. Status changes to **Review**.
+4.  **Last Call**: If generally agreed upon, a HIP editor assigns a `last-call-date-time` and changes status to **Last Call** (typically 14 days).
+5.  **Active**: After Last Call, if no major objections, a HIP editor merges the PR into this state.
+6.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: As described in "HIP Statuses".
+
+The possible paths of the status of Informational, Process and Application HIPs HIPs are as follows:
+
+⚠️ **NOTE**: The diagram below illustrates all valid status transitions:
+
+![HIP States](../assets/hip-1/hip-states-ipa.png)
 
 ## What belongs in a successful HIP?
 
-Each HIP should have the following parts/sections:
+A successful HIP document typically includes:
 
-1. Preamble -- RFC 822 style headers containing meta-data about the HIP, including the HIP number, a short descriptive title (limited to a maximum of 44 characters), the names and, optionally, the contact info for each author, etc. The header items each should start with a new line and be wrapped in `---` symbols to format the preamble as a table and allow static site generators such as Jekyll use it as parameters for the page generation.
-
-2. Abstract -- a short (~200 word) description of the technical issue being addressed.
-
-3. Motivation -- The motivation is critical for HIPs that want to change the Hedera codebase or ecosystem. It should clearly explain why the existing specification is inadequate to address the problem that the HIP solves. HIP submissions without sufficient motivation may be rejected outright.
-
-4. Rationale -- The rationale fleshes out the specification by describing why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g., how the feature is supported in other languages.
-
-    The rationale should provide evidence of consensus within the community and discuss important objections or concerns raised during the discussion.
-
-5. User stories -- Provide a list of "user stories" to express how this feature, functionality, improvement, or tool will be used by the end user. Template for user story: "As (user persona), I want (to perform this action) so that (I can accomplish this goal)."
-
-6. Specification -- The technical specification should describe the syntax and semantics of any new features. The specification should be detailed enough to allow competing, interoperable implementations for at least the current Hedera ecosystem.
-
-7. Backwards Compatibility -- All HIPs that introduce backward incompatibilities must include a section describing these incompatibilities and their severity. The HIP must explain how the author proposes to deal with these incompatibilities. HIP submissions without a sufficient backward compatibility treatise may be rejected outright.
-
-8. Security Implications -- If there are security concerns in relation to the HIP, those concerns should be explicitly addressed to make sure reviewers of the HIP are aware of them.
-
-9. How to Teach This -- For a HIP that adds new functionality or changes interface behaviors, it is helpful to include a section on how to teach users, new and experienced, how to apply the HIP to their work.
-
-10. Reference Implementation -- The reference implementation must be complete before any HIP is given the status of "Final". The final implementation must include test code and documentation.
-
-11. Rejected Ideas -- Throughout the discussion of a HIP, various ideas will be proposed which are not accepted. Those rejected ideas should be recorded along with the reasoning as to why they were rejected. This both helps record the thought process behind the final version of the HIP as well as preventing people from bringing up the same rejected idea again in subsequent discussions.
-
-    In a way, this section can be thought of as a breakout section of the Rationale section that focuses specifically on why certain ideas were not ultimately pursued.
-
-12. Open Issues -- While a HIP is in draft, ideas can come up which warrant further discussion. Those ideas should be recorded so people know that they are being thought about but do not have a concrete resolution. This helps make sure all issues required for the HIP to be ready for consideration are complete and reduces people duplicating prior discussions.
-
-13. References -- A collections of URLs used as references through the HIP.
-
-14. Copyright/license -- Each new HIP must be placed under the Apache License, Version 2.0 -- see [LICENSE](../LICENSE) or (https://www.apache.org/licenses/LICENSE-2.0)
+1. **Preamble**  
+   With metadata: HIP number, title, author(s), type, status, discussions link, etc.
+2. **Abstract**  
+   A short summary (~200 words).  
+3. **Motivation**  
+   Explains why existing specifications are inadequate.  
+4. **Rationale**  
+   Explains why particular design decisions were made; includes discussion of alternatives.  
+5. **User Stories**  
+   "As a (user role), I want (action) so that (benefit)."  
+6. **Specification**  
+   Technical details and syntax.  
+7. **Backwards Compatibility**  
+   If incompatible changes are introduced, discuss severity and solutions.  
+8. **Security Implications**  
+   Address any security concerns explicitly.  
+9. **How to Teach This**  
+   Guidance on explaining this HIP to others.  
+10. **Reference Implementation**  
+   Required for Standards Track HIPs to become Final.  
+11. **Rejected Ideas**  
+   Summaries of alternative ideas and why they were not pursued.  
+12. **Open Issues**  
+   Items still under discussion.  
+13. **References**  
+   URLs and other resources used throughout the HIP.  
+14. **Copyright/License**  
+   HIPs must be placed under the Apache License, Version 2.0.
 
 ## HIP Formats and Templates
 
-HIPs should be written in markdown format. There is a template to follow.
+Use [GitHub-flavored Markdown] with the "HIP Template" as a base. 
 
 ### HIP Header Preamble
 
-Each HIP must begin with a header preamble in a table format. The headers must appear in the following order. Headers marked with "*" are optional and are described below. All other headers are required.
+Each HIP must begin with a YAML front-matter block:
+```yaml
+---
+hip: <HIP number>
+title: <HIP Title>
+author: <list of authors>
+working-group: <optional list of stakeholders>
+requested-by: <name(s) or project requesting it>
+type: <Standards Track | Informational | Process>
+category: <Core | Service | Mirror | Block Node | Application | Process>
+status: <Draft | Review | Last Call | Approved | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced | Accepted [Not to be used, replaced by Approved status]>
+last-call-date-time: <optional, set by editor for last call end>
+discussions-to: <URL for official discussion thread (usually the link to the original PR of the HIP)>
+needs-hiero-approval: <Yes | No>
+needs-hedera-review: <Yes | No>
+hedera-acceptance-decision: <Accepted | Not Accepted> 
+hedera-reviewed-on: <dates in yyyy-mm-dd format>
+created: <date in yyyy-mm-dd format>
+updated: <dates in yyyy-mm-dd format>
+requires: <optional HIP number(s)>
+replaces: <optional HIP number(s)>
+superseded-by: <optional HIP number(s)>
+release: <optional implementation release version>
+---
+```
+Note: Previous status **Accepted** is a legacy status. All **Accepted** HIPs prior to Jan 1, 2025 should be assumend impicitly to have the status **Approved**.
 
-- hip: HIP number (this is determined by the PR number and set by the editor)
-- title: HIP title
-- author: a list of the author's or authors' name(s) and/or username(s), or name(s) and email(s)
-- working-group\*: a list of the technical and business stakeholders' name(s) and/or username(s), or name(s) and email(s)
-- requested-by: the name(s) and/or username(s), or name(s) and email(s) of the individual(s) or project(s) requesting the HIP
-- type: Standards Track | Informational | Process
-- category\*: Core | Service | API | Mirror | Application
-- needs-council-approval: Yes | No
-- status: Draft | Withdrawn | Review | Stagnant | Deferred | Last Call | Accepted | Rejected | Final | Active | Replaced 
-- created: date created on
-- last-call-date-time: the anticipated date and time when this HIP will change status to `Last Call,` filled out by the editor
-- discussions-to: a URL pointing to the official discussion thread
-- updated\*: comma-separated list of dates
-- requires\*: HIP number(s)
-- replaces\*: HIP number(s)
-- superseded-by\*: HIP number(s)
-- release\*: release version of implementation
+### Reporting HIP Bugs or Updates
 
-Headers that permit lists must separate elements with commas.
+Report issues as GitHub issues or pull requests. Major changes to a **Final** HIP typically require either a new HIP or a very careful editorial process.
 
-Headers requiring dates will always do so in the format of ISO 8601 (`yyyy-mm-dd`).
+### Transferring HIP Ownership
 
-#### `author` header
+If a HIP author no longer wishes to maintain it, they can arrange new ownership. If they cannot be reached, a HIP editor can assign a new champion.
 
-The author header lists the names, email addresses or GitHub usernames of the authors/owners of the HIP. Those who prefer anonymity may use a username only, or a first name and a username. The format of the author header value must be:
+### HIP Editor Responsibilities
 
-Random J. User <address@dom.ain>
+Editors handle:
 
-or
+- Approving initial formatting and structural correctness.
+- Assigning HIP numbers.
+- Merging final changes once the HIP meets requirements.
 
-Random J. User (@username)
-
-if the email address or GitHub username is included, and Random J. User
-
-if email or username are not given.
-
-It is not possible to use both an email and a GitHub username at the same time. If important to include both, one could include their name twice, once with the GitHub username and once with the email.
-
-At least one author must use a GitHub username in order to be notified on change requests and have the capability to approve or reject them.
-
-#### `working-group` header
-
-If the HIP includes multiple stakeholders, including technical and/or business stakeholders, that can address questions and discussions about the HIP, they should be listed in this section. 
-
-Those who prefer anonymity may use a username only, or a first name and a username. The format of the author header value must be:
-
-Random J. User <address@dom.ain>
-
-or
-
-Random J. User (@username)
-
-if the email address or GitHub username is included, and Random J. User
-
-if email or username are not given.
-
-It is not possible to use both an email and a GitHub username at the same time. If important to include both, one could include their name twice, once with the GitHub username and once with the email.
-
-At least one author must use a GitHub username in order to be notified on change requests and have the capability to approve or reject them.
-
-#### `discussions-to` header
-
-While a HIP is a draft, a discussions-to header will indicate the URL where the HIP is being discussed. Examples of places to discuss your HIP include an issue in this repo or in a fork of this repo, the Hedera Developer Discord, or Reddit r/hashgraph.
-
-No discussions-to header is necessary if the HIP is being discussed privately with the author.
-
-As a single exception, discussions-to cannot point to GitHub pull requests.
-
-#### `type` header
-
-The Type header specifies the type of HIP: Standards Track, Informational, or Process. If the track is Standards, the HIP must include the category header.
-
-#### `category` header
-
-The category header specifies the HIP category (Core, Service, API, Mirror, Application). This is required for Standard Track HIPs only.
-
-#### `needs-council-approval` header
-
-This field specifies if the HIP needs to be reviewed and approved by the Hedera Council Technical Committee before getting a `Accepted` status'. This is usually the case for HIPs in the `Standards Track` type and `Core`, `Service` and `Mirror` categories, but can expand to other HIPs as well. The HIP author should set it based on their judgement of whether the HIP modifies any of the Hedera Core, Service or Mirror code, but the HIPs editors will double-check if the `Yes` flag needs to be set. 
-
-#### `created` header
-
-The created header records the date that the HIP was assigned a number. This header should be in ISO 8601 format (yyyy-mm-dd), e.g. 2019-09-16.
-
-#### `last-call-date-time` header
-
-The anticipated date and time when this HIP will change status to `Accepted`. This header should be in ISO 8601 format expressed in UTC (yyyy-mm-ddThh:mm:ssZ), e.g. 2019-09-16T13:15:30Z. This field is usually set as 14 days from the moment a pull requested is reviewed.
-
-#### `updated` header
-
-The updated header records the date(s) when the HIP was updated with "substantial" changes. The header is only valid for HIPs of Draft and Active status. This header should be in ISO 8601 format (yyyy-mm-dd), e.g. 2019-09-16.
-
-#### `requires` header
-
-HIPs may have a requires header, indicating the HIP numbers that this HIP depends on.
-
-#### `superseded-by` and `replaces` headers
-
-HIPs may also have a superseded-by header indicating that a HIP has been rendered obsolete by a later document; the value is the number of the HIP that replaces the current document. The current document must change status to "Replaced" once the superseding HIP is changed to "Final" status. The newer HIP must have a replaces header containing the number of the HIP that it rendered obsolete.
-
-#### `release` header
-
-The release header indicates when the HIP was implemented on the network (vX.Y.Z), e.g. 0.29.0.
-
-### Linking to other HIPs
-
-References to other HIPs should follow the format HIP-N where N is the HIP number you are referring to. Each HIP that is referenced in a HIP MUST be accompanied by a relative markdown link the first time it is referenced and MAY be accompanied by a link on subsequent references. The link MUST always be done via relative paths so that the links work in this GitHub repository, forks of this repository, the main HIPs site, mirrors of the main HIP site, etc. For example, you would link to this HIP with [HIP-1](./hip-1.md).
-
-### Auxiliary Files
-
-Images, diagrams, and auxiliary files should be included in a subdirectory of the assets folder for that HIP as follows: assets/hip-N (where N is to be replaced with the HIP number). When linking to an image in the HIP, use relative links such as `../assets/hip-1/image.png`.
-
-## Reporting HIP Bugs, or Submitting HIP Updates
-
-How you report a bug, or submit a HIP update depends on several factors, such as the maturity of the HIP, the preferences of the HIP author, and the nature of your comments. For early draft stages of the HIP, it's probably best to send your comments and changes directly to the HIP author. For more mature, or finished HIPs you may want to submit corrections as a GitHub issue or GitHub pull request so that your changes don't get lost.
-
-When in doubt about where to send your changes, please check first with the HIP author and/or a HIP editor.
-
-## Transferring HIP Ownership
-
-It occasionally becomes necessary to transfer ownership of HIPs to a new champion. In general, it is preferable to retain the original author as a co-author of the transferred HP, but that's really up to the original author. A good reason to transfer ownership is that the original author no longer has the time or interest in updating it or following through with the HIP process or has fallen off the face of the ‘net. A bad reason to transfer ownership is because the author doesn't agree with the direction of the HIP. One aim of the HIP process is to try to build consensus around a HIP, but if that's not possible, an author can always submit a competing HIP.
-
-If you are interested in assuming ownership of a HIP, you can also do this via pull request. Fork the HIP repository, make your ownership modification, and submit a pull request. You should mention both the original author and the HIP editors in a comment on the pull request. If the original author doesn't respond in a timely manner, the HIP editors will make a unilateral decision.
-
-## HIP Editor Responsibilities
-
-For each new HIP that comes in, an editor does the following:
-
-- Read the HIP to check if it is ready: sound and complete. The ideas must make technical sense, even if they don't seem likely to get to Final status.
-- The title should accurately describe the content.
-- Check the HIP for language (spelling, grammar, sentence structure, etc.), markup (GitHub flavored Markdown), and code style.
-
-    If the HIP isn't ready, the editor will send it back to the author for revision with specific instructions.
-
-    Once the HIP is ready for the repository, the HIP editor will:
-- Assign a HIP number (generally the PR number)
-- Merge the corresponding pull request
-- Send a message back to the HIP author with the next step.
-
-Editors don't pass judgement on the HIPs. We merely do the administrative & editorial part.
+They do *not* judge the proposals themselves, but ensure the process is followed.
 
 ## Style Guide
 
-When referring to a HIP by number, it should be written in the hyphenated form HIP-X where X is the HIP number.
+When referring to a HIP by number, write it as "HIP-X" (e.g. HIP-1). Where possible, link it using relative Markdown links, such as `[HIP-1](./hip-1.md)`.
 
 ## History
 
-This document was derived from Bitcoin's BIP-0001 written by Amir Taaki, Ethereum's EIP-1 written by Martin Becze and Hudson Jameson, and Python's PEP-0001 written by Barry Warsaw, Jeremy Hylton, David Goodger, and Nick Coghlan. In many places text was simply copied and modified. The authors of the text from which this document was derived are not responsible for this document's use in the Hedera Improvement Proposal process, and should not be bothered with technical questions specific to Hedera or the HIP.
+This document was derived from Bitcoin's BIP-0001, Ethereum's EIP-1, and Python's PEP-0001. Much text was simply copied and adapted.
 
 ## Copyright
-This document is licensed under the Apache License, Version 2.0 -- see [LICENSE](../LICENSE) or (https://www.apache.org/licenses/LICENSE-2.0)
+
+This document is licensed under the Apache License, Version 2.0. See [LICENSE](../LICENSE) or <https://www.apache.org/licenses/LICENSE-2.0>.
