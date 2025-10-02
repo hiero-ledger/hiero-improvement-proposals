@@ -49,33 +49,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function filterRows() {
-        let selectedTypes = $('#type-filter').val();
-        if (!selectedTypes || selectedTypes.length === 0) {
-            selectedTypes = $('#type-filter option').map(function() { return this.value }).get();
+        const rawSelectedTypes = $('#type-filter').val();
+        let selectedTypesForFilter = [];
+
+        if (Array.isArray(rawSelectedTypes)) {
+            selectedTypesForFilter = rawSelectedTypes
+                .map(type => (typeof type === 'string' ? type.trim().toLowerCase() : ''))
+                .filter(type => type !== '');
+        } else if (typeof rawSelectedTypes === 'string' && rawSelectedTypes.trim() !== '') {
+            selectedTypesForFilter = [rawSelectedTypes.trim().toLowerCase()];
         }
 
-        const selectedStatuses = statusSelect.val().length > 0 ? statusSelect.val() : ['all'];
+        const rawSelectedStatuses = statusSelect.val();
+        const selectedStatuses = rawSelectedStatuses && rawSelectedStatuses.length > 0 ? rawSelectedStatuses.map(s => s.toLowerCase()) : ['all'];
         const selectedHederaReview = document.querySelector('input[name="hedera-review-filter"]:checked')?.value || 'all';
         const selectedHieroReview = document.querySelector('input[name="hiero-review-filter"]:checked')?.value || 'all';
         
         let anyRowVisible = false;
         document.querySelectorAll('.hipstable tbody tr').forEach(row => {
-            const rowTypes = [row.getAttribute('data-type').trim().toLowerCase(), row.getAttribute('data-category').trim().toLowerCase()];
-            const rowStatus = row.getAttribute('data-status').trim().toLowerCase();
-            
-            const rowHederaReview = row.getAttribute('data-hedera-review') === 'true' || 
-                                   row.getAttribute('data-council-review') === 'true' ? 'true' : 'false';
-                                   
-            const rowHieroReview = row.getAttribute('data-hiero-review') || 'false'; 
+            const typeAttr = row.getAttribute('data-type');
+            const rowType = typeAttr ? typeAttr.trim().toLowerCase() : '';
+            const categoryAttr = row.getAttribute('data-category');
+            const rowCategory = categoryAttr ? categoryAttr.trim().toLowerCase() : '';
 
-            const typeCategoryMatch = selectedTypes.some(type => rowTypes.includes(type));
-            const statusMatch = selectedStatuses.includes('all') || selectedStatuses.includes(rowStatus);
+            const statusAttr = row.getAttribute('data-status');
+            const rowStatus = statusAttr ? statusAttr.trim().toLowerCase() : 'unknown'; // Default to a non-matching status if missing
             
+            const hederaReviewAttr = row.getAttribute('data-hedera-review');
+            const councilReviewAttr = row.getAttribute('data-council-review');
+            const rowHederaReview = (hederaReviewAttr === 'true' || councilReviewAttr === 'true') ? 'true' : 'false';
+                                   
+            const hieroReviewAttr = row.getAttribute('data-hiero-review');
+            const rowHieroReview = hieroReviewAttr ? hieroReviewAttr : 'false'; 
+
+            let typeMatch = true; 
+            if (selectedTypesForFilter.length > 0) { // Apply filter only if types are selected
+                // For Standards Track HIPs, check the category; for Informational/Process HIPs, check the type
+                if (rowType === 'standards track') {
+                    // Standards Track HIPs: check against category (core, service, mirror, application, block node)
+                    const hipCategories = rowCategory.split(',').map(cat => cat.trim());
+                    typeMatch = selectedTypesForFilter.some(selType => hipCategories.includes(selType));
+                } else {
+                    // Informational/Process HIPs: check against type (informational, process)
+                    typeMatch = selectedTypesForFilter.includes(rowType);
+                }
+            }
+            
+            const statusMatch = selectedStatuses.includes('all') || 
+                            selectedStatuses.includes(rowStatus) ||
+                            (selectedStatuses.includes('approved') && rowStatus === 'accepted');
             const hederaReviewMatch = selectedHederaReview === 'all' || selectedHederaReview === rowHederaReview;
-            
             const hieroReviewMatch = selectedHieroReview === 'all' || selectedHieroReview === rowHieroReview;
 
-            if (typeCategoryMatch && statusMatch && hederaReviewMatch && hieroReviewMatch) {
+            if (typeMatch && statusMatch && hederaReviewMatch && hieroReviewMatch) {
                 row.style.display = '';
                 anyRowVisible = true;
             } else {
@@ -90,11 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTableVisibility() {
         let anyTableVisible = false;
         document.querySelectorAll('.hipstable').forEach(table => {
-            const isVisible = Array.from(table.querySelectorAll('tbody tr')).some(row => row.style.display !== 'none');
+            const visibleRows = Array.from(table.querySelectorAll('tbody tr')).filter(row => row.style.display !== 'none');
+            const isVisible = visibleRows.length > 0;
             anyTableVisible = anyTableVisible || isVisible;
             table.style.display = isVisible ? '' : 'none';
             const heading = table.previousElementSibling;
-            heading.style.display = isVisible ? '' : 'none';
+            if (heading && heading.tagName === 'H2') {
+                heading.style.display = isVisible ? '' : 'none';
+            }
         });
         noHipsMessage.textContent = anyTableVisible ? '' : 'No HIPs match this filter.';
     }
