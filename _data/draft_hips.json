@@ -1,9 +1,51 @@
 [
   {
+    "title": "HIP - 1300 - Increased txn size max for governance accounts",
+    "number": 1300,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1300",
+    "headRefOid": "9382b87dfaf44a6868320fbef4251594c07fbb8c",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1300.md",
+            "changeType": "ADDED",
+            "additions": 122,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Mark-Swirlds"
+    }
+  },
+  {
+    "title": "HIP-1299 `account_id` updates for Address Book Node Entries.",
+    "number": 1299,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1299",
+    "headRefOid": "848a68c1e6333447de055700aafd6b802d1e0bc8",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1299.md",
+            "changeType": "ADDED",
+            "additions": 207,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "jsync-swirlds"
+    }
+  },
+  {
     "title": "Create hip-0000-hiero-anoncreds-method.md",
     "number": 1292,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1292",
-    "headRefOid": "7fb99cc459a9549fc7052cab8f537c8e39f6c3c9",
+    "headRefOid": "1a0492a04a316ae8251578e1a8945b439b62f304",
     "files": {
       "edges": [
         {
@@ -376,27 +418,6 @@
     },
     "author": {
       "login": "bguiz"
-    }
-  },
-  {
-    "title": "atomic assoc contracts",
-    "number": 711,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/711",
-    "headRefOid": "9d7d37bd1c9afef297219838f085402c78601b5f",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-0000-atomic-association-contracts.md",
-            "changeType": "ADDED",
-            "additions": 115,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "littletarzan"
     }
   },
   {
