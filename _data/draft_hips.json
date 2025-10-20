@@ -1,5 +1,26 @@
 [
   {
+    "title": "HIP-1313: Create new HIP to enable a new high volume entity creation option",
+    "number": 1313,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1313",
+    "headRefOid": "a43a2270d80b52a3f02fad7a33e1fa4431515448",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1313.md",
+            "changeType": "ADDED",
+            "additions": 342,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "jsync-swirlds"
+    }
+  },
+  {
     "title": "Create hip-0000-hiero-anoncreds-method.md",
     "number": 1292,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1292",
@@ -227,7 +248,7 @@
     "title": "HIP-1137: Block Node Discoverability",
     "number": 1137,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1137",
-    "headRefOid": "68cf26be8342fcd741fd2ac5c4cc5d293757a9e3",
+    "headRefOid": "ffb358ff310286d78fcdb8f43169193894475777",
     "files": {
       "edges": [
         {
