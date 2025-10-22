@@ -1,13 +1,14 @@
 ---
-hip: 0000
+hip: 1292
 title: Hiero AnonCreds Method
 author: Keith Kowal (keith.kowal@hashgraph.com)
 working-group: Diane Mueller (diane@hbar.fund), AlexanderShenshin
-type: Information
-status: Draft
-discussions-to: <link to GitHub discussion or forum>
+type: Informational
+needs-hiero-approval: No
+status: Active
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1292
 created: 2025-08-25
-updated: 2025-08-25
+updated: 2025-10-22
 ---
 
 # Abstract
