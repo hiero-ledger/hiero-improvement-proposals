@@ -1,5 +1,47 @@
 [
   {
+    "title": "HIP-1313: Enable a new high volume entity creation option",
+    "number": 1313,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1313",
+    "headRefOid": "a43a2270d80b52a3f02fad7a33e1fa4431515448",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1313.md",
+            "changeType": "ADDED",
+            "additions": 342,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "jsync-swirlds"
+    }
+  },
+  {
+    "title": "Create hip-0000-hiero-anoncreds-method.md",
+    "number": 1292,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1292",
+    "headRefOid": "1a0492a04a316ae8251578e1a8945b439b62f304",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-hiero-anoncreds-method.md",
+            "changeType": "ADDED",
+            "additions": 95,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Reccetech"
+    }
+  },
+  {
     "title": "feat: add entity hip",
     "number": 1272,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1272",
@@ -98,35 +140,6 @@
     }
   },
   {
-    "title": "HIP-1261: Simple fees",
-    "number": 1261,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1261",
-    "headRefOid": "6d74513309cd2e26ecd72ce93bc4e43aa017c4f3",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1261.md",
-            "changeType": "ADDED",
-            "additions": 847,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1261/tx-fees.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "rbair23"
-    }
-  },
-  {
     "title": "feat(HIP): Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
     "number": 1225,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1225",
@@ -193,7 +206,7 @@
     "title": "Improvements to the Wallet Connect implementation for dApps on Hedera",
     "number": 1190,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1190",
-    "headRefOid": "26fbaea2a391b430e682ffc0bb3e8489a9857bc2",
+    "headRefOid": "6fa7c851f414ca8abbca6833b7f1915dae96d681",
     "files": {
       "edges": [
         {
@@ -235,7 +248,7 @@
     "title": "HIP-1137: Block Node Discoverability",
     "number": 1137,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1137",
-    "headRefOid": "68cf26be8342fcd741fd2ac5c4cc5d293757a9e3",
+    "headRefOid": "ffb358ff310286d78fcdb8f43169193894475777",
     "files": {
       "edges": [
         {
@@ -298,14 +311,14 @@
     "title": "Enable Threshold (1-of-N) Support in HTS  Precompile",
     "number": 1069,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1069",
-    "headRefOid": "2e4a81d2b3aca4d0dcceb955f5a3f28305264b89",
+    "headRefOid": "6ed5e2ebac8476430e42edb00b0fb244198f2fcf",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1069.md",
             "changeType": "ADDED",
-            "additions": 130,
+            "additions": 152,
             "deletions": 0
           }
         }
@@ -319,14 +332,14 @@
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "54c87fc6af5c99444f6ddf85f37714f86ccdd7a9",
+    "headRefOid": "5dfd71e5d801dc5a34b6e633855bf82177e22b48",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 540,
+            "additions": 543,
             "deletions": 0
           }
         },
@@ -342,27 +355,6 @@
     },
     "author": {
       "login": "Nana-EC"
-    }
-  },
-  {
-    "title": "HIP 1009 - Native Schema Registry Service",
-    "number": 1009,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1009",
-    "headRefOid": "2f36c960e1746748bb7968dcfb11434aba2b6f66",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1009.md",
-            "changeType": "ADDED",
-            "additions": 164,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "justin-atwell"
     }
   },
   {
@@ -384,27 +376,6 @@
     },
     "author": {
       "login": "bguiz"
-    }
-  },
-  {
-    "title": "atomic assoc contracts",
-    "number": 711,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/711",
-    "headRefOid": "9d7d37bd1c9afef297219838f085402c78601b5f",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-0000-atomic-association-contracts.md",
-            "changeType": "ADDED",
-            "additions": 115,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "littletarzan"
     }
   },
   {
