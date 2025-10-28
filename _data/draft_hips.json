@@ -1,37 +1,16 @@
 [
   {
-    "title": "HIP - 1300 - Increased txn size max for governance accounts",
-    "number": 1300,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1300",
-    "headRefOid": "5b88899440e7e0361ebf93512be763c337321eac",
+    "title": "HIP-1313: Enable a new high volume entity creation option",
+    "number": 1313,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1313",
+    "headRefOid": "a43a2270d80b52a3f02fad7a33e1fa4431515448",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-1300.md",
+            "path": "HIP/hip-1313.md",
             "changeType": "ADDED",
-            "additions": 122,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Mark-Swirlds"
-    }
-  },
-  {
-    "title": "HIP-1299 `account_id` updates for Address Book Node Entries.",
-    "number": 1299,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1299",
-    "headRefOid": "848a68c1e6333447de055700aafd6b802d1e0bc8",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1299.md",
-            "changeType": "ADDED",
-            "additions": 207,
+            "additions": 342,
             "deletions": 0
           }
         }
@@ -39,27 +18,6 @@
     },
     "author": {
       "login": "jsync-swirlds"
-    }
-  },
-  {
-    "title": "Create hip-0000-hiero-anoncreds-method.md",
-    "number": 1292,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1292",
-    "headRefOid": "1a0492a04a316ae8251578e1a8945b439b62f304",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-0000-hiero-anoncreds-method.md",
-            "changeType": "ADDED",
-            "additions": 95,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Reccetech"
     }
   },
   {
@@ -227,7 +185,7 @@
     "title": "Improvements to the Wallet Connect implementation for dApps on Hedera",
     "number": 1190,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1190",
-    "headRefOid": "faff8f1cfd575d4ed2af05a3637fb3613ba329ef",
+    "headRefOid": "6fa7c851f414ca8abbca6833b7f1915dae96d681",
     "files": {
       "edges": [
         {
@@ -269,7 +227,7 @@
     "title": "HIP-1137: Block Node Discoverability",
     "number": 1137,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1137",
-    "headRefOid": "68cf26be8342fcd741fd2ac5c4cc5d293757a9e3",
+    "headRefOid": "ffb358ff310286d78fcdb8f43169193894475777",
     "files": {
       "edges": [
         {
@@ -308,48 +266,6 @@
     }
   },
   {
-    "title": "Allow Setting of EVM Address by EOA",
-    "number": 1082,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1082",
-    "headRefOid": "486b234f79348769390537845ada0e8f659f2866",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1082.md",
-            "changeType": "ADDED",
-            "additions": 248,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Nana-EC"
-    }
-  },
-  {
-    "title": "Enable Threshold (1-of-N) Support in HTS  Precompile",
-    "number": 1069,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1069",
-    "headRefOid": "6ed5e2ebac8476430e42edb00b0fb244198f2fcf",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1069.md",
-            "changeType": "ADDED",
-            "additions": 152,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "mgarbs"
-    }
-  },
-  {
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
@@ -376,98 +292,6 @@
     },
     "author": {
       "login": "Nana-EC"
-    }
-  },
-  {
-    "title": "HIP 1009 - Native Schema Registry Service",
-    "number": 1009,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1009",
-    "headRefOid": "2f36c960e1746748bb7968dcfb11434aba2b6f66",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1009.md",
-            "changeType": "ADDED",
-            "additions": 164,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "justin-atwell"
-    }
-  },
-  {
-    "title": "Extend isAuthorized to process current transaction in HAS System Contract",
-    "number": 792,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/792",
-    "headRefOid": "8324ccf1258a89ac309accde50868b13373c8e8a",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-792.md",
-            "changeType": "ADDED",
-            "additions": 291,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "bguiz"
-    }
-  },
-  {
-    "title": "Support Fractional NFTs on HTS for ESG ",
-    "number": 543,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/543",
-    "headRefOid": "86eb0b70850b953760dbc22d214d5842f310f892",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-0000-fractional-nfts.md",
-            "changeType": "ADDED",
-            "additions": 191,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "hip-0000-template.md",
-            "changeType": "MODIFIED",
-            "additions": 1,
-            "deletions": 1
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "mattsmithies"
-    }
-  },
-  {
-    "title": "Recreate Buyable Tokens PR",
-    "number": 498,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/498",
-    "headRefOid": "6a3f72a8836e9355854bf9a36f24fcc030909981",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-498.md",
-            "changeType": "ADDED",
-            "additions": 125,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "cijujohn"
     }
   }
 ]
