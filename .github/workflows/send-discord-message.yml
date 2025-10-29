@@ -33,8 +33,10 @@ jobs:
 
       - name: Extract HIP abstract
         id: extract_abstract
+        env:
+          FILENAME: ${{ github.event.inputs.filename }}
         run: |
-          HIP_FILE="HIP/${{ github.event.inputs.filename }}"
+          HIP_FILE="HIP/${FILENAME}"
 
           # Extract the abstract section (text between "## Abstract" and the next "##" heading)
           ABSTRACT=$(sed -n '/^## Abstract$/,/^## /p' "$HIP_FILE" | sed '$d' | tail -n +2 | sed '/^$/d')
