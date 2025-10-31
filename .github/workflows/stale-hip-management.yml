@@ -1,0 +1,155 @@
+name: Stale HIP Management
+
+permissions:
+  pull-requests: write
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # Allow manual triggering for testing
+    inputs:
+      inactivity_days:
+        description: 'Days of inactivity before marking as stale'
+        required: false
+        default: '60'
+      warning_days:
+        description: 'Days after warning before closing'
+        required: false
+        default: '14'
+
+jobs:
+  manage-stale-hips:
+    runs-on: hiero-improvement-proposals-linux-medium
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Check out the code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Process Stale PRs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Use workflow_dispatch inputs if available, otherwise use defaults
+          INACTIVITY_DAYS=${{ github.event.inputs.inactivity_days || '60' }}
+          WARNING_DAYS=${{ github.event.inputs.warning_days || '14' }}
+          CURRENT_TIME=$(date +%s)
+
+          echo "Configuration:"
+          echo "  Inactivity threshold: $INACTIVITY_DAYS days"
+          echo "  Warning period: $WARNING_DAYS days"
+          echo ""
+
+          echo "Fetching all open PRs..."
+          PRS=$(gh pr list --state open --json number,updatedAt,labels --limit 1000)
+
+          echo "$PRS" | jq -c '.[]' | while read -r pr; do
+            PR_NUMBER=$(echo "$pr" | jq -r '.number')
+            UPDATED_AT=$(echo "$pr" | jq -r '.updatedAt')
+            LABELS=$(echo "$pr" | jq -r '.labels[].name')
+
+            echo "========================================="
+            echo "Processing PR #$PR_NUMBER"
+
+            # Check for keep-open label (escape hatch)
+            if echo "$LABELS" | grep -q "keep-open"; then
+              echo "  Skipping - has 'keep-open' label"
+              continue
+            fi
+
+            # Convert updated time to epoch
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+              # macOS date command
+              UPDATED_EPOCH=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$UPDATED_AT" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S%z" "$UPDATED_AT" +%s)
+            else
+              # Linux date command
+              UPDATED_EPOCH=$(date -d "$UPDATED_AT" +%s)
+            fi
+
+            DAYS_INACTIVE=$(( (CURRENT_TIME - UPDATED_EPOCH) / 86400 ))
+
+            echo "  Days inactive: $DAYS_INACTIVE"
+
+            # PHASE 1: Initial Warning Phase
+            # Check if warning comment already exists
+            STALE_COMMENT=$(gh api "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" \
+              --jq '.[] | select(.body | contains("appears to have been inactive")) | {created_at: .created_at, reactions: .reactions.total_count}' | head -1)
+
+            if [ $DAYS_INACTIVE -ge $INACTIVITY_DAYS ] && [ -z "$STALE_COMMENT" ]; then
+              echo "  Posting warning for PR #$PR_NUMBER (inactive for $DAYS_INACTIVE days)"
+
+              # Post warning comment (no label yet)
+              gh pr comment $PR_NUMBER --body "This HIP appears to have been inactive for $DAYS_INACTIVE days. If there is no activity or response within $WARNING_DAYS days, it will be marked as Stagnant and closed.
+
+To prevent automatic closure, simply add a comment with an update, make a commit, or react to this message. Maintainers can also add a \`keep-open\` label to exempt this HIP."
+
+              echo "  Warning posted for PR #$PR_NUMBER"
+
+            # PHASE 2: Stagnant Processing Phase
+            elif [ -n "$STALE_COMMENT" ]; then
+              echo "  PR #$PR_NUMBER has warning comment, checking warning period..."
+
+              COMMENT_TIME=$(echo "$STALE_COMMENT" | jq -r '.created_at')
+              REACTION_COUNT=$(echo "$STALE_COMMENT" | jq -r '.reactions')
+
+              if [[ "$OSTYPE" == "darwin"* ]]; then
+                COMMENT_EPOCH=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$COMMENT_TIME" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S%z" "$COMMENT_TIME" +%s)
+              else
+                COMMENT_EPOCH=$(date -d "$COMMENT_TIME" +%s)
+              fi
+
+              DAYS_SINCE_WARNING=$(( (CURRENT_TIME - COMMENT_EPOCH) / 86400 ))
+
+              echo "    Days since warning: $DAYS_SINCE_WARNING"
+              echo "    Reactions on warning: $REACTION_COUNT"
+
+              # Check if PR was updated after the warning
+              HAS_ACTIVITY=false
+              if [ "$REACTION_COUNT" -gt 0 ]; then
+                HAS_ACTIVITY=true
+                echo "    PR has reactions on warning comment"
+              elif [ $UPDATED_EPOCH -gt $COMMENT_EPOCH ]; then
+                HAS_ACTIVITY=true
+                echo "    PR was updated after warning (new activity detected)"
+              fi
+
+              # Check if warning period has passed and no reactions/activity
+              if [ $DAYS_SINCE_WARNING -ge $WARNING_DAYS ] && [ "$HAS_ACTIVITY" = false ]; then
+                echo "  Closing PR #$PR_NUMBER as Stagnant (warning period expired)"
+
+                # Add stale label
+                gh pr edit $PR_NUMBER --add-label "stale"
+
+                # Post closing comment
+                gh pr comment $PR_NUMBER --body "This HIP has been marked as Stagnant due to inactivity. Feel free to reopen when ready to continue."
+
+                # Close the PR
+                gh pr close $PR_NUMBER
+
+                echo "  PR #$PR_NUMBER closed successfully"
+
+              else
+                if [ "$HAS_ACTIVITY" = true ]; then
+                  echo "  PR has activity - keeping open"
+                else
+                  echo "  Warning period not yet expired ($DAYS_SINCE_WARNING/$WARNING_DAYS days)"
+                fi
+              fi
+            else
+              echo "  PR is active (only $DAYS_INACTIVE/$INACTIVITY_DAYS days inactive)"
+            fi
+          done
+
+          echo ""
+          echo "========================================="
+          echo "Stale HIP management completed"

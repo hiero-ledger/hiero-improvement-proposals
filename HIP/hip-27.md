@@ -5,7 +5,7 @@ author: Jo Vercammen <jo.vercammen@meeco.me>
 type: Standards Track
 category: Application
 needs-council-approval: No
-status: Accepted
+status: Active
 last-call-date-time: 2022-01-19T07:00:00Z
 created: 2021-06-06
 discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/103
