@@ -39,10 +39,21 @@ jobs:
       - name: Process Stale PRs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INACTIVITY_DAYS_INPUT: ${{ github.event.inputs.inactivity_days || '60' }}
+          WARNING_DAYS_INPUT: ${{ github.event.inputs.warning_days || '14' }}
         run: |
-          # Use workflow_dispatch inputs if available, otherwise use defaults
-          INACTIVITY_DAYS=${{ github.event.inputs.inactivity_days || '60' }}
-          WARNING_DAYS=${{ github.event.inputs.warning_days || '14' }}
+          # Validate inputs to prevent code injection
+          if ! [[ "$INACTIVITY_DAYS_INPUT" =~ ^[0-9]+$ ]]; then
+            echo "Error: inactivity_days must be a positive integer"
+            exit 1
+          fi
+          if ! [[ "$WARNING_DAYS_INPUT" =~ ^[0-9]+$ ]]; then
+            echo "Error: warning_days must be a positive integer"
+            exit 1
+          fi
+
+          INACTIVITY_DAYS="$INACTIVITY_DAYS_INPUT"
+          WARNING_DAYS="$WARNING_DAYS_INPUT"
           CURRENT_TIME=$(date +%s)
 
           echo "Configuration:"
@@ -89,9 +100,12 @@ jobs:
               echo "  Posting warning for PR #$PR_NUMBER (inactive for $DAYS_INACTIVE days)"
 
               # Post warning comment (no label yet)
-              gh pr comment $PR_NUMBER --body "This HIP appears to have been inactive for $DAYS_INACTIVE days. If there is no activity or response within $WARNING_DAYS days, it will be marked as Stagnant and closed.
+              gh pr comment $PR_NUMBER --body "$(cat <<EOF
+This HIP appears to have been inactive for $DAYS_INACTIVE days. If there is no activity or response within $WARNING_DAYS days, it will be marked as Stagnant and closed.
 
-To prevent automatic closure, simply add a comment with an update, make a commit, or react to this message. Maintainers can also add a \`keep-open\` label to exempt this HIP."
+To prevent automatic closure, simply add a comment with an update, make a commit, or react to this message. Maintainers can also add a 'keep-open' label to exempt this HIP.
+EOF
+)"
 
               echo "  Warning posted for PR #$PR_NUMBER"
 
