@@ -36,7 +36,19 @@ jobs:
         env:
           FILENAME: ${{ github.event.inputs.filename }}
         run: |
-          HIP_FILE="HIP/${FILENAME}"
+          # Add .md extension if not present
+          if [[ "$FILENAME" == *.md ]]; then
+            HIP_FILE="HIP/${FILENAME}"
+          else
+            HIP_FILE="HIP/${FILENAME}.md"
+          fi
+
+          # Verify file exists
+          if [ ! -f "$HIP_FILE" ]; then
+            echo "Error: File $HIP_FILE does not exist"
+            echo "abstract=File not found: $HIP_FILE" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           # Extract the abstract section (text between "## Abstract" and the next "##" heading)
           ABSTRACT=$(sed -n '/^## Abstract$/,/^## /p' "$HIP_FILE" | sed '$d' | tail -n +2 | sed '/^$/d')
@@ -53,16 +65,20 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+          # Save the filename without extension for URL
+          FILENAME_NO_EXT="${FILENAME%.md}"
+          echo "filename_no_ext=$FILENAME_NO_EXT" >> "$GITHUB_OUTPUT"
+
       - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD }}
         uses: step-security/action-discord@25f3b8e2229f3a238679abdbcf82d84a075419bd # v0.1.3
         with:
           args: |
-            # ${{ github.event.inputs.filename }} moved into ${{ github.event.inputs.status }} status
+            # ${{ steps.extract_abstract.outputs.filename_no_ext }} moved into ${{ github.event.inputs.status }} status
 
             ## About this HIP
             ${{ steps.extract_abstract.outputs.abstract }}
 
             Read the full HIP here:
-            https://hips.hedera.com/hip/${{ github.event.inputs.filename }}
+            https://hips.hedera.com/hip/${{ steps.extract_abstract.outputs.filename_no_ext }}
