@@ -17,6 +17,7 @@ permissions:
 jobs:
   assign-hip-number:
     runs-on: hiero-improvement-proposals-linux-medium
+    continue-on-error: true  # Silently fail - don't show red X on PRs
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
@@ -92,8 +93,8 @@ jobs:
           if [ -n "$HIP_FILE" ]; then
             sed -i "s/^hip:.*$/$HIP_HEADER/" "$HIP_FILE"
           else
-            echo "No valid HIP file to assign a number."
-            exit 1
+            echo "No valid HIP file to assign a number. Skipping assignment."
+            exit 0
           fi
 
       - name: Rename HIP File
@@ -107,8 +108,8 @@ jobs:
             NEW_HIP_FILE="HIP/hip-$PR_NUMBER.md"
             mv "$HIP_FILE" "$NEW_HIP_FILE"
           else
-            echo "No HIP file found to rename."
-            exit 1
+            echo "No HIP file found to rename. Skipping rename."
+            exit 0
           fi
 
       - name: Commit Changes
@@ -119,5 +120,20 @@ jobs:
 
           PR_NUMBER=${{ github.event.pull_request.number }}
           git add HIP/
-          git commit -sSm "Assigning HIP $PR_NUMBER and renaming file to hip-$PR_NUMBER.md"
-          git push origin HEAD:${{ github.head_ref }}
+
+          # Check if there are changes to commit
+          if git diff --cached --quiet; then
+            echo "No changes to commit. Skipping."
+            exit 0
+          fi
+
+          git commit -sSm "Assigning HIP $PR_NUMBER and renaming file to hip-$PR_NUMBER.md" || {
+            echo "Commit failed. This may be expected for PRs from forks."
+            exit 0
+          }
+
+          git push origin HEAD:${{ github.head_ref }} || {
+            echo "Push failed. This is expected for PRs from forks without write access."
+            echo "The PR author will need to manually update their branch."
+            exit 0
+          }
