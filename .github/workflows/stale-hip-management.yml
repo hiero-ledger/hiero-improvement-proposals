@@ -100,9 +100,7 @@ jobs:
               echo "  Posting warning for PR #$PR_NUMBER (inactive for $DAYS_INACTIVE days)"
 
               # Post warning comment (no label yet)
-              WARNING_MESSAGE="This HIP appears to have been inactive for $DAYS_INACTIVE days. If there is no activity or response within $WARNING_DAYS days, it will be marked as Stagnant and closed.
-
-To prevent automatic closure, simply add a comment with an update, make a commit, or react to this message. Maintainers can also add a 'keep-open' label to exempt this HIP."
+              WARNING_MESSAGE=$(printf "This HIP appears to have been inactive for %d days. If there is no activity or response within %d days, it will be marked as Stagnant and closed.\n\nTo prevent automatic closure, simply add a comment with an update, make a commit, or react to this message. Maintainers can also add a 'keep-open' label to exempt this HIP." "$DAYS_INACTIVE" "$WARNING_DAYS")
 
               gh pr comment $PR_NUMBER --body "$WARNING_MESSAGE"
 
