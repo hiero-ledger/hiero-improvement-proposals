@@ -135,9 +135,6 @@ main().catch(console.error);
 // Unencoded memo: 0x3372348f476a87cf942167a35e78e40f00c91c99072b0c515ba8118cbd927fb7
 ```
 
-
-See [more detailed examples](../assets/hip-0000-hts-trailing-calldata/examples.md) in `assets/hip-0000-hts-trailing-calldata/examples.md`.
-
 ## Reference Implementation
 
 The implementation depends on the current state of the code base, but here is an overall potential flow that satisfies the HIP:
