@@ -1,113 +1,140 @@
 ---
 hip: 0000 # Assigned by HIP editor.
-title: <The HIP Title> # Keep concise and descriptive.
-author: <list of authors\' real names and GitHub handles, e.g., Jane Doe (@janedoe), John Smith (@johnsmith)>
-working-group: <optional list of key stakeholders\' real names and GitHub handles who are actively involved in shaping the HIP>
-requested-by: <optional name(s) of individual(s), project(s), or organization(s) requesting or sponsoring the HIP>
+title: Support for Ethereum Pectra Release # Keep concise and descriptive.
+author: Luke Lee(@lukelee-sl), Lukasz Gasior<@lukasz-hashgraph
+working-group: Fernando Paris(@Ferparishuertas), Luis Mastrangelo(@acuarica)
 discussions-to: <URL of the GitHub Pull Request for this HIP> # This will be filled by the HIP editor upon PR creation.
-type: <Standards Track | Informational | Process> # Refer to HIP-1 for definitions.
-category: <Core | Service | Mirror | Block Node | Application | Process> # Required for Standards Track and Process HIPs. Refer to HIP-1 for category definitions.
+type: Standards Track # Refer to HIP-1 for definitions.
+category: Service # Required for Standards Track and Process HIPs. Refer to HIP-1 for category definitions.
 needs-hiero-approval: Yes # Set to Yes if Hiero Technical Steering Committee (TSC) approval is required (typically for Standards Track & Process HIPs). Set to No for Informational HIPs or if not applicable as per HIP-1.
-needs-hedera-review: No # Set to Yes if the HIP proposes changes for the Hedera network/ecosystem and requires review/acceptance by Hedera (typically Standards Track: Core, Service, Mirror). Refer to HIP-1 for details.
-status: <Draft | Review | Last Call | Approved | Accepted | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced> # Refer to HIP-1 for status definitions and workflow.
-created: <yyyy-mm-dd> # Date of first submission as a Draft.
-updated: <yyyy-mm-dd> # Date of last modification.
-requires: <optional HIP number(s) that this HIP depends on>
-replaces: <optional HIP number(s) that this HIP renders obsolete>
-superseded-by: <optional HIP number(s) that this HIP is replaced by>
-release: <optional, target release or version number for implementation if applicable>
+needs-hedera-review: Yes # Set to Yes if the HIP proposes changes for the Hedera network/ecosystem and requires review/acceptance by Hedera (typically Standards Track: Core, Service, Mirror). Refer to HIP-1 for details.
+status: Draft # Refer to HIP-1 for status definitions and workflow.
+created: 2025-11-14 # Date of first submission as a Draft.
+updated: 2025-11-14 # Date of last modification.
+requires: link to EIP-7702 HIP when available # List any other HIPs that must be implemented before this one.
 ---
 
 ## Abstract
-Please provide a short (~200 word) description of the issue being addressed.
-
-This abstract should be copied to the description for your pull request.
+Ethereum's Pectra upgrade (activated May 7, 2025) introduced 11 EIPs, but not all of them are applicable to the Hiero network. 
+This HIP defines the adoption of Pectra for the Smart Contract Service by distinguishing which EIPs are applicable to Hiero versus non-applicable.
 
 ## Motivation
-The motivation is critical for HIPs that want to change the Hiero codebase or
-ecosystem. It should clearly explain why the existing specification is
-inadequate to address the problem that the HIP solves. HIP submissions without
-sufficient motivation may be rejected outright.
+To maintain EVM compatibility, applicable EIPs introduced in Ethereum's Pectra upgrade must be supported by the Hiero network.
 
 ## Rationale
-The rationale fleshes out the specification by describing why particular design
-decisions were made. It should describe alternate designs that were considered
-and related work, e.g. how the feature is supported in other ecosystems.
-
-The rationale should provide evidence of consensus within the community and
-discuss important objections or concerns raised during the discussion.
+Maintaining EVM compatibility is a core goal of the Hiero network, so updates from Ethereum releases must be adopted. 
+However, not every EIP needs to be implemented.  Each EIP needs to be evaluated individually for applicability.  
+Some EIPs address functionality that is (i) not supported by Hiero (e.g., blobs), (ii) aimed at improving validators—which have no Hiero equivalent—or 
+(iii) focuses on layers outside of L1 execution engine. All other EIPs should be considered for support.
 
 ## User stories
-Provide a list of "user stories" to express how this feature, functionality,
-improvement, or tool will be used by the end user. Template for a user story:
-> “As (user persona), I want (to perform this action) so that (I can accomplish
-> this goal).”
+- As a smart contract developer, I want to access BLS12-381 precompiles as described in EIP-2537.
+- As a smart contract developer, I expect the gas cost for call data to increase as described in EIP-7623.
+- As a smart contract developer, I want to set code for EOAs and execute it when the EOA address is called, as described in EIP-7702.
+- As an end user, I want to be able to be able to call an EOA that has executable code.
+- As an EOA, I want to be able to set execution code for myself via signing an authorization and including the authorization in a transaction.
 
 ## Specification
-The technical specification should describe the syntax and semantics of any new
-features. The specification should be detailed enough to allow competing,
-interoperable implementations for at least the current Hiero ecosystem. Details can include the low level design, and API/Protobuf definition. 
+The eleven EIPs in the Pectra release are listed below and categorized as either applicable or non-applicable to Hiero.
 
-Some specifications are of exceptional size. If your HIP requires detail of
-this level, add the large segments of specification as files of the appropriate
-type (e.g. Solidity code, Protocol Buffer definition, Java code, etc.) in the
-`assets` folder, and include descriptive links to each file here.
+## **Applicable EIPs**
 
-### Example Specification
-Add a new `TokenAirdrop` transaction to `HieroFunctionality`:
+### EIP-2537
 
-```protobuf
-enum HieroFunctionality {
-    /**
-     * Airdrops one or more tokens to one or more accounts.
-     */
-    TokenAirdrop = 94;
-}
-```
+[EIP-2537](https://eips.ethereum.org/EIPS/eip-2537) introduces new precompiles for BLS12-381 operations. Besu has already implemented these precompiles. The necessary work for Hiero is to make them available within the EVM.  The new precompile functions and addresses are summarized in this table.  These precompile functions can be called utilizing functions such as `call` and `staticcall`
 
-Define a new `TokenAirdrop` transaction body. This transaction distributes
-tokens from the balance of one or more sending account(s) to the balance of
-one or more recipient accounts. The full definition, for clarity, is detailed
-in [an attached file](assets/hip-0000-template/sample.proto).
+| Function Name | Precompile address |
+| --- | --- |
+| BLS12_G1ADD | 0x0b |
+| BLS12_G1MSM | 0x0c |
+| BLS12_G2ADD | 0x0d |
+| BLS12_G2MSM | 0x0e |
+| BLS12_PAIRING_CHECK | 0x0f |
+| BLS12_MAP_FP_TO_G1 | 0x10 |
+| BLS12_MAP_FP2_TO_G2 | 0x11 |
+
+### EIP-7623
+
+[EIP-7623](https://eips.ethereum.org/EIPS/eip-7623) increases the gas cost of calldata to reduce the maximum block size. Although the limit to maximum block size and block gas limit do not directly apply to Hiero, for EVM equivalence, Hiero will also adopt these gas costs. The necessary changes have been implemented in the `PragueGasCalculator` in Besu, but these changes must be made available to the gas calculator used by Hiero EVM.
+
+More specifically, the gas calculation remains the same but a minimum floor value defined as
+`TOTAL_COST_FLOOR_PER_TOKEN ***** tokens_in_calldata` is introduced
+
+where `TOTAL_COST_FLOOR_PER_TOKEN = 10`
+
+and `tokens_in_calldata = zero_bytes_in_calldata + nonzero_bytes_in_calldata * 4`
+
+### EIP-7702
+
+[EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) is the most complex EIP to implement from the Pectra release. It allows for setting and executing contract code for EOAs. HIP-related details can be found in HIP-#### (link once available).
+
+### Non-Applicable EIPs
+
+The non-applicable EIPs are described and categorized below.
+
+- EIPs that enhance blob support
+    - [EIP-7691](https://eips.ethereum.org/EIPS/eip-7691)
+    - [EIP-7840](https://eips.ethereum.org/EIPS/eip-7840)
+- EIPs related to Ethereum validators
+    - [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110)
+    - [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002)
+    - [EIP-7251](https://eips.ethereum.org/EIPS/eip-7251)
+    - [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685)
+- EIPs related to Ethereum 2.0
+    - [EIP-2935](https://eips.ethereum.org/EIPS/eip-2935)
+    - [EIP-7549](https://eips.ethereum.org/EIPS/eip-7549)
 
 ### Impact on Mirror Node
-Describe impacts, if any, on the Hiero Mirror node.
+EIP-2537 and EIP-7623 do not meaningfully impact the mirror node beyond normal acceptance of the new code once it is available for simulation.  
+EIP-7702 impact can be found in the related HIP <HIP for EIP-770s> link.
 
 ### Impact on SDK
-Describe Impacts, if any, on the Heiro SDKs
+EIP-2537 and EIP-7623 do not meaningfully impact the SDK.
+EIP-7702 impact can be found in the related HIP <HIP for EIP-770s> link.
 
 ## Backwards Compatibility
-All HIPs that introduce backward incompatibilities must include a section
-describing these incompatibilities and their severity. The HIP must explain how
-the author proposes to deal with these incompatibilities. HIP submissions
-without a sufficient backward compatibility treatise may be rejected outright.
+EIP-2537 does not impact backwards compatibility.  
+EIP-7623 alters the gas consumption for transaction and this can impact new and subsequent interactions with existing contracts by end users.
 
 ## Security Implications
-If there are security concerns in relation to the HIP, those concerns should be
-explicitly addressed to make sure reviewers of the HIP are aware of them.
+There are no known security implications from EIP-2537 and EIP-7623.
+EIP-7702 impact can be found in the related HIP <HIP for EIP-770s> link.
 
 ## How to Teach This
-For a HIP that adds new functionality or changes interface behaviors, it is
-helpful to include a section on how to teach users, new and experienced, how to
-apply the HIP to their work.
-
-## Reference Implementation
-The reference implementation must be complete before any HIP is given the status
-of “Final.” The final implementation must include test code and documentation.
+Hiero will support EIP-2537, EIP-7623, and EIP-7702 to maintain EVM compatibility. Other Pectra EIPs are not applicable to Hiero.    
+Documentation for these and other Pectra related EIPs are available via the official Ethereum EIP website <eips.ethereum.org>
 
 ## Rejected Ideas
-Throughout the discussion of a HIP, various ideas will be proposed that are not
-accepted. Those rejected ideas should be recorded along with the reasoning as to
-why they were rejected. This helps document the thought process behind the final
-version of the HIP and prevents people from revisiting the same rejections later.
+None.
 
 ## Open Issues
-While a HIP is in draft, new ideas may arise that warrant further discussion.
-List them here so everyone knows they are under consideration but not yet
-resolved. This reduces duplication in future discussions.
+None.
 
 ## References
-A collection of URLs used as references throughout the HIP.
+<HIP for EIP-770s> link.
+
+[EIP-7600](https://eips.ethereum.org/EIPS/eip-7600) Pectra Hardfork
+[EIP-2537](https://eips.ethereum.org/EIPS/eip-2537): Precompile for BLS12-381 curve operations
+
+[EIP-2935](https://eips.ethereum.org/EIPS/eip-2935): Save historical block hashes in state
+
+[EIP-6110](https://eips.ethereum.org/EIPS/eip-6110): Supply validator deposits on chain
+
+[EIP-7002](https://eips.ethereum.org/EIPS/eip-7002): Execution layer triggerable exits
+
+[EIP-7251](https://eips.ethereum.org/EIPS/eip-7251): Increase the MAX_EFFECTIVE_BALANCE
+
+[EIP-7549](https://eips.ethereum.org/EIPS/eip-7549): Move committee index outside Attestation
+
+[EIP-7623](https://eips.ethereum.org/EIPS/eip-7623): Increase calldata cost
+
+[EIP-7685](https://eips.ethereum.org/EIPS/eip-7685): General purpose execution layer requests
+
+[EIP-7691](https://eips.ethereum.org/EIPS/eip-7691): Blob throughput increase
+
+[EIP-7702](https://eips.ethereum.org/EIPS/eip-7702): Set EOA account code
+
+[EIP-7840](https://eips.ethereum.org/EIPS/eip-7840): Add blob schedule to EL config files (Informational)
 
 ## Copyright/license
 This document is licensed under the Apache License, Version 2.0 —
