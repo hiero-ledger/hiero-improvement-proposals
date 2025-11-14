@@ -46,7 +46,7 @@ improvement, or tool will be used by the end user. Template for a user story:
 ## Specification
 The technical specification should describe the syntax and semantics of any new
 features. The specification should be detailed enough to allow competing,
-interoperable implementations for at least the current Hiero ecosystem. Details can include the low level design, and API/Protobuf definition.
+interoperable implementations for at least the current Hiero ecosystem. Details can include the low level design, and API/Protobuf definition. 
 
 Some specifications are of exceptional size. If your HIP requires detail of
 this level, add the large segments of specification as files of the appropriate
