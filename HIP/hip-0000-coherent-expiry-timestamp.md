@@ -20,7 +20,7 @@ This HIP proposes to standardize the encoding of the `expiry_timestamp` field in
 
 The current implementation of the `expiry_timestamp` field for tokens creates several problems:
 
-- **API Inconsistency**: The field is documented in the OpenAPI specification as `#/components/schemas/TimestampNullable`, which explicitly defines timestamps as strings in `seconds.nanoseconds` format with the pattern `^\d{1,10}(\.\d{1,9})?$`. However, the actual API response returns an integer.
+- **API Inconsistency**: The field is documented in the [OpenAPI specification](https://github.com/hiero-ledger/hiero-mirror-node/blob/6fdaf74a87a2e13a9f233597f38d99e5450e97d9/rest/api/v1/openapi.yml#L3446) as `#/components/schemas/TimestampNullable`, which explicitly defines timestamps as strings in `seconds.nanoseconds` format with the pattern `^\d{1,10}(\.\d{1,9})?$`. However, the actual API response returns an integer.
 - **Developer Confusion**: Developers must implement special handling logic for token expiry timestamps that differs from handling other timestamp fields (like `created_timestamp` and `modified_timestamp` on the same token object, or `expiry_timestamp` for accounts). This issue was previously raised in GitHub issue [#5779](https://github.com/hiero-ledger/hiero-mirror-node/issues/5779) and more recently in [#11721](https://github.com/hiero-ledger/hiero-mirror-node/issues/11721), indicating recurrent developer pain points.
 - **Ecosystem Fragmentation**: Tools and libraries that parse Mirror Node responses must handle this field differently, leading to unnecessary complexity and potential bugs.
 
