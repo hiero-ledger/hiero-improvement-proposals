@@ -1,5 +1,5 @@
 ---
-hip: 0000
+hip: 1347
 title: Coherent Token Expiry Timestamp Encoding
 author: Giuseppe Bertone <giuseppe.bertone@hashgraph.com>
 type: Standards Track
@@ -9,7 +9,7 @@ needs-hedera-review: Yes
 status: Review
 created: 2025-11-19
 updated: 2025-11-19
-discussions-to: <URL of the GitHub Pull Request for this HIP>
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1347
 ---
 
 ## Abstract
