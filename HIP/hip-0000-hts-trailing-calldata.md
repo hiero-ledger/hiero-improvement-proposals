@@ -2,7 +2,7 @@
 hip: 0000 # Assigned by HIP editor.
 title: Ignore Trailing Calldata for HTS System Contract
 author: Giuseppe Bertone (@neurone)
-working-group: Giuseppe Bertone (@neurone), Ian Holsman (@web3-nomad), Luke Lee (@lukelee-sl)
+working-group: Giuseppe Bertone (@neurone), Ian Holsman (@web3-nomad), Glib Kozyryatskyy (@gkozyryatskyy)
 requested-by: Squid <https://www.squidrouter.com>; Axelar <https://www.axelar.network>; Hedera Foundation <https://hedera.foundation>
 discussions-to: <URL of the GitHub Pull Request for this HIP> # This will be filled by the HIP editor upon PR creation.
 type: Standards Track
