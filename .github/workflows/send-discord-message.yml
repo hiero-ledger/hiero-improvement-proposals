@@ -24,13 +24,61 @@ jobs:
     runs-on: hiero-improvement-proposals-linux-medium
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Extract HIP abstract
+        id: extract_abstract
+        env:
+          FILENAME: ${{ github.event.inputs.filename }}
+        run: |
+          # Add .md extension if not present
+          if [[ "$FILENAME" == *.md ]]; then
+            HIP_FILE="HIP/${FILENAME}"
+          else
+            HIP_FILE="HIP/${FILENAME}.md"
+          fi
+
+          # Verify file exists
+          if [ ! -f "$HIP_FILE" ]; then
+            echo "Error: File $HIP_FILE does not exist"
+            echo "abstract=File not found: $HIP_FILE" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Extract the abstract section (text between "## Abstract" and the next "##" heading)
+          ABSTRACT=$(sed -n '/^## Abstract$/,/^## /p' "$HIP_FILE" | sed '$d' | tail -n +2 | sed '/^$/d')
+
+          # If abstract is empty, use a default message
+          if [ -z "$ABSTRACT" ]; then
+            ABSTRACT="No abstract available for this HIP."
+          fi
+
+          # Save the abstract to output (escape for GitHub Actions)
+          {
+            echo "abstract<<EOF"
+            echo "$ABSTRACT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          # Save the filename without extension for URL
+          FILENAME_NO_EXT="${FILENAME%.md}"
+          echo "filename_no_ext=$FILENAME_NO_EXT" >> "$GITHUB_OUTPUT"
 
       - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD }}
-        uses: step-security/action-discord@b4bb54a2ec8218130ee588d2ca1fa358cf828735 # v0.1.2
+        uses: step-security/action-discord@12bdaf0579698ae72d3caf0cc14578ced05f9bed # v0.1.4
         with:
-          args:  "${{ github.event.inputs.filename }} moved into ${{ github.event.inputs.status }} status https://hips.hedera.com/hip/${{ github.event.inputs.filename }}"
+          args: |
+            # ${{ steps.extract_abstract.outputs.filename_no_ext }} moved into ${{ github.event.inputs.status }} status
+
+            ## About this HIP
+            ${{ steps.extract_abstract.outputs.abstract }}
+
+            Read the full HIP here:
+            https://hips.hedera.com/hip/${{ steps.extract_abstract.outputs.filename_no_ext }}
