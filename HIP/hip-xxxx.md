@@ -1,0 +1,159 @@
+---  
+hip: hip-xxx  
+title: "Add isAssociated(address account) to HTS Token Facade Contract"  
+author: "Keith Kowal (keith.kowal@hashgraph.com)"  
+working-group: "Keith Kowal (keith.kowal@hashgraph.com), @mshakeg"  
+discussions-to:   
+status: Draft  
+type: "Standards Track"  
+category: "Service"  
+needs-council-approval: Yes  
+created: "2025-11-26"  
+updated: "2025-11-26"  
+requires: \[218, 719\]  
+release: TBD  
+---
+
+# **HIP-XXX: Add `isAssociated(address account)` to HTS Token Facade Contract**
+
+## **Abstract**
+
+HIP-719 introduced an `isAssociated()` view function in the Hiero Token Service (HTS) facade contract that returns whether *the calling account* is associated with the token. However, this method cannot check the association status of any account other than the caller. In other words, `isAssociated()` currently has no parameters and implicitly uses `msg.sender` as the account of interest. This proposal extends the HTS token facade by adding a new `isAssociated(address account)` function that allows querying if an **arbitrary** account is associated with a given token. 
+
+## **Motivation**
+
+Currently, there is no direct way for a smart contract or external client to check if a specific account is associated with a token without that account itself initiating the query. The original `isAssociated()` facade function added in HIP-719 only checks the association status for the caller (the `msg.sender`). This poses a challenge for contract developers and dApp builders. 
+
+By introducing `isAssociated(address account)`, we empower contracts and users to easily query any account’s association with a token in a single, gas-efficient call. This will improve developer experience and enable richer dApp logic. For instance, a contract can now **check** if a user is associated and only call `associate()` if the answer is false, avoiding redundant operations. User interfaces can also call the token’s `isAssociated(account)` via JSON-RPC to quickly determine if a wallet address is associated and prompt the user accordingly. Overall, this addition closes a functionality gap in the HTS token facade, making token interactions more robust and **frictionless**.
+
+## **Background**
+
+Hiero’s **HTS token facade** allows HTS tokens to be accessed at an EVM address (their “contract” address) and called as if they were standard ERC-20/ERC-721 contracts. Internally, these token addresses do not have user-deployed code; instead, the Hiero Smart Contract Service intercepts calls to them and routes the calls to the **HTS precompile** (a built-in system contract) via a delegate call. In particular, when the EVM encounters a call to a token address, a special redirect bytecode is provided in place of actual contract code. This bytecode takes the original call’s data, **prefixes it with the token’s address**, and **delegatecalls** to the HTS precompile at address `0x167`. The precompile at `0x167` (introduced in HIP-206) contains the logic to execute various HTS operations, identified by function selectors in the call data.
+
+Under this facade routing mechanism, the token address and caller’s address (`msg.sender`) are implicitly known to the precompile logic. HIP-719 leveraged this by adding `associate()`, `dissociate()`, and `isAssociated()` functions with *no parameters*. In those calls, the targeted token is derived from the called address, and the account to act on is implicitly taken as the transaction’s **caller** (`msg.sender`). This means the precompile uses `msg.sender` to determine which account to associate, dissociate, or check for association. While this design enforces that an account can only **associate or dissociate itself** (preserving security), it also means the original `isAssociated()` could only answer the question “Is *the caller* associated with this token?” and nothing else.
+
+## **Rationale**
+
+Allowing an arbitrary address to be checked for association strikes a balance between **usability** and **security** in the HTS facade model. The original design (HIP-719) deliberately restricted association and dissociation to the caller to ensure that one account cannot change another account’s token associations. This proposal keeps that restriction intact for state-changing operations, but acknowledges that *reading* an account’s association status does not pose a security risk. The information is effectively public (anyone could query it via the mirror node or try a transfer to infer it), so providing a direct smart-contract accessible method aligns with principles of transparency and convenience.
+
+From a design perspective, adding an `address` parameter to `isAssociated` was the most straightforward way to extend functionality without breaking existing contracts. Overloading the function name was chosen to keep consistency and familiarity – developers intuitively expect an `isAssociated()` query, and now they have the option to supply an address. 
+
+In terms of gas and performance, the `isAssociated(account)` call is expected to be as cheap as any standard ERC-20 balance query. It performs a lookup in the account’s token relationships, which is a simple state read. By avoiding the need to attempt a full `associateToken` call when the account is already associated (the current workaround), this proposal significantly reduces gas usage in those scenarios. It also prevents the creation of failed internal transactions purely for association checking, simplifying contract logic and improving clarity.
+
+This extension aligns with Hiero’s goal of making HTS tokens as **Ethereum-like as possible** in smart contract interactions (per HIP-218). In Ethereum, one can freely call methods like `balanceOf(address)` on token contracts for any address; analogously, on Hiero it is logical to allow checking an account’s association status as a similarly free query. This closes a gap in feature parity and helps developers avoid surprises when porting Ethereum-based token logic (where an association concept doesn’t exist, but a similar gating check might be needed on Hiero).
+
+## **User stories**
+
+1. *As a smart contract developer,* I want to easily verify whether a given account is associated with my HTS token **within my contract**, so that I can conditionally perform token transfers or associations. For example, my contract can now call `isAssociated(userAddress)` and only call `associate()` for that user if it returns false, avoiding unnecessary errors and saving gas when the user is already associated.
+
+2. *As a dApp or wallet developer,* I want to check if a user’s account is associated with a particular token via a simple contract call, so I can guide the user through the correct steps. For instance, my application’s backend can call the token’s `isAssociated(user)` method when the user attempts to receive tokens. If it returns false, the UI can prompt the user to associate the token first (or use an automatic association slot), thereby preventing failed token transfers and improving user experience.
+
+## **Specification**
+
+**New Facade Function:** This HIP adds a **new view function** to the HTS token facade contract interface:
+
+`function isAssociated(address account) external view returns (bool);`
+
+The function returns `true` if the given `account` is currently associated with the token, and `false` if not. It does **not** initiate or modify any association; it is a read-only query.
+
+**Precompile Implementation:** The logic for `isAssociated(address)` will be implemented in the Hiero Token Service **precompile contract** at address `0x167`. A unique function selector will identify this call. The 4-byte selector for `isAssociated(address)` (the Keccak-256 hash of the signature) is `0xd55fe582`. This selector, along with the 32-byte address argument, will be recognized by the precompile and routed to a new handler that checks the token-association status.
+
+When a user or contract invokes `tokenAddress.isAssociated(account)`, the call is handled as follows, using the existing **facade delegate-call routing**:
+
+1. The EVM intercepts the call to `tokenAddress` (which corresponds to a specific HTS token) and diverts to the redirect bytecode as in prior facade calls.
+
+2. The redirect bytecode constructs a delegatecall into the HTS precompile (`0x167`), inserting the token’s address and the original call data (which now includes the `account` parameter) into the payload. The precompile thus receives the token ID and the target account.
+
+3. The precompile’s dispatcher (within `HTSPrecompileContract`) will be extended to recognize the `0xd55fe582` selector as an **“HTS redirect”** call for `isAssociated` with an account. It will parse the call data to retrieve the target `account` address and the token ID (which was prefixed by the facade logic), then perform the check.
+
+4. The check involves reading the token relationship of `account` for the given token. If an active association exists (meaning the account has that token in its associated token list), the result is `true`. If the account is not associated (no such relationship found, or it was never associated or has been dissociated), the result is `false`.
+
+5. The boolean result is returned through the normal precompile return path. The facade contract’s delegatecall will propagate this return value back to the original caller. The call behaves like any other Solidity view function call in terms of EVM semantics (returning a boolean and not modifying state).
+
+**Function Selector and ABI:** The new function will use the selector `0xd55fe582` for `isAssociated(address)`. This is distinct from the existing no-argument `isAssociated()` selector `0x4d8fdd6d`, so there is no ambiguity at the ABI level. The HTS precompile will be updated to handle this selector under the same **ABI\_ID\_REDIRECT\_FOR\_TOKEN** mechanism used for other facade calls. No changes to the redirect bytecode are necessary beyond recognizing the new call, since it already forwards *all* call data to the precompile. (The original HIP-719 design noted that *“any function can be redirected to \[the precompile\] as long as the HTS precompile handles the redirect call”*; this HIP simply ensures the precompile now handles one more function.)
+
+**Read-Only Nature:** `isAssociated(address)` is a `view` function. It performs a state lookup but **does not modify state**. Calling this function will **not** associate or dissociate any account, and does not consume or release token association slots on the account. It cannot be used to bypass the requirement that only an account (or an authorized contract) can associate itself; it only reveals the current status. The implementation will not emit any events or produce any record in the transaction receipts (aside from the boolean return value), as it is purely a query.
+
+**Return Values:** The function returns a Solidity `bool`. Under the hood, `true` corresponds to a successful status (the account has an active association with the token), and `false` indicates no active association. There is no Hiero response code returned for this call (unlike the mutable HTS precompile functions that return response codes), since it either returns the boolean or (in rare error cases) reverts. In particular, if the specified `account` does not exist on Hiero or the token does not exist (e.g., the call was somehow made to an invalid token address), the precompile will likely treat that as “not associated” and return false. No new error codes are introduced by this HIP. (If the token address was invalid such that the call was not intercepted, the EVM call would simply revert due to missing code, which is unchanged default behavior.)
+
+**Example Usage:**
+
+* A wallet or dApp front-end can call `IHieroTokenService(tokenAddress).isAssociated(userAccount)` via JSON-RPC to check if `userAccount` is associated with the token, and prompt the user to associate if the result is false.
+
+* A smart contract that distributes tokens can use `if (!IHRC(tokenAddress).isAssociated(recipient)) { IHRC(tokenAddress).associate(); }` to ensure the recipient is associated before proceeding with a transfer. The `isAssociated(account)` call will return quickly with `false` if not associated (or `true` if already associated), allowing the contract to avoid making an `associate()` call that would fail and waste gas.
+
+## **Behavior**
+
+**Query Semantics:** Calling `isAssociated(address account)` on an HTS token contract will return a boolean indicating the association status of the specified `account` with the token. The result is independent of who invokes the call. In other words, *any caller* (EOA or contract) can query the association of *any account* with the token:
+
+* If the `account` is **associated** with the token (has an active token relationship entry), the function returns `true`.  
+* If the `account` is **not associated** with the token, the function returns `false`. This includes the case where the account has never been associated, or was associated in the past but later dissociated. An account that does not exist (or an address that is not a valid Hiero account) will likewise yield `false` (since it cannot be associated).  
+* The return value simply reflects the current state at the time of the call; there is no internal state change or side effect.
+
+**Caller Types:** The behavior is the same whether the caller is an **externally owned account (EOA)** or a **smart contract**:
+
+* For an EOA calling via a client, the call will query the given `account` normally and return the result in the transaction record (or JSON-RPC response for a static call).  
+* For a smart contract making an internal call to `isAssociated(account)`, the boolean result will be pushed to the calling contract’s execution stack as with any external call. The key distinction from the original `isAssociated()` is that the contract can specify any `account` address. The underlying precompile no longer ties the query to `msg.sender` when this function is used. For example, a contract can do `bool associated = IHRC(token).isAssociated(user);` and get the user’s status, whereas previously `IHRC(token).isAssociated()` from a contract would only tell if *the contract itself* was associated.
+
+Importantly, the introduction of an explicit address parameter means **the identity of the caller (`msg.sender`) is not used in determining the queried account**. This function does not require any special permissions – association status is public information on the ledger. Any account can check any other account’s associations using this method. (By contrast, the `associate()` and `dissociate()` functions still inherently act only on the caller, and that remains unchanged by this proposal.)
+
+**Consistency with Existing Behavior:** If the `account` provided happens to be the same as the caller, `isAssociated(account)` will yield the same result as the original parameter-less `isAssociated()` would (assuming the caller is an EOA or a contract checking its own status). The original `isAssociated()` (no-param) is still available for backwards compatibility (see below), and essentially behaves like `isAssociated(msg.sender)`. The new function simply generalizes this to any target address. Aside from the addition of the address parameter, there are no changes to the definition of “associated”: it still means that the account has an active association with the token (and thus can hold the token if sent to it). Whether the account currently holds a token balance or not does not affect the association status (accounts remain associated until explicitly dissociated, as long as their token balance is zero).
+
+## **Backwards Compatibility**
+
+This HIP is an additive change to the HTS token facade and does not break any existing contracts or dApps. The original parameter-less `isAssociated()` function remains intact and continues to operate as before (implicitly checking `msg.sender`’s association). Smart contracts compiled against the old `IHRC` interface (which included `isAssociated()` with no parameters) will still function correctly; their calls to `isAssociated()` will be handled by the precompile as prior to this proposal. Meanwhile, contracts aware of the new interface can start using `isAssociated(address)` for enhanced functionality.
+
+## **Security Implications**
+
+The addition of `isAssociated(address)` does not introduce new security risks to Hiero or to token contracts:
+
+* **Read-Only:** The function does not modify any state. It cannot be used to change an account’s associations, only to query them. This means it cannot be exploited to associate or dissociate an account without proper authorization. All the security guarantees of the association model remain in place — an account still must call `associate()` itself (or authorize via a contract key) to form an association, and only the account or an authorized party can dissociate.  
+* **Access Control:** The ability to query someone else’s association status does not grant any control over that account. The information is essentially public. On Hiero, token associations are visible via mirror nodes and can be inferred by on-chain actions, so exposing this via a smart contract call doesn’t leak sensitive data. There is no concept of private token associations in the ledger; thus privacy is not impacted.  
+* **Denial of Service:** The operation is a simple lookup and should be low cost. It does not create significant load or use excessive gas such that it could be abused to stall contract execution. In fact, by avoiding the need to attempt failing associations, it potentially *reduces* unnecessary load.  
+* **Consensus and Validation:** The node software will validate the provided address just as it does for other precompile calls. A malformed address (e.g., not a 20-byte EVM address) would result in a normal precompile parameter error. If an account or token is deleted or does not exist, the function safely returns false. These conditions mirror how other precompile queries (like `balanceOf` on a deleted account) behave, and do not pose security issues.
+
+In summary, this change maintains the security model that **only accounts themselves initiate associations**, while permitting anyone to ask “does account X have an association with token Y?” without side effects. It provides helpful information without enabling any new actions that could be exploited or require permission.
+
+## **How to Teach This**
+
+Developers should be taught that in addition to the existing `associate()` and `dissociate()` facade functions, there are now **two** ways to query association status on a token:
+
+* `token.isAssociated()`: Checks the calling account’s association (legacy behavior from HIP-719).  
+* `token.isAssociated(address)`: Checks any specified account’s association with the token (new in this HIP).
+
+From a user perspective (e.g., wallet or UI developers), it should be explained that they can directly call this function through JSON-RPC or mirror query. In Solidity, the interface could be updated as:
+
+`interface IHRC {`  
+    `function associate() external returns (int32);    // returns response code`  
+    `function dissociate() external returns (int32);`  
+    `function isAssociated() external view returns (bool);`  
+    `function isAssociated(address account) external view returns (bool);`  
+`}`
+
+This makes it clear that the new method is a simple view function. Comparisons can be drawn to Ethereum’s token standards: just as one can query any address’s balance or allowance on ERC-20, on Hiero one can now query any address’s token association status through the token’s contract.
+
+Documentation should also clarify that this function is available from the network version that implements this HIP onward, to avoid confusion on older networks. Overall, the teaching should emphasize improved developer experience: *“No need to attempt an association just to see if someone is associated – now you can simply ask the token\!”*
+
+## **Reference Implementation**
+
+A reference implementation will be provided via an update to the Hiero Services codebase (repository for Hiero consensus node software). Specifically, the `HTSPrecompileContract` class in the consensus service will have a new case for the `isAssociated(address)` function selector. This will retrieve the token and account from the call input and perform a lookup in the token store (likely by calling an existing internal function that checks if an account’s token relationship exists and is active). The boolean result will then be encoded and returned. The exact code changes will be available in the open-source Hiero Services repo accompanying the release of this feature.
+
+## **Rejected Ideas**
+
+* **Implementing as a Mirror Node query only:** While mirror node APIs can be used to check associations off-chain, this does not help on-chain logic or simplify contracts. The goal is to enable **in-smart-contract** checks; relying on an off-chain service was not a suitable solution for many use cases (and introduces latency and trust issues). Thus, a native precompile call was the appropriate path.
+
+## **Open Issues**
+
+One consideration is the handling of invalid addresses or deleted entities in the query – the implementation will treat these as “not associated” returning false, which is intuitive. This will be documented accordingly. No further open questions remain at the time of writing.
+
+## **References**
+
+* **HIP-206:** *Hiero Token Service Precompiled Contract for Hiero Smart Contract Service* – Danno Ferrin et al. (2021). Describes the initial HTS precompile (address 0x167) and its functions.  
+* **HIP-218:** *Smart Contract interactions with Hiero Token Accounts* – Danno Ferrin (2022). Introduced the redirection mechanism enabling calls to token addresses to be forwarded to the HTS precompile (via `redirectForToken`).  
+* **HIP-719:** *Associate and Dissociate Tokens via Facade Contract* – Luke Lee (2023). Added the `associate`, `dissociate`, and `isAssociated()` (no-param) functions to the token facade, using `msg.sender` for association logic.  
+* **Hiero Discussion \#706:** *Extend Mint and Burn Functionality (GitHub)* – (2023)[github.com](https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/706#:~:text=1,proceed%20with%20our%20contract%20flow)[github.com](https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/706#:~:text=Hi%20%40se7enarianelabs%20thanks%20for%20the,feedback). Community discussion highlighting the need for an `isAssociated` view function to avoid gas-wasting patterns when checking token associations.
+
+## **Copyright/license**
+
+This document is licensed under the Apache License, Version 2.0 — see [LICENSE](http://../LICENSE) or [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
