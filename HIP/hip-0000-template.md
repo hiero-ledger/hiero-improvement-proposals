@@ -1,0 +1,150 @@
+---
+hip: 0000 # Assigned by HIP editor.
+title: Tier 1 Block Node Operation Rewards
+author: Nana Essilfie-Conduah <@Nana-EC>
+working-group: Nana Essilfie-Conduah <@Nana-EC>, Richard Bair <@rbair23>, Neeharika Sompalli <@Neeharika-Sompalli>
+requested-by: Tier 1 Block Node Operators
+discussions-to: 
+type: Standards Track
+category: Service
+needs-hiero-approval: Yes 
+needs-hedera-review: Yes
+status: Draft
+created: 2025-12-02
+updated: 2025-12-02
+requires: 1056, 1086
+replaces:
+superseded-by:
+release:
+---
+
+## Abstract
+This proposal introduces a new flag in a consensus node's address book entry to indicate whether the associated
+AccountId should receive block node rewards for operating a Tier 1 block node.
+
+## Motivation
+Block nodes provide a community service by decentralizing network data storage and ensuring blocks are distributed
+with diverse ownership. Operating these nodes requires acquiring and maintaining hosting servers, along with ongoing
+upgrades and maintenance. Tier 1 block node operators should be rewarded for providing these fundamental services and
+ensuring consensus nodes have a reliable location to push blocks.
+
+Additionally, Tier 1 block operators are often also council consensus node operators. Having all their node operation
+rewards designated in one place and distributed to the same AccountId is valuable.
+
+## Rationale
+Each node entry in the address book will have a new `blockNodeRewardsEligible` flag. This flag indicates whether the
+AccountId owner is eligible to receive daily rewards for operating a Tier 1 block node.
+
+An additional configuration, `targetYearlyBlockNodeRewardsUsd`, will be added to capture the estimated dollar cost of
+operating a Tier 1 block node on cloud services. This amount will be divided by 365 days and converted to the native
+cryptocurrency to determine the daily reward issued to each block node operator.
+
+## User stories
+1. **As a Tier 1 block node operator**, I want to be rewarded for my services in full time operation of a block node.
+2. **As a Hiero network governing authority** (e.g., Hedera Council), I want to be able to designate that a network
+    node operator Id is eligible for block node rewards fees
+3. **As a Hiero network governing authority** (e.g., Hedera Council), I want to be able to designate the total yearly
+    cost the network is willing to pay a block node operator in a year for their services.
+
+## Specification
+During nightly reward fee calculations, a consensus node with iterate on all the nodes in the consensus network and
+will observe if their blockNodeRewardsEligible flag is set to true. If so the network will agree to issue a
+`CryptoTransfer` of `(targetYearlyBlockNodeRewardsUsd ($) / 365 (days)) * exchangeRate (h/$)`
+
+### Consensus Node Specification
+
+Add a `block_node_reward_eligible` to `node.proto` message in the addressbook
+
+```protobuf
+message Node {
+		...
+		
+	  /**
+	   * A flag indicating is this nodes AccoutnId is eligible for block node rewards
+	   * <p>
+	   * If this field is set, then this nodes AccountId SHALL receive any block node rewards
+	   * distributed at the end of the staking period.
+	   */
+	  bool block_node_reward_eligible = 13;
+}
+```
+
+Add a `block_node_reward_eligible` field to `NodeCreateTransactionBody` and `NodeUpdateTransactionBody` to allow the
+council to specify if a nodes AccountId should receive Tier 1 block node operation rewards.
+
+```protobuf
+message NodeCreateTransactionBody {
+		...
+	
+	   /**
+     * A boolean indicating whether this node AccountId is eligible for block
+     * node rewards
+     * <p>
+     * This node AccountId SHALL receive rewards if this value is set, and `true`.
+     */
+    google.protobuf.BoolValue block_node_reward_eligible = 10;
+}
+```
+
+```protobuf
+message NodeUpdateTransactionBody {
+		...
+	
+	   /**
+     * A boolean indicating whether this node AccountId is eligible for block
+     * node rewards
+     * <p>
+     * This node AccountId SHALL receive rewards if this value is set, and `true`.
+     */
+    google.protobuf.BoolValue block_node_reward_eligible = 11;
+}
+```
+
+Add a `targetYearlyBlockNodeRewardsUsd` config property to the NodesConfig.
+
+### Impact on Mirror Node
+Mirror nodes will need to update their api/v1/network/nodes API with a new block_node_reward_eligible field
+
+```json
+{
+  "nodes": [
+    {
+	    ...
+	    "block_node_reward_eligible": true,
+	    ...
+    }
+  ]
+}
+```
+
+### Impact on SDK
+SDKs will need to be update to set block_node_reward_eligible fields in the NodeCreate and NodeUpdate transactions
+
+## Backwards Compatibility
+This HIP introduces additional fields within the existing node address book framework and maintains backwards
+compatibility.
+
+## Security Implications
+No changes to security rules are made, as all NodeCreate and NodeUpdate transactions require signing and the network
+requires configuration and consensus on new values. No new entry or exit pathways are added.
+
+## How to Teach This
+
+
+## Reference Implementation
+
+
+## Rejected Ideas
+
+
+## Open Issues
+- [ ]  Do transaction cost need to increase to have a BN rewards component or do we pull from the existing funds
+    with no impacts as it’s well funded?
+- [ ]  Does the threshold for the account need to change to support CN + BN rewards for a full 39 node network?
+
+## References
+A collection of URLs used as references throughout the HIP.
+
+## Copyright/license
+This document is licensed under the Apache License, Version 2.0 —
+see [LICENSE](../LICENSE) or <https://www.apache.org/licenses/LICENSE-2.0>.
