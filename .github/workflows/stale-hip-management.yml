@@ -42,6 +42,8 @@ jobs:
           INACTIVITY_DAYS_INPUT: ${{ github.event.inputs.inactivity_days || '60' }}
           WARNING_DAYS_INPUT: ${{ github.event.inputs.warning_days || '14' }}
         run: |
+          set +e
+
           # Validate inputs to prevent code injection
           if ! [[ "$INACTIVITY_DAYS_INPUT" =~ ^[0-9]+$ ]]; then
             echo "Error: inactivity_days must be a positive integer"
@@ -138,16 +140,20 @@ jobs:
               if [ $DAYS_SINCE_WARNING -ge $WARNING_DAYS ] && [ "$HAS_ACTIVITY" = false ]; then
                 echo "  Closing PR #$PR_NUMBER as Stagnant (warning period expired)"
 
-                # Add stale label
-                gh pr edit $PR_NUMBER --add-label "stale"
+                # Add stale label using the API directly to avoid gh cli deprecation warnings
+                gh api "repos/${{ github.repository }}/issues/$PR_NUMBER/labels" \
+                  --method POST \
+                  --field "labels[]=stale" > /dev/null 2>&1 || echo "  Warning: Could not add stale label"
 
                 # Post closing comment
                 gh pr comment $PR_NUMBER --body "This HIP has been marked as Stagnant due to inactivity. Feel free to reopen when ready to continue."
 
                 # Close the PR
-                gh pr close $PR_NUMBER
-
-                echo "  PR #$PR_NUMBER closed successfully"
+                if gh pr close $PR_NUMBER; then
+                  echo "  PR #$PR_NUMBER closed successfully"
+                else
+                  echo "  ERROR: Failed to close PR #$PR_NUMBER"
+                fi
 
               else
                 if [ "$HAS_ACTIVITY" = true ]; then
