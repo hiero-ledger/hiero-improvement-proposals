@@ -103,7 +103,7 @@ message NodeUpdateTransactionBody {
 Add a `targetYearlyBlockNodeRewardsUsd` config property to the NodesConfig.
 
 ### Impact on Mirror Node
-Mirror nodes will need to update their api/v1/network/nodes API with a new block_node_reward_eligible field
+Mirror nodes will need to update their `api/v1/network/nodes` API with a new `block_node_reward_eligible` field
 
 ```json
 {
@@ -118,14 +118,14 @@ Mirror nodes will need to update their api/v1/network/nodes API with a new block
 ```
 
 ### Impact on SDK
-SDKs will need to be update to set block_node_reward_eligible fields in the NodeCreate and NodeUpdate transactions
+SDKs will need to be update to set `block_node_reward_eligible` fields in the NodeCreate and NodeUpdate transactions
 
 ## Backwards Compatibility
 This HIP introduces additional fields within the existing node address book framework and maintains backwards
 compatibility.
 
 ## Security Implications
-No changes to security rules are made, as all NodeCreate and NodeUpdate transactions require signing and the network
+No changes to security rules are made, as all `NodeCreateTransaction` and `NodeCreateTransaction` transactions require signing and the network
 requires configuration and consensus on new values. No new entry or exit pathways are added.
 
 ## How to Teach This
@@ -138,9 +138,7 @@ requires configuration and consensus on new values. No new entry or exit pathway
 
 
 ## Open Issues
-- [ ]  Do transaction cost need to increase to have a BN rewards component or do we pull from the existing funds
-    with no impacts as it’s well funded?
-- [ ]  Does the threshold for the account need to change to support CN + BN rewards for a full 39 node network?
+- [ ] Confirm no additional efforts are needed for transaction costs or distribution account
 
 ## References
 A collection of URLs used as references throughout the HIP.
