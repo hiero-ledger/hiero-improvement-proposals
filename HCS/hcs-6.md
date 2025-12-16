@@ -1,12 +1,26 @@
 ---
-spec: HCS-6
-title: HCS-6 Standard: Dynamic Hashinals
-version: published@675f6d0
-status: Published
-canonical-repo: https://github.com/hiero-ledger/hiero-consensus-specifications
-canonical-path: docs/standards/hcs-6.md
-canonical-url: https://github.com/hiero-ledger/hiero-consensus-specifications/blob/675f6d06450c72c63f52191eb090e7b2bdbb405c/docs/standards/hcs-6.md
-commit: 675f6d06450c72c63f52191eb090e7b2bdbb405c
+hip: 900118
+title: HCS-6 Standard: Dynamic Hashinals (Pointer)
+author: Hashgraph Online (@kantorcodes)
+working-group: Hashgraph Online
+requested-by: Hashgraph Online
+discussions-to: https://github.com/hiero-ledger/tsc/issues/261
+type: Informational
+category: Application
+needs-hiero-approval: No
+needs-hedera-review: No
+status: Final
+created: 2025-12-16
+updated: 2025-12-16
 ---
 
-This registry entry is a pointer to the canonical specification maintained in `hiero-consensus-specifications` under the HCS-4 lifecycle. No specification text is stored here.
+## Pointer metadata
+- Specification: HCS-6
+- Lifecycle status (spec repo): Published
+- Version tag: published@675f6d0
+- Canonical repository: https://github.com/hiero-ledger/hiero-consensus-specifications
+- Canonical path: docs/standards/hcs-6.md
+- Canonical URL (pinned): https://github.com/hiero-ledger/hiero-consensus-specifications/blob/675f6d06450c72c63f52191eb090e7b2bdbb405c/docs/standards/hcs-6.md
+- Pinned commit: 675f6d06450c72c63f52191eb090e7b2bdbb405c
+
+This pointer file contains no specification text and exists solely to record the canonical source and version per the HCS-4 lifecycle.
