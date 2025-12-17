@@ -1,5 +1,218 @@
 [
   {
+    "title": "Feat/hcs registry hip",
+    "number": 1364,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1364",
+    "headRefOid": "fa980ea2c7a8403b592a176c280935be84b2bb6d",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": ".github/workflows/validateHeaders.yml",
+            "changeType": "MODIFIED",
+            "additions": 2,
+            "deletions": 1
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-1.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-10.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-11.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-12.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-13.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-14.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-15.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-16.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-17.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-18.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-19.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-2.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-20.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-21.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-3.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-4.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-5.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-6.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-7.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-8.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-9.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-definitions.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HCS/hcs-xx.md",
+            "changeType": "ADDED",
+            "additions": 26,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "HIP/hip-1364.md",
+            "changeType": "ADDED",
+            "additions": 78,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "kantorcodes"
+    }
+  },
+  {
     "title": "Tier 1 Block Node Operation Rewards",
     "number": 1357,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1357",
