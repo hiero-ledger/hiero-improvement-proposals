@@ -1,18 +1,4 @@
----
-hip: 900101
-title: HCS-1 Standard: File Data Management with Hedera Consensus Service (Pointer)
-author: Hashgraph Online (@kantorcodes)
-working-group: Hashgraph Online
-requested-by: Hashgraph Online
-discussions-to: https://github.com/hiero-ledger/tsc/issues/261
-type: Informational
-category: Application
-needs-hiero-approval: No
-needs-hedera-review: No
-status: Final
-created: 2025-12-16
-updated: 2025-12-16
----
+# HCS-1 Pointer
 
 ## Pointer metadata
 - Specification: HCS-1

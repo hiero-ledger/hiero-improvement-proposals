@@ -1,18 +1,4 @@
----
-hip: 900112
-title: HCS-2 Standard: Advanced Topic Registries (Pointer)
-author: Hashgraph Online (@kantorcodes)
-working-group: Hashgraph Online
-requested-by: Hashgraph Online
-discussions-to: https://github.com/hiero-ledger/tsc/issues/261
-type: Informational
-category: Application
-needs-hiero-approval: No
-needs-hedera-review: No
-status: Final
-created: 2025-12-16
-updated: 2025-12-16
----
+# HCS-2 Pointer
 
 ## Pointer metadata
 - Specification: HCS-2

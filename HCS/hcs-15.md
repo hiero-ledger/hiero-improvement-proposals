@@ -1,18 +1,4 @@
----
-hip: 900107
-title: HCS-15 Standard: Petals - Profile Accounts (Pointer)
-author: Hashgraph Online (@kantorcodes)
-working-group: Hashgraph Online
-requested-by: Hashgraph Online
-discussions-to: https://github.com/hiero-ledger/tsc/issues/261
-type: Informational
-category: Application
-needs-hiero-approval: No
-needs-hedera-review: No
-status: Draft
-created: 2025-12-16
-updated: 2025-12-16
----
+# HCS-15 Pointer
 
 ## Pointer metadata
 - Specification: HCS-15
