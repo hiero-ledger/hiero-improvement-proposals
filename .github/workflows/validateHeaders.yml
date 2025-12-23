@@ -39,7 +39,8 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           REPO=${{ github.repository }}
           PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER/files")
-          MD_FILES=$(echo "$PR_DATA" | jq -r '.[] | select(.filename | test(".md$")) | .filename')
+          # Only validate canonical HIP files; skip other markdown (e.g., pointer files)
+          MD_FILES=$(echo "$PR_DATA" | jq -r '.[] | select(.filename | test("^HIP/hip-.*\\.md$")) | .filename')
 
           for FILE in $MD_FILES; do
             FULL_PATH="${{ github.workspace }}/$FILE"
