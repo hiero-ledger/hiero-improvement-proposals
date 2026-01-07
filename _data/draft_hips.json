@@ -3,7 +3,7 @@
     "title": "Feat/hcs registry hip",
     "number": 1364,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1364",
-    "headRefOid": "fa980ea2c7a8403b592a176c280935be84b2bb6d",
+    "headRefOid": "87238fa66a723592375994e7f31b9700b9224a91",
     "files": {
       "edges": [
         {
@@ -18,7 +18,7 @@
           "node": {
             "path": "HCS/hcs-1.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -26,7 +26,7 @@
           "node": {
             "path": "HCS/hcs-10.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -34,7 +34,7 @@
           "node": {
             "path": "HCS/hcs-11.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -42,7 +42,7 @@
           "node": {
             "path": "HCS/hcs-12.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -50,7 +50,7 @@
           "node": {
             "path": "HCS/hcs-13.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -58,7 +58,7 @@
           "node": {
             "path": "HCS/hcs-14.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -66,7 +66,7 @@
           "node": {
             "path": "HCS/hcs-15.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -74,7 +74,7 @@
           "node": {
             "path": "HCS/hcs-16.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -82,7 +82,7 @@
           "node": {
             "path": "HCS/hcs-17.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -90,7 +90,7 @@
           "node": {
             "path": "HCS/hcs-18.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -98,7 +98,7 @@
           "node": {
             "path": "HCS/hcs-19.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -106,7 +106,7 @@
           "node": {
             "path": "HCS/hcs-2.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -114,7 +114,7 @@
           "node": {
             "path": "HCS/hcs-20.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -122,7 +122,7 @@
           "node": {
             "path": "HCS/hcs-21.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -130,7 +130,7 @@
           "node": {
             "path": "HCS/hcs-3.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -138,7 +138,7 @@
           "node": {
             "path": "HCS/hcs-4.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -146,7 +146,7 @@
           "node": {
             "path": "HCS/hcs-5.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -154,7 +154,7 @@
           "node": {
             "path": "HCS/hcs-6.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -162,7 +162,7 @@
           "node": {
             "path": "HCS/hcs-7.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -170,7 +170,7 @@
           "node": {
             "path": "HCS/hcs-8.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -178,7 +178,7 @@
           "node": {
             "path": "HCS/hcs-9.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -186,7 +186,7 @@
           "node": {
             "path": "HCS/hcs-definitions.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -194,7 +194,7 @@
           "node": {
             "path": "HCS/hcs-xx.md",
             "changeType": "ADDED",
-            "additions": 26,
+            "additions": 12,
             "deletions": 0
           }
         },
@@ -342,14 +342,14 @@
     "title": "HIP-1340: EOA Code Delegation",
     "number": 1340,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1340",
-    "headRefOid": "3789bed3825adbf4677c47e58c7e8b1384bea011",
+    "headRefOid": "257e88416eb95044d8825016dca382d38fb2eb9d",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1340.md",
             "changeType": "ADDED",
-            "additions": 389,
+            "additions": 580,
             "deletions": 0
           }
         },
@@ -545,27 +545,6 @@
     },
     "author": {
       "login": "kantorcodes"
-    }
-  },
-  {
-    "title": "feat(HIP): Increase CryptoCreate Throttle to 20,000 milliOpsPerSec",
-    "number": 1225,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1225",
-    "headRefOid": "ac66abbc8895525757bc3170c216f4ce8c454e98",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-0000-increase-cryptocreate-throttle.md",
-            "changeType": "ADDED",
-            "additions": 93,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tonycamero"
     }
   },
   {
