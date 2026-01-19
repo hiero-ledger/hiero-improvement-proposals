@@ -72,7 +72,7 @@ jobs:
       - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD }}
-        uses: step-security/action-discord@12bdaf0579698ae72d3caf0cc14578ced05f9bed # v0.1.4
+        uses: step-security/action-discord@e31fd4e664027caad89e85cc4e9166e193dd6d2d # v0.1.5
         with:
           args: |
             # ${{ steps.extract_abstract.outputs.filename_no_ext }} moved into ${{ github.event.inputs.status }} status
