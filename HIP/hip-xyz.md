@@ -31,30 +31,30 @@ The ceremony is performed exclusively by Hedera Council members, specifically th
 ## Motivation
 
 HIP-1200’s threshold signing design relies on a recursive proof system that proves—and allows efficient verification of—the validity of the entire historical sequence of Hedera address books. WRAPS is built from (at least) two cryptographic subsystems that require one-time public parameters:
-  • A Groth16 proving/verification system, which requires a Groth16 SRS.
-  • A Nova-based recursion layer that uses a KZG polynomial commitment scheme, which requires a KZG SRS.
+- A Groth16 proving/verification system, which requires a Groth16 SRS.
+- A Nova-based recursion layer that uses a KZG polynomial commitment scheme, which requires a KZG SRS.
 
 Without a secure, auditable ceremony for these SRS components:
-  • There is no credible basis for global trust in the parameters.
-  • Compromise of the “toxic waste” secrets could enable forged proofs, undermining WRAPS soundness and downstream applications (e.g., cross-network state proofs).
-  • Ledger IDs cannot be upgraded from temporary placeholders to cryptographically meaningful identifiers.
+- There is no credible basis for global trust in the parameters.
+- Compromise of the “toxic waste” secrets could enable forged proofs, undermining WRAPS soundness and downstream applications (e.g., cross-network state proofs).
+- Ledger IDs cannot be upgraded from temporary placeholders to cryptographically meaningful identifiers.
 
 This HIP defines a ceremony that:
-  • Uses an established “at-least-one-honest” MPC model,
-  • Keeps the process within Hedera Council operational controls, and
-  • Avoids changes to Hedera consensus operation by coordinating off-ledger.
+- Uses an established “at-least-one-honest” MPC model,
+- Keeps the process within Hedera Council operational controls, and
+- Avoids changes to Hedera consensus operation by coordinating off-ledger.
 
 ## Terminology
 
-  • SRS bundle: The combined public parameters for WRAPS, comprising a Groth16 SRS and a KZG SRS.
-  • Groth16 SRS: Structured reference string used by Groth16 provers/verifiers (circuit-specific in Phase 2).
-  • KZG SRS: Structured reference string used to commit to polynomials and open evaluations in KZG (typically universal up to a max degree).
-  • Toxic waste: The secret randomness used by a contributor that must be securely destroyed.
-  • Contributor / Participant: A Council member (via their secure signing computer) performing one MPC contribution step.
-  • Coordinator: An additional machine that performs untrusted, compute-heavy post-processing.
-  • Transcript: A sequence of signed artifacts (challenges/responses, metadata, hashes) proving correct ceremony flow.
-  • Phase 1 (PoT): Universal “powers of tau” accumulation producing base powers used to derive both Groth16 and KZG parameters.
-  • Phase 2 (Groth16): Circuit-specific accumulation producing Groth16 proving/verifying keys for WRAPS.
+- SRS bundle: The combined public parameters for WRAPS, comprising a Groth16 SRS and a KZG SRS.
+- Groth16 SRS: Structured reference string used by Groth16 provers/verifiers (circuit-specific in Phase 2).
+- KZG SRS: Structured reference string used to commit to polynomials and open evaluations in KZG (typically universal up to a max degree).
+- Toxic waste: The secret randomness used by a contributor that must be securely destroyed.
+- Contributor / Participant: A Council member (via their secure signing computer) performing one MPC contribution step.
+- Coordinator: An additional machine that performs untrusted, compute-heavy post-processing.
+- Transcript: A sequence of signed artifacts (challenges/responses, metadata, hashes) proving correct ceremony flow.
+- Phase 1 (PoT): Universal “powers of tau” accumulation producing base powers used to derive both Groth16 and KZG parameters.
+- Phase 2 (Groth16): Circuit-specific accumulation producing Groth16 proving/verifying keys for WRAPS.
 
 ## Rationale
 
@@ -66,18 +66,29 @@ This HIP defines a ceremony that:
 ## Specification
 
 
-### Schnorr proof keys and the address book chain of trust
+### Protocol Phases
 
 
-### hinTS BLS keys and TSS signatures
+### Ceremony Artifacts
 
 
-### Verifying `BlockProof`s as a stream consumer
+### Phase 1 (Universal Powers of Tau)
 
+### Post-Processing (Coordinator, Untrusted) 
+
+### Phase 2 (Groth16 Circuit-Specific)
 
 
 ## Security Implications
 
+If an adversary learns all toxic waste secrets for the relevant ceremony steps, they can forge proofs. Therefore:
+- Phase 1 secrecy impacts both:
+- the KZG SRS (Nova commitments), and
+- the downstream Groth16 Phase 2 security.
+- Phase 2 secrecy impacts:
+- the circuit-specific Groth16 SRS.
+
+Security holds as long as at least one participant in the relevant phase(s) contributes true randomness and deletes it.
 
 ## Reference Implementation
 Please refer to the Hedera Cryptography 
