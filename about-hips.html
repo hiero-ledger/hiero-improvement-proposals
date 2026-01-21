@@ -19,10 +19,8 @@ title: HIPs Home
 </a>
 
 <h2 id="what-is-a-hip-">What is a HIP?</h2>
-<p>HIP stands for <i>“Hiero Improvement Proposal.”</i> These proposals can range from core protocol changes
-   to applications, frameworks, or protocols built on top of Hiero’s open-source ledger code. The HIP author
-   is responsible for building consensus within the community, documenting dissenting opinions, and tracking
-   their HIP through the process outlined below.</p>
+<p>HIP stands for <strong>Hiero Improvement Proposal</strong>. A HIP is intended to provide information or initiate engineering efforts to update functionality under Hiero governance. The HIP should be technically clear and concise, and as granular as possible. Small, targeted HIPs are more likely to reach consensus and result in a reference implementation.</p>
+<p>HIPs are intended to be the primary mechanism for proposing new features, for collecting community input, and for documenting the design decisions that go into the Hiero codebase. The HIP author is responsible for building consensus within the community and documenting dissenting opinions. For HIPs that propose changes to the Hiero codebase (typically Standards Track HIPs for Core, Service, or Mirror Node categories), the process involves Hiero providing technical approval and Hedera providing review and acceptance if the changes are to be incorporated into the Hedera network or ecosystem. Because the HIPs are maintained as text files in a versioned repository, their revision history is the historical record of the proposal. HIPs are <strong>not</strong> meant to address *bugs* in implemented code. Bugs should be addressed using issues on the implementation\'s repository.</p>
 
 <h2 id="what-is-the-hashgraph-algorithm-">What is the Hashgraph Algorithm?</h2>
 <p>The <a href="http://www.leemon.com/papers/2016b.pdf">hashgraph consensus algorithm</a> was created by
@@ -50,30 +48,23 @@ title: HIPs Home
 <p>There are three kinds of HIP:</p>
 <ol>
     <li>
-      <b>Standards Track</b> &mdash; describes a new feature or interoperability standard for the Hiero
-      ecosystem. It requires both a specification and a reference implementation:
+      <b>Standards Track</b> &mdash; Describes a new feature or implementation for the Hiero codebase.
       <ol class="ol-lower-latin">
-        <li><b>Core:</b> Proposals addressing the hashgraph algorithm, peer-to-peer networking, etc. These features
-            are implemented in the Hiero consensus nodes.</li>
-        <li><b>Service:</b> These run on top of the core node software and provide functionalities (e.g., file,
-            messaging, token, or contract services). Proposals here refine or add to Hiero’s service layer.</li>
-        <li><b>Mirror:</b> A mirror node runs software designed to retrieve all, or some, of the records generated
-            by the consensus nodes and makes them available in a meaningful way.</li>
-        <li><b>Application:</b> Application standards may be used to standardize additional ecosystem software
-            (e.g., external contract nodes, multi-sig oracles, enterprise plugins). An example might be a stablecoin
-            or NFT contract that relies on the Hiero consensus for trust.</li>
+        <li><b>Core:</b> Proposals addressing the low-level protocol, algorithm, or networking layers.</li>
+        <li><b>Service:</b> Proposals that add or improve functionality at the service layer of the Hiero software stack.</li>
+        <li><b>Mirror:</b> Proposals for software designed to retrieve records (transactions, logs, etc.) from the core network and make them available to users in a meaningful way.</li>
+        <li><b>Block Node:</b> Proposals for software designed to retrieve records (transactions, logs, etc.) from the core network and make them available to users in a pruned and meaningful way.</li>
+        <li><b>Application:</b> Proposals to standardize ecosystem software that isn’t directly a Hiero node or mirror (e.g., application network software, external contract consensus services, oracles).</li>
       </ol>
     </li>
     <li>
-      <b>Informational</b> &mdash; describes a design issue or general guidelines, but does not propose a new feature.
-      These do not necessarily represent consensus recommendations and can be followed or ignored.</li>
+      <b>Informational</b> &mdash; Describes a Hiero design issue or provides general guidelines to the community but does not propose a new feature or standard. Such HIPs do not necessarily represent a community consensus or recommendation.</li>
     <li>
-      <b>Process</b> &mdash; describes or proposes changes to processes for the Hiero community. These often require
-      community consensus and are not purely recommendations. Any meta-HIP is considered a Process HIP.
+      <b>Process</b> &mdash; Describes a process surrounding Hiero, or proposes a change to one. Process HIPs are similar to Standards Track HIPs but apply outside the code itself. Meta-HIPs (HIPs about HIPs, like HIP-1) are considered Process HIPs.
     </li>
 </ol>
 
-<h2 id="before-submitting">Before Submitting</h2>
+<h2 id="before-submitting">Before Submitting a HIP</h2>
 <ol>
     <li><p>Evaluate your idea: consider why you’d like to request changes or improvements and how it benefits
         the broader Hiero community.</p></li>

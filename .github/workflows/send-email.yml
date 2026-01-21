@@ -22,12 +22,12 @@ jobs:
     runs-on: hiero-improvement-proposals-linux-medium
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           egress-policy: audit
 
       - name: Send mail
-        uses: step-security/action-send-mail@a995831af980a0a14953f75efec85509f5315e25 # v3.12.0
+        uses: step-security/action-send-mail@7238bab69680f644f9eab409cec92179d1d2f0ce # v6.0.1
         with:
           server_address: smtp.gmail.com
           server_port: 465

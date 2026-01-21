@@ -17,21 +17,22 @@ permissions:
 jobs:
   assign-hip-number:
     runs-on: hiero-improvement-proposals-linux-medium
+    continue-on-error: true  # Silently fail - don't show red X on PRs
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           fetch-depth: 0
 
       - name: Import GPG Key
         id: gpg_importer
-        uses: step-security/ghaction-import-gpg@6c8fe4d0126a59d57c21f87c9ae5dd3451fa3cca # v6.1.0
+        uses: step-security/ghaction-import-gpg@69c854a83c7f79463f8bdf46772ab09826c560cd # v6.3.1
         with:
           git_commit_gpgsign: true
           git_tag_gpgsign: true
@@ -92,8 +93,8 @@ jobs:
           if [ -n "$HIP_FILE" ]; then
             sed -i "s/^hip:.*$/$HIP_HEADER/" "$HIP_FILE"
           else
-            echo "No valid HIP file to assign a number."
-            exit 1
+            echo "No valid HIP file to assign a number. Skipping assignment."
+            exit 0
           fi
 
       - name: Rename HIP File
@@ -107,8 +108,8 @@ jobs:
             NEW_HIP_FILE="HIP/hip-$PR_NUMBER.md"
             mv "$HIP_FILE" "$NEW_HIP_FILE"
           else
-            echo "No HIP file found to rename."
-            exit 1
+            echo "No HIP file found to rename. Skipping rename."
+            exit 0
           fi
 
       - name: Commit Changes
@@ -119,5 +120,20 @@ jobs:
 
           PR_NUMBER=${{ github.event.pull_request.number }}
           git add HIP/
-          git commit -sSm "Assigning HIP $PR_NUMBER and renaming file to hip-$PR_NUMBER.md"
-          git push origin HEAD:${{ github.head_ref }}
+
+          # Check if there are changes to commit
+          if git diff --cached --quiet; then
+            echo "No changes to commit. Skipping."
+            exit 0
+          fi
+
+          git commit -sSm "Assigning HIP $PR_NUMBER and renaming file to hip-$PR_NUMBER.md" || {
+            echo "Commit failed. This may be expected for PRs from forks."
+            exit 0
+          }
+
+          git push origin HEAD:${{ github.head_ref }} || {
+            echo "Push failed. This is expected for PRs from forks without write access."
+            echo "The PR author will need to manually update their branch."
+            exit 0
+          }
