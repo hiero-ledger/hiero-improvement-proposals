@@ -26,7 +26,7 @@ The ceremony produces two SRS components:
 
 Both SRS components are generated through a global collaborative ceremony where parties take turns contributing secret entropy. The ceremony yields (1) the finalized SRS bundle (Groth16 SRS + KZG SRS) usable by provers and verifiers, and (2) a public transcript enabling any observer to verify correct ceremony progression.
 
-The ceremony is performed exclusively by Hedera Council members, specifically those who operate the secure signing computers used for network governance transactions. Contributions are coordinated off-ledger via an AWS S3 bucket, producing no footprint on consensus operation. A dedicated coordinator machine performs compute-heavy untrusted post-processing steps.
+The ceremony is performed exclusively by Hedera Council members, specifically via software run on the existing consensus node computers that operate the Hedera network itself. Contributions are coordinated off-ledger via an AWS S3 bucket, producing no persistent footprint on consensus operation. A dedicated coordinator machine performs compute-heavy untrusted post-processing steps.
 
 ## Motivation
 
@@ -50,7 +50,7 @@ This HIP defines a ceremony that:
 - Groth16 SRS: Structured reference string used by Groth16 provers/verifiers (circuit-specific in Phase 2).
 - KZG SRS: Structured reference string used to commit to polynomials and open evaluations in KZG (typically universal up to a max degree).
 - Toxic waste: The secret randomness used by a contributor that must be securely destroyed.
-- Contributor / Participant: A Council member (via their secure signing computer) performing one MPC contribution step.
+- Contributor / Participant: A Council member (via their consensus node) performing one MPC contribution step.
 - Coordinator: An additional machine that performs untrusted, compute-heavy post-processing.
 - Transcript: A sequence of signed artifacts (challenges/responses, metadata, hashes) proving correct ceremony flow.
 - Phase 1 (PoT): Universal “powers of tau” accumulation producing base powers used to derive both Groth16 and KZG parameters.
@@ -106,3 +106,4 @@ No known issues are currently under discussion.
 ## Copyright/license
 This document is licensed under the Apache License, Version 2.0 —
 see [LICENSE](../LICENSE) or <https://www.apache.org/licenses/LICENSE-2.0>.
+
