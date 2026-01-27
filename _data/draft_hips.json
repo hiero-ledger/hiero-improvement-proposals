@@ -3,7 +3,7 @@
     "title": "HIP for Enhanced Error Responses",
     "number": 1383,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1383",
-    "headRefOid": "e876627aa7489f7bb8387ee4deb36c981ae5e6ed",
+    "headRefOid": "90f7d8b085e18a7fb1332c355ebc86538199ec07",
     "files": {
       "edges": [
         {
@@ -356,7 +356,7 @@
     "title": "safeTransferFrom support for HTS Precompile and Facade Contract",
     "number": 1349,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1349",
-    "headRefOid": "42c5cf65e064c285ac5a5664c4da43cf73cbb982",
+    "headRefOid": "4593406ddc8441ec243d2ab253425c098a920c40",
     "files": {
       "edges": [
         {
