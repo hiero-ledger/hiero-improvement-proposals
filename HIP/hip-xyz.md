@@ -18,65 +18,127 @@ updated: 2026-01-20
 
 ## Abstract
 
-This HIP specifies a two-phase trusted setup ceremony (a “Powers of Tau” style MPC) to generate the Structured Reference String (SRS) required by Hedera’s recursive zk-SNARK proof system (“WRAPS”) used in TSS (HIP-1200) to cryptographically validate the full history of Hedera address books.
+For TSS (HIP-1200) operations in Hiero, we use a recursive SNARK proof system (a.k.a. WRAPS) to cryptographically validate the entire history of Hedera address books. 
+Like most SNARKs, this requires a one-time trusted setup to create a Structured Reference String (SRS) — a large set of public parameters that both provers and verifiers will use.
 
-The ceremony produces two SRS components:
-  1.  Groth16 SRS: Public parameters required to generate and verify Groth16 proofs used inside WRAPS.
-  2.  KZG SRS: Public parameters required for the KZG polynomial commitment scheme used by Nova (or Nova-style folding/accumulation) within WRAPS.
+To that end, this proposal specifies a cryptographic ceremony, based on a relatively standard “Powers of Tau” protocol, to generate the SRS for WRAPS.
+Specifically, it details a protocol that can be executed by the council members -- specifically, those council members that also run consensus nodes -- such that each participant supplies some secret entropy to the protocol.
+The  protocol has the guarantee that as long as one participant acts honestly, and deletes the secret entropy used during the protocol, we have security, in that no (computationally-bounded) adversarial entity can forge invalid proofs.
 
-Both SRS components are generated through a global collaborative ceremony where parties take turns contributing secret entropy. The ceremony yields (1) the finalized SRS bundle (Groth16 SRS + KZG SRS) usable by provers and verifiers, and (2) a public transcript enabling any observer to verify correct ceremony progression.
+To minimize the impact of normal consensus operations, the protocol logic is not part of the consensus node software.
+Moreover, the protocol operations are coordinated off-chain via an AWS S3 bucket, which also stores the intermediate protocol data.
 
-The ceremony is performed exclusively by Hedera Council members, specifically via software run on the existing consensus node computers that operate the Hedera network itself. Contributions are coordinated off-ledger via an AWS S3 bucket, producing no persistent footprint on consensus operation. A dedicated coordinator machine performs compute-heavy untrusted post-processing steps.
+## Background
 
-## Motivation
+Let us first recall the operational model of Hiero TSS as defined in HIP-1200. We have the following operations:
 
-HIP-1200’s threshold signing design relies on a recursive proof system that proves—and allows efficient verification of—the validity of the entire historical sequence of Hedera address books. WRAPS is built from (at least) two cryptographic subsystems that require one-time public parameters:
-- A Groth16 proving/verification system, which requires a Groth16 SRS.
-- A Nova-based recursion layer that uses a KZG polynomial commitment scheme, which requires a KZG SRS.
+- **Address Book rotation** (from AB_prev to AB_next):
+    - **HINTS setup**: nodes in AB_next broadcast some cryptographic material derived from their  `HINTS secret key` , after which the `HINTS aggregation key` and `HINTS verification key` are computed.
+    - **WRAPS signing**: nodes in AB_prev use their `Schnorr private key`  to sign hash(AB_next) || `HINTS verification key` , where || denotes concatenation. Specifically, they engage in a 3-round Schnorr multisig protocol (called musig). The output of this protocol is a single (aggregate) Schnorr signature, which makes the following task efficient.
+    - **WRAPS proving**: nodes in AB_next use the above aggregate Schnorr signature and the  `WRAPS proving key`  to generate the `WRAPS proof` . If this is a valid proof, nodes in AB_prev can safely transition to using AB_next.
+- **Block Signing**:
+    - **HINTS signing**: nodes use their `HINTS secret key` to sign the `block root hash`. The output of this algorithm is a “partial” signature which is broadcasted to all nodes.
+    - **HINTS aggregation**: any node can use the `HINTS aggregation key` to combine a set of partial signatures and produce a `HINTS signature`  over the `block root hash`. This signature is always ~1200 bytes, regardless of network size.
 
-Without a secure, auditable ceremony for these SRS components:
-- There is no credible basis for global trust in the parameters.
-- Compromise of the “toxic waste” secrets could enable forged proofs, undermining WRAPS soundness and downstream applications (e.g., cross-network state proofs).
-- Ledger IDs cannot be upgraded from temporary placeholders to cryptographically meaningful identifiers.
+After all these steps, we have a cryptographic attestation on a block, comprising the `WRAPS proof` , `HINTS verification key`, and `HINTS signature` . The block can be verified w.r.t. the `ledger ID` as follows.
 
-This HIP defines a ceremony that:
-- Uses an established “at-least-one-honest” MPC model,
-- Keeps the process within Hedera Council operational controls, and
-- Avoids changes to Hedera consensus operation by coordinating off-ledger.
+- **Verification**: can be decomposed into the following two checks
+    - **WRAPS verification**: uses `WRAPS verification key` to verify `WRAPS proof` with respect to the claimed `ledger ID` and claimed `HINTS verification key` . That is, we have the following api: `verify(wraps_verification_key, wraps_proof, genesis_ab_hash, hints_verification_key)`.
+    - **HINTS verification**: uses `HINTS verification key`  to verify `HINTS signature` with respect to the claimed `block root hash` . That is, we have the following api: `verify(hints_verification_key, message, hints_signature)` .
 
-## Terminology
-
-- SRS bundle: The combined public parameters for WRAPS, comprising a Groth16 SRS and a KZG SRS.
-- Groth16 SRS: Structured reference string used by Groth16 provers/verifiers (circuit-specific in Phase 2).
-- KZG SRS: Structured reference string used to commit to polynomials and open evaluations in KZG (typically universal up to a max degree).
-- Toxic waste: The secret randomness used by a contributor that must be securely destroyed.
-- Contributor / Participant: A Council member (via their consensus node) performing one MPC contribution step.
-- Coordinator: An additional machine that performs untrusted, compute-heavy post-processing.
-- Transcript: A sequence of signed artifacts (challenges/responses, metadata, hashes) proving correct ceremony flow.
-- Phase 1 (PoT): Universal “powers of tau” accumulation producing base powers used to derive both Groth16 and KZG parameters.
-- Phase 2 (Groth16): Circuit-specific accumulation producing Groth16 proving/verifying keys for WRAPS.
 
 ## Rationale
 
-## User stories
+A “Powers of Tau” Phase 1 ceremony produces group elements corresponding to powers of a secret τ. These powers can be used to derive:
+  • A universal KZG SRS up to some maximum polynomial degree (needed for Nova’s KZG commitments), and
+  • Inputs that a Groth16 Phase 2 ceremony consumes to produce circuit-specific Groth16 proving and verifying keys (the Groth16 SRS for WRAPS’ Groth16 circuits).
 
-## Technical Overview
-
+Accordingly, this HIP defines:
+  • Phase 1 as the universal MPC generating powers of τ (foundation for both KZG SRS and Groth16 setup),
+  • A coordinator post-processing step that deterministically derives:
+  • KZG_SRS from the Phase 1 output (untrusted computation), and
+  • Groth16_Phase2_Challenge_0 for Groth16 Phase 2,
+  • Phase 2 as the Groth16 circuit-specific MPC.
 
 ## Specification
 
-
 ### Protocol Phases
+
+The ceremony proceeds as follows:
+  1.  Initialization: Coordinator publishes an initial Phase 1 SRS derived from a fixed seed (no entropy) and publishes deterministic contributor ordering.
+  2.  Phase 1 MPC (Powers of Tau): Contributors sequentially add secret entropy to update the universal powers.
+  3.  Untrusted Post-Processing (Coordinator):
+  - deterministically derives a KZG SRS usable by Nova’s commitment scheme (up to declared max degree),
+  - deterministically prepares the initial challenge for Groth16 Phase 2.
+  4.  Phase 2 MPC (Groth16): Contributors sequentially add secret entropy to generate Groth16 circuit-specific proving/verifying keys for WRAPS.
+
+At completion, the ceremony outputs an SRS bundle:
+- KZG_SRS (Nova commitment scheme),
+- Groth16_SRS_WRAPS (Groth16 proving key material + verifying key material for WRAPS),
+- plus a complete transcript enabling independent verification and archival.
 
 
 ### Ceremony Artifacts
 
+The transcript MUST clearly separate and label artifacts for:
+- Phase 1 (PoT) artifacts: universal powers (τ^i) and related proofs/metadata.
+- Derived KZG SRS artifacts: extracted/serialized KZG parameters and digest.
+- Phase 2 (Groth16) artifacts: circuit-specific Groth16 parameters and digest.
+
+The final manifest MUST include:
+- digest_phase1_final
+- digest_kzg_srs
+- digest_groth16_srs
+- digest_vk_wrapped (verifier key subset used on-node / in SDKs)
+- contributor roster, ordering, software versions
 
 ### Phase 1 (Universal Powers of Tau)
 
-### Post-Processing (Coordinator, Untrusted) 
+Purpose
+Generate universal powers of secret τ that serve as the foundation for:
+  • KZG SRS for Nova, and
+  • Groth16 Phase 2 setup inputs.
+
+Contribution step
+Unchanged in structure (each contributor blinds the previous output with fresh secret entropy and deletes toxic waste).
+
+Output
+phase1_final which is sufficient to deterministically derive:
+  • KZG_SRS(max_degree) and
+  • phase2_groth16_challenge_0.
+
+
+### Post-Processing (Coordinator, Untrusted)
+
+From phase1_final, the coordinator performs deterministic, publicly documented computations to produce:
+  1.  KZG SRS
+  • KZG_SRS(max_degree) for the Nova commitment scheme used in WRAPS.
+  • The max_degree MUST be published in advance and included in the final manifest.
+  • Anyone can recompute KZG_SRS from phase1_final.
+  2.  Groth16 Phase 2 Initial Challenge
+  • phase2_groth16_challenge_0 used to begin the Groth16 circuit-specific ceremony.
+
+This step MUST be reproducible and accompanied by:
+  • digests/hashes,
+  • tool versions,
+  • a verification report (optional but recommended).
 
 ### Phase 2 (Groth16 Circuit-Specific)
+
+Purpose
+Generate the circuit-specific Groth16 SRS (proving and verifying keys) for WRAPS’ Groth16 circuit(s).
+
+Inputs
+  • phase2_groth16_challenge_0
+  • wraps_circuit_commitment (commitment to constraints / R1CS / QAP binding)
+
+Contribution step
+Unchanged in structure; each contributor adds new secret entropy and deletes toxic waste.
+
+Outputs
+  • Groth16_PK_WRAPS (prover material; may be large)
+  • Groth16_VK_WRAPS (verifier material)
+  • VK_wrapped (the minimal subset required for verification in the Hedera/Heiro verification pipeline, expected ~1.7 KB)
 
 
 ## Security Implications
@@ -106,4 +168,3 @@ No known issues are currently under discussion.
 ## Copyright/license
 This document is licensed under the Apache License, Version 2.0 —
 see [LICENSE](../LICENSE) or <https://www.apache.org/licenses/LICENSE-2.0>.
-
