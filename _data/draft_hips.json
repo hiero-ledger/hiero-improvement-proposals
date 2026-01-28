@@ -3,7 +3,7 @@
     "title": "HIP for Enhanced Error Responses",
     "number": 1383,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1383",
-    "headRefOid": "e876627aa7489f7bb8387ee4deb36c981ae5e6ed",
+    "headRefOid": "2825f4174a7488c44c7bfbbcd90bc85a4fcf16fd",
     "files": {
       "edges": [
         {
@@ -314,14 +314,14 @@
     "title": "Tier 1 Block Node Operation Rewards",
     "number": 1357,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1357",
-    "headRefOid": "cd2abd9cdf21009640e52c6670e7dd79b3f6962d",
+    "headRefOid": "06262a0a88cbd362c3df3814e7cc8602e24b9756",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1357.md",
             "changeType": "ADDED",
-            "additions": 159,
+            "additions": 93,
             "deletions": 0
           }
         }
@@ -356,7 +356,7 @@
     "title": "safeTransferFrom support for HTS Precompile and Facade Contract",
     "number": 1349,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1349",
-    "headRefOid": "42c5cf65e064c285ac5a5664c4da43cf73cbb982",
+    "headRefOid": "4593406ddc8441ec243d2ab253425c098a920c40",
     "files": {
       "edges": [
         {
@@ -392,96 +392,6 @@
     },
     "author": {
       "login": "Neurone"
-    }
-  },
-  {
-    "title": "HIP-1341: General Pectra HIP",
-    "number": 1341,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1341",
-    "headRefOid": "4bc63dc30e74ace4cef6293b5b3809929bf0a851",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1341.md",
-            "changeType": "ADDED",
-            "additions": 151,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "lukelee-sl"
-    }
-  },
-  {
-    "title": "HIP-1340: EOA Code Delegation",
-    "number": 1340,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1340",
-    "headRefOid": "91e10b1c5e4cf396197ab6c7e28c06765159dabf",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1340.md",
-            "changeType": "ADDED",
-            "additions": 605,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/eoa_code_delegation_high_level.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/example_user_flow_native.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/example_user_flow_type_4.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/has_facade.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/hscs_hts_interoperability.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/hts_hss_facade.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "lukasz-hashgraph"
     }
   },
   {
