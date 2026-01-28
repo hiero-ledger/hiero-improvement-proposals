@@ -19,18 +19,29 @@ updated: 2026-01-20
 ## Abstract
 
 For TSS (HIP-1200) operations in Hiero, we use a recursive SNARK proof system (a.k.a. WRAPS) to cryptographically validate the entire history of Hedera address books. 
-Like most SNARKs, this requires a one-time trusted setup to create a Structured Reference String (SRS) — a large set of public parameters that both provers and verifiers will use.
+Like most SNARKs, this requires a one-time trusted setup to create a Structured Reference String (SRS), which are public parameters that both provers and verifiers will use.
 
 To that end, this proposal specifies a cryptographic ceremony, based on a relatively standard “Powers of Tau” protocol, to generate the SRS for WRAPS.
 Specifically, it details a protocol that can be executed by the council members -- specifically, those council members that also run consensus nodes -- such that each participant supplies some secret entropy to the protocol.
-The  protocol has the guarantee that as long as one participant acts honestly, and deletes the secret entropy used during the protocol, we have security, in that no (computationally-bounded) adversarial entity can forge invalid proofs.
+The protocol has the guarantee that as long as one participant acts honestly, and deletes the secret entropy used during the protocol, we have security, in that no (computationally-bounded) adversarial entity can forge invalid proofs.
 
 To minimize the impact of normal consensus operations, the protocol logic is not part of the consensus node software.
 Moreover, the protocol operations are coordinated off-chain via an AWS S3 bucket, which also stores the intermediate protocol data.
 
 ## Background
 
-Let us first recall the operational model of Hiero TSS as defined in HIP-1200. We have the following operations:
+Let us first recall the operational model of Hiero TSS as defined in HIP-1200. 
+
+- `Schnorr public / private key`: used by WRAPS for the purpose of signing the next day’s `TSS Address Book`  and `HINTS verification key`
+- `weight`: a u64 value denoting the node’s weight in TSS signing operations
+- `TSS Address Book`: from the point of view of TSS, an address book is a list of (`Schnorr public key`, `weight`) pairs.
+- `ledger ID` Poseidon 32-byte hash of the genesis `TSS Address Book`.
+- `HINTS verification key` : used to verify `HINTS signature` on a message, which in our case is the `block root hash` . This key is 616 bytes.
+- `WRAPS proving key` : used to produce a (recursive) `WRAPS proof` that the next `TSS Address Book`  and `HINTS verification key`  are signed off by sufficient members of today’s `TSS Address Book` (signed using `Schnorr private key`). The proving key is 2 GB, and, despite its name, is not a secret key and can be visible to the world.
+- `WRAPS verification key`: used to verify the above WRAPS proof, with respect to a given `ledger ID`. The verification key is about 1.7 KB.
+- `WRAPS proof` : a (recursive) proof object that contains a Cyclefold-Groth16 proof string, along with the public instance variables: genesis `TSS Address Book` hash (a.k.a. `ledger ID` ) and latest `TSS Address Book` hash and `HINTS verification key` hash.
+
+We have the following operations:
 
 - **Address Book rotation** (from AB_prev to AB_next):
     - **HINTS setup**: nodes in AB_next broadcast some cryptographic material derived from their  `HINTS secret key` , after which the `HINTS aggregation key` and `HINTS verification key` are computed.
