@@ -24,12 +24,12 @@ jobs:
     runs-on: hiero-improvement-proposals-linux-medium
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
         with:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Extract HIP abstract
         id: extract_abstract
@@ -72,7 +72,7 @@ jobs:
       - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD }}
-        uses: step-security/action-discord@12bdaf0579698ae72d3caf0cc14578ced05f9bed # v0.1.4
+        uses: step-security/action-discord@e31fd4e664027caad89e85cc4e9166e193dd6d2d # v0.1.5
         with:
           args: |
             # ${{ steps.extract_abstract.outputs.filename_no_ext }} moved into ${{ github.event.inputs.status }} status
