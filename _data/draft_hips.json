@@ -311,27 +311,6 @@
     }
   },
   {
-    "title": "Tier 1 Block Node Operation Rewards",
-    "number": 1357,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1357",
-    "headRefOid": "06262a0a88cbd362c3df3814e7cc8602e24b9756",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1357.md",
-            "changeType": "ADDED",
-            "additions": 93,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Nana-EC"
-    }
-  },
-  {
     "title": "New HIP \"Add `isAssociated(address account)` to HTS Token Facade Contract\"",
     "number": 1351,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1351",
