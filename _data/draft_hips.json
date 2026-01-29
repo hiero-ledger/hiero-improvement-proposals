@@ -101,7 +101,7 @@
     "title": "Feat/hcs registry hip",
     "number": 1364,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1364",
-    "headRefOid": "409064747881e211c83739f974c593bd599b649c",
+    "headRefOid": "89b0601f50a0a6c04ceb80656b4d657bbf5178e0",
     "files": {
       "edges": [
         {
@@ -116,7 +116,7 @@
           "node": {
             "path": "HCS/hcs-1.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -124,7 +124,7 @@
           "node": {
             "path": "HCS/hcs-10.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -132,7 +132,7 @@
           "node": {
             "path": "HCS/hcs-11.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -140,7 +140,7 @@
           "node": {
             "path": "HCS/hcs-12.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -148,7 +148,7 @@
           "node": {
             "path": "HCS/hcs-13.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -156,7 +156,7 @@
           "node": {
             "path": "HCS/hcs-14.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -164,7 +164,7 @@
           "node": {
             "path": "HCS/hcs-15.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -172,7 +172,7 @@
           "node": {
             "path": "HCS/hcs-16.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -180,7 +180,7 @@
           "node": {
             "path": "HCS/hcs-17.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -188,7 +188,7 @@
           "node": {
             "path": "HCS/hcs-18.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -196,7 +196,7 @@
           "node": {
             "path": "HCS/hcs-19.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -204,7 +204,7 @@
           "node": {
             "path": "HCS/hcs-2.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -212,7 +212,7 @@
           "node": {
             "path": "HCS/hcs-20.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -220,7 +220,7 @@
           "node": {
             "path": "HCS/hcs-21.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -228,7 +228,7 @@
           "node": {
             "path": "HCS/hcs-3.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -236,7 +236,7 @@
           "node": {
             "path": "HCS/hcs-4.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -244,7 +244,7 @@
           "node": {
             "path": "HCS/hcs-5.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -252,7 +252,7 @@
           "node": {
             "path": "HCS/hcs-6.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -260,7 +260,7 @@
           "node": {
             "path": "HCS/hcs-7.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -268,7 +268,7 @@
           "node": {
             "path": "HCS/hcs-8.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -276,7 +276,7 @@
           "node": {
             "path": "HCS/hcs-9.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -284,7 +284,7 @@
           "node": {
             "path": "HCS/hcs-definitions.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 17,
             "deletions": 0
           }
         },
@@ -292,7 +292,7 @@
           "node": {
             "path": "HCS/hcs-xx.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
