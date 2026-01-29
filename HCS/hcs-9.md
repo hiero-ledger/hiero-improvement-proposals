@@ -1,4 +1,6 @@
-# HCS-9 Pointer
+# HCS-9: Poll Metadata (Pointer)
+
+Metadata schema for polls intended for broad ecosystem adoption and interoperability.
 
 ## Pointer metadata
 - Specification: HCS-9

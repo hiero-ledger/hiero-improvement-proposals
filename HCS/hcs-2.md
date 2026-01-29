@@ -1,4 +1,6 @@
-# HCS-2 Pointer
+# HCS-2: Topic Registries (Pointer)
+
+Defines topic registries for HCS, enabling structured data organization, discovery, and retrieval.
 
 ## Pointer metadata
 - Specification: HCS-2

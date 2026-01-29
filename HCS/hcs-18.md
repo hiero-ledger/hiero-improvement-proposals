@@ -1,4 +1,6 @@
-# HCS-18 Pointer
+# HCS-18: Flora Discovery Protocol (Pointer)
+
+Discovery and formation protocol for Floras via an open broadcast mechanism.
 
 ## Pointer metadata
 - Specification: HCS-18

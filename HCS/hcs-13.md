@@ -1,4 +1,6 @@
-# HCS-13 Pointer
+# HCS-13: Schema Registry (Pointer)
+
+Standard way to define, register, and reference schemas for validation and interoperability across the Hiero ecosystem.
 
 ## Pointer metadata
 - Specification: HCS-13

@@ -1,4 +1,6 @@
-# HCS-20 Pointer
+# HCS-20: Auditable Points Standard on Hiero (Pointer)
+
+Defines how points can be managed and audited on Hiero using HCS topics, inspired by BRC-20 and extended for auditable points and inscriptions.
 
 ## Pointer metadata
 - Specification: HCS-20

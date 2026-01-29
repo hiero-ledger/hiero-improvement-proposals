@@ -1,4 +1,6 @@
-# HCS-19 Pointer
+# HCS-19: AI Agent Privacy Compliance (Pointer)
+
+ISO/IEC TS 27560-aligned framework for AI agents to document and manage privacy compliance on Hiero via HCS topics (consent, processing records, rights fulfilment).
 
 ## Pointer metadata
 - Specification: HCS-19

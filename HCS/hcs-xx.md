@@ -1,4 +1,6 @@
-# HCS-XX Pointer
+# HCS-XX: Template (Pointer)
+
+Template for drafting a new specification that conforms to the HCS-4 process. This is not a published standard.
 
 ## Pointer metadata
 - Specification: HCS-XX

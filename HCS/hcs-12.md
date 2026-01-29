@@ -1,4 +1,6 @@
-# HCS-12 Pointer
+# HCS-12: HashLinks — Actions, Blocks, and Assembly (Pointer)
+
+Framework for building interactive experiences on Hiero using WASM actions, UI blocks, and an assembly layer without smart contracts.
 
 ## Pointer metadata
 - Specification: HCS-12

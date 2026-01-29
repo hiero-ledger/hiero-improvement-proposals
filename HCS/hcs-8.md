@@ -1,4 +1,6 @@
-# HCS-8 Pointer
+# HCS-8: Poll Topic Standard (Pointer)
+
+Framework for using HCS topics to manage polls and record poll activity on-ledger.
 
 ## Pointer metadata
 - Specification: HCS-8

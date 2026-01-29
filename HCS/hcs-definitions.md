@@ -1,4 +1,9 @@
-# HCS-DEFINITIONS Pointer
+# HCS Definitions (Pointer)
+
+Shared definitions and terminology referenced by HCS specifications.
+
+## Context
+The canonical HCS specifications repository maintains a single definitions page used across standards to keep terminology consistent. This pointer pins the exact canonical version referenced for review and governance.
 
 ## Pointer metadata
 - Specification: HCS-DEFINITIONS

@@ -1,4 +1,6 @@
-# HCS-14 Pointer
+# HCS-14: Universal Agent ID (Pointer)
+
+Systematic approach for generating globally unique identifiers for AI agents across web2 and web3 environments.
 
 ## Pointer metadata
 - Specification: HCS-14

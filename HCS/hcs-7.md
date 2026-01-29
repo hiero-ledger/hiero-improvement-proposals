@@ -1,4 +1,6 @@
-# HCS-7 Pointer
+# HCS-7: Smart Hashinals (Pointer)
+
+Enables dynamic NFTs whose metadata updates based on smart contract state using deterministic topic selection and WASM processing.
 
 ## Pointer metadata
 - Specification: HCS-7

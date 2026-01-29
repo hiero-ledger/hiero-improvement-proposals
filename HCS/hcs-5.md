@@ -1,4 +1,6 @@
-# HCS-5 Pointer
+# HCS-5: Hashinals (Pointer)
+
+Standard way to inscribe Hashinals using Hiero Consensus Service and Hiero Token Service, inspired by Ordinals.
 
 ## Pointer metadata
 - Specification: HCS-5

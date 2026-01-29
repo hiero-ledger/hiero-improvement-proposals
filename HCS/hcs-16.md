@@ -1,4 +1,6 @@
-# HCS-16 Pointer
+# HCS-16: Floras — AppNet Accounts (Pointer)
+
+Rules and practices for multi-party Flora accounts enabling coordination, shared escrow, and state consensus across agents.
 
 ## Pointer metadata
 - Specification: HCS-16

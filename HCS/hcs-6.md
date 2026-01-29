@@ -1,4 +1,6 @@
-# HCS-6 Pointer
+# HCS-6: Dynamic Hashinals (Pointer)
+
+Framework for creating dynamic Hashinals whose content and behavior can be updated over time.
 
 ## Pointer metadata
 - Specification: HCS-6

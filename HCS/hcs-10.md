@@ -1,4 +1,6 @@
-# HCS-10 Pointer
+# HCS-10: OpenConvAI — AI Agent Communication on HCS (Pointer)
+
+Framework for AI agents to register, discover, and communicate over HCS using registries, topics, and standardized operations.
 
 ## Pointer metadata
 - Specification: HCS-10

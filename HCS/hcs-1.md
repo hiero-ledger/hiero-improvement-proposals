@@ -1,4 +1,6 @@
-# HCS-1 Pointer
+# HCS-1: File Management (Pointer)
+
+Encode, chunk, upload, retrieve, and reassemble file data on HCS topics using a JSON schema and topic memo validation.
 
 ## Pointer metadata
 - Specification: HCS-1

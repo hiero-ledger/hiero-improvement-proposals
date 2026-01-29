@@ -1,4 +1,6 @@
-# HCS-21 Pointer
+# HCS-21: Adapter Registry (Pointer)
+
+Platform-agnostic adapter registry packaging decentralized adapters, manifests, and consensus context for distributed appnets (Floras).
 
 ## Pointer metadata
 - Specification: HCS-21

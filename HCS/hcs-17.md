@@ -1,4 +1,6 @@
-# HCS-17 Pointer
+# HCS-17: State Hash Calculation (Pointer)
+
+Methodology for calculating state hashes of accounts and formations to support auditable, tamper-proof state verification.
 
 ## Pointer metadata
 - Specification: HCS-17

@@ -1,4 +1,6 @@
-# HCS-3 Pointer
+# HCS-3: Recursion (Pointer)
+
+Defines a method for implementing recursion on HCS, enabling more complex data structures and relationships.
 
 ## Pointer metadata
 - Specification: HCS-3

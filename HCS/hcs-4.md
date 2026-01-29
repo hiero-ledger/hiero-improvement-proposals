@@ -1,4 +1,6 @@
-# HCS-4 Pointer
+# HCS-4: HCS Standardization Process (Pointer)
+
+Defines the lifecycle, roles, criteria, and repository workflow for proposing, reviewing, approving, publishing, and maintaining Hiero Consensus Standards (HCS).
 
 ## Pointer metadata
 - Specification: HCS-4

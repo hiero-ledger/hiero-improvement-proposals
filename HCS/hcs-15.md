@@ -1,4 +1,6 @@
-# HCS-15 Pointer
+# HCS-15: Petals — Profile Accounts (Pointer)
+
+Enables account holders to create multiple account instances (petals) that share the same private key while isolating profiles and assets.
 
 ## Pointer metadata
 - Specification: HCS-15

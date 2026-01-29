@@ -1,4 +1,6 @@
-# HCS-11 Pointer
+# HCS-11: Profile Metadata (Pointer)
+
+Systematic approach for managing profiles on Hiero via account memos, enabling rich identity for individuals and AI agents.
 
 ## Pointer metadata
 - Specification: HCS-11
