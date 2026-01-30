@@ -335,14 +335,14 @@
     "title": "safeTransferFrom support for HTS Precompile and Facade Contract",
     "number": 1349,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1349",
-    "headRefOid": "4593406ddc8441ec243d2ab253425c098a920c40",
+    "headRefOid": "815d47446c0b0e5a08048a5771a8978ac6890700",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1349.md",
             "changeType": "ADDED",
-            "additions": 124,
+            "additions": 280,
             "deletions": 0
           }
         }
