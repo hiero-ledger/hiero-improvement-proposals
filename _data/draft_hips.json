@@ -1,5 +1,26 @@
 [
   {
+    "title": "HIP-1342: Ignore Trailing Calldata for System Contracts (Copy)",
+    "number": 1397,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1397",
+    "headRefOid": "dee3500d799ab54188018de272ecef0aaa6b48b3",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1342.md",
+            "changeType": "ADDED",
+            "additions": 177,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
     "title": "HIP for Enhanced Error Responses",
     "number": 1383,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1383",
@@ -356,12 +377,12 @@
     "title": "HIP-1342: Ignore Trailing Calldata for System Contracts",
     "number": 1342,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1342",
-    "headRefOid": "99f352e27976e6edd3773cea04a8679b8831bc53",
+    "headRefOid": "ad018a465430b701819e4e1581b0eada592740ce",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-hts-trailing-calldata.md",
+            "path": "HIP/hip-1342.md",
             "changeType": "ADDED",
             "additions": 177,
             "deletions": 0
