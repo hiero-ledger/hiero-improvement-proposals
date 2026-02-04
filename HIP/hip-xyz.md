@@ -55,114 +55,51 @@ The remainder of this HIP discusses the TSS ceremony that forms the above **Setu
 
 ## Rationale
 
-A “Powers of Tau” Phase 1 ceremony produces group elements corresponding to powers of a secret τ. These powers can be used to derive:
-  • A universal KZG SRS up to some maximum polynomial degree (needed for Nova’s KZG commitments), and
-  • Inputs that a Groth16 Phase 2 ceremony consumes to produce circuit-specific Groth16 proving and verifying keys (the Groth16 SRS for WRAPS’ Groth16 circuits).
+WRAPS needs two kinds of public parameters before it can produce and verify proofs: a universal set that can be reused across many proofs, and a circuit-specific set that is tied to the WRAPS circuit itself. The goal of this ceremony is to produce both sets while minimizing trust in any single party and while allowing anyone to independently verify the outcome.
 
-Accordingly, this HIP defines:
-  • Phase 1 as the universal MPC generating powers of τ (foundation for both KZG SRS and Groth16 setup),
-  • A coordinator post-processing step that deterministically derives:
-  • KZG_SRS from the Phase 1 output (untrusted computation), and
-  • Groth16_Phase2_Challenge_0 for Groth16 Phase 2,
-  • Phase 2 as the Groth16 circuit-specific MPC.
+The standard way to do this is to run a Phase 1 ceremony that establishes a shared pool of randomness. From that single Phase 1 output, the coordinator can deterministically derive the universal parameters and also produce the initial input for a Phase 2 ceremony that binds the parameters to the WRAPS circuit. Because these derivations are deterministic and publicly verifiable, the coordinator is explicitly untrusted: anyone can reproduce the same outputs from the published Phase 1 result.
+
+This HIP therefore separates setup into three stages: a universal Phase 1 multi‑party computation, a deterministic post‑processing step, and a circuit‑specific Phase 2 ceremony. Security follows the standard multi‑party guarantee: as long as at least one contributor in each relevant phase adds fresh randomness and deletes their secret material, the resulting parameters are secure.
 
 ## Specification
 
+We implement the ceremony protocol verbatim from [2], and summarize the protocol flow below, at a high level.
+
 ### Protocol Phases
 
-The ceremony proceeds as follows:
-  1.  Initialization: Coordinator publishes an initial Phase 1 SRS derived from a fixed seed (no entropy) and publishes deterministic contributor ordering.
-  2.  Phase 1 MPC (Powers of Tau): Contributors sequentially add secret entropy to update the universal powers.
-  3.  Untrusted Post-Processing (Coordinator):
-  - deterministically derives a KZG SRS usable by Nova’s commitment scheme (up to declared max degree),
-  - deterministically prepares the initial challenge for Groth16 Phase 2.
-  4.  Phase 2 MPC (Groth16): Contributors sequentially add secret entropy to generate Groth16 circuit-specific proving/verifying keys for WRAPS.
+The ceremony is a sequential, multi‑party process: contributors act one at a time, and the coordinator only performs deterministic steps that anyone can reproduce. It consists of three phases. The coordinator kickstarts the process by publishing a fixed starting file and a public schedule that determines who contributes and in what order. First, Phase 1 collects contributor randomness to build a universal pool of parameters. Next, the coordinator next derives the universal parameters needed by the system and prepares the starting input for Phase 2. Finally, Phase 2 adds contributor randomness again to bind the parameters to the WRAPS circuit.
 
-At completion, the ceremony outputs an SRS bundle:
-- KZG_SRS (Nova commitment scheme),
-- Groth16_SRS_WRAPS (Groth16 proving key material + verifying key material for WRAPS),
-- plus a complete transcript enabling independent verification and archival.
+On completion, the coordinator MUST publish the final parameter bundle containing `universal_params` and `circuit_params`, as well as a complete transcript sufficient for independent verification and long‑term archival.
 
 
 ### Ceremony Artifacts
 
-The transcript MUST clearly separate and label artifacts for:
-- Phase 1 (PoT) artifacts: universal powers (τ^i) and related proofs/metadata.
-- Derived KZG SRS artifacts: extracted/serialized KZG parameters and digest.
-- Phase 2 (Groth16) artifacts: circuit-specific Groth16 parameters and digest.
+The transcript MUST clearly separate and label artifacts for Phase 1, the derived universal parameters, and Phase 2 outputs. This is required so that an independent third-party verifier can replay the ceremony and validate each transition without ambiguity.
 
-The final manifest MUST include:
-- digest_phase1_final
-- digest_kzg_srs
-- digest_groth16_srs
-- digest_vk_wrapped (verifier key subset used on-node / in SDKs)
-- contributor roster, ordering, software versions
+### Phase 1 (Universal Setup)
 
-### Phase 1 (Universal Powers of Tau)
-
-Purpose
-Generate universal powers of secret τ that serve as the foundation for:
-  • KZG SRS for Nova, and
-  • Groth16 Phase 2 setup inputs.
-
-Contribution step
-Unchanged in structure (each contributor blinds the previous output with fresh secret entropy and deletes toxic waste).
-
-Output
-phase1_final which is sufficient to deterministically derive:
-  • KZG_SRS(max_degree) and
-  • phase2_groth16_challenge_0.
+Phase 1 produces a universal pool of parameters that are not tied to any specific circuit. Each contributor takes the prior output, mixes in fresh randomness, and then deletes their secret material. The final output, `phase1_final`, MUST be sufficient to deterministically derive `universal_params(max_degree)` and `phase2_initial_params`.
 
 
 ### Post-Processing (Coordinator, Untrusted)
 
-From phase1_final, the coordinator performs deterministic, publicly documented computations to produce:
-  1.  KZG SRS
-  • KZG_SRS(max_degree) for the Nova commitment scheme used in WRAPS.
-  • The max_degree MUST be published in advance and included in the final manifest.
-  • Anyone can recompute KZG_SRS from phase1_final.
-  2.  Groth16 Phase 2 Initial Challenge
-  • phase2_groth16_challenge_0 used to begin the Groth16 circuit-specific ceremony.
+From `phase1_final`, the coordinator performs a deterministic computation to prepare for Phase 2. First, it derives `universal_params(max_degree)` for the commitment scheme used in WRAPS. The `max_degree` MUST be published in advance and included in the final manifest, and anyone MUST be able to recompute `universal_params` from `phase1_final`. Second, it produces `phase2_initial_params`, which is the starting input for the circuit‑specific ceremony. This step MUST be reproducible and accompanied by signatures from all the participants.
 
-This step MUST be reproducible and accompanied by:
-  • digests/hashes,
-  • tool versions,
-  • a verification report (optional but recommended).
+### Phase 2 (Circuit-Specific)
 
-### Phase 2 (Groth16 Circuit-Specific)
+Phase 2 binds the parameters to the WRAPS circuit by producing the circuit‑specific proving and verifying keys. It takes `phase2_initial_parmas` and a published commitment to the WRAPS circuit description as inputs. Each contributor again adds fresh randomness and deletes their secret material.
 
-Purpose
-Generate the circuit-specific Groth16 SRS (proving and verifying keys) for WRAPS’ Groth16 circuit(s).
-
-Inputs
-  • phase2_groth16_challenge_0
-  • wraps_circuit_commitment (commitment to constraints / R1CS / QAP binding)
-
-Contribution step
-Unchanged in structure; each contributor adds new secret entropy and deletes toxic waste.
-
-Outputs
-  • Groth16_PK_WRAPS (prover material; may be large)
-  • Groth16_VK_WRAPS (verifier material)
-  • VK_wrapped (the minimal subset required for verification in the Hedera/Heiro verification pipeline, expected ~1.7 KB)
+The outputs of this phase are `WRAPS proving key` (roughly 2 GB), and the `WRAPS verification key`.
 
 
 ## Security Implications
 
-If an adversary learns all toxic waste secrets for the relevant ceremony steps, they can forge proofs. Therefore:
-- Phase 1 secrecy impacts both:
-- the KZG SRS (Nova commitments), and
-- the downstream Groth16 Phase 2 security.
-- Phase 2 secrecy impacts:
-- the circuit-specific Groth16 SRS.
-
-Security holds as long as at least one participant in the relevant phase(s) contributes true randomness and deletes it.
+Security holds as long as at least one participant in the relevant phase(s) contributes true randomness and deletes it after the ceremony.
+On the contrary, an attacker can forge invalid proofs if they are able to attain the entropy values of all participating nodes.
 
 ## Reference Implementation
 Please refer to the Hedera Cryptography [repository](https://github.com/hashgraph/hedera-cryptography) for the reference implementation.
 
-## Open Issues
-No known issues are currently under discussion.
 
 ## References
 
