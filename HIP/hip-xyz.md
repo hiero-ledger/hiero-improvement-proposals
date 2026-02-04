@@ -18,11 +18,11 @@ updated: 2026-01-20
 
 ## Abstract
 
-For TSS (HIP-1200) operations in Hiero, we use a recursive SNARK proof system (a.k.a. WRAPS) to cryptographically validate the entire history of Hedera address books. 
+For TSS (HIP-1200) operations in Hiero, we use a recursive SNARK proof system (a.k.a. WRAPS) to cryptographically validate the entire history of address books on that Hiero network.
 Like most SNARKs, this requires a one-time trusted setup to create a Structured Reference String (SRS), which are public parameters that both provers and verifiers will use.
 
 To that end, this proposal specifies a cryptographic ceremony, based on a relatively standard “Powers of Tau” protocol, to generate the SRS for WRAPS.
-Specifically, it details a protocol that can be executed by the council members -- specifically, those council members that also run consensus nodes -- such that each participant supplies some secret entropy to the protocol.
+Specifically, it details a protocol that can be executed by the council members -- specifically, those council members that also run consensus nodes -- where each participant supplies some secret entropy to the protocol.
 The protocol has the guarantee that as long as one participant acts honestly, and deletes the secret entropy used during the protocol, we have security, in that no (computationally-bounded) adversarial entity can forge invalid proofs.
 
 To minimize the impact of normal consensus operations, the protocol logic is not part of the consensus node software.
@@ -30,33 +30,28 @@ Moreover, the protocol operations are coordinated off-chain via an AWS S3 bucket
 
 ## Background
 
-Let us first recall the operational model of Hiero TSS as defined in HIP-1200. 
+Let us first recall some useful background on Hiero TSS as defined in HIP-1200 [1].
+The Hiero TSS system contains two main sub-systems: WRAPS and HINTS.
+HINTS is used to construct a threshold signature on a block, while WRAPS is used to prove the authenticity of the corresponding `HINTS verification key` (which a verifier will use to verify the threshold signature).
+Specifically, each `TSS Address Book` has a threshold signature verification key as metadata, and WRAPS proves that the active `TSS Address Book` is a descendent of the genesis `TSS Address Book`.
+Note that WRAPS can be used to prove authenticity for any threshold signing scheme (e.g. [3], [4]).
 
-- `Schnorr public / private key`: used by WRAPS for the purpose of signing the next day’s `TSS Address Book`  and `HINTS verification key`
+We have the following relevant TSS objects:
+
+- `Schnorr public / private key`: used by WRAPS for the purpose of signing the next day’s `TSS Address Book`.
 - `weight`: a u64 value denoting the node’s weight in TSS signing operations
-- `TSS Address Book`: from the point of view of TSS, an address book is a list of (`Schnorr public key`, `weight`) pairs.
-- `ledger ID` Poseidon 32-byte hash of the genesis `TSS Address Book`.
-- `HINTS verification key` : used to verify `HINTS signature` on a message, which in our case is the `block root hash` . This key is 616 bytes.
-- `WRAPS proving key` : used to produce a (recursive) `WRAPS proof` that the next `TSS Address Book`  and `HINTS verification key`  are signed off by sufficient members of today’s `TSS Address Book` (signed using `Schnorr private key`). The proving key is 2 GB, and, despite its name, is not a secret key and can be visible to the world.
-- `WRAPS verification key`: used to verify the above WRAPS proof, with respect to a given `ledger ID`. The verification key is about 1.7 KB.
-- `WRAPS proof` : a (recursive) proof object that contains a Cyclefold-Groth16 proof string, along with the public instance variables: genesis `TSS Address Book` hash (a.k.a. `ledger ID` ) and latest `TSS Address Book` hash and `HINTS verification key` hash.
+- `TSS Address Book`: from the point of view of TSS, an address book is a list of (`Schnorr public key`, `weight`) pairs, along with its `HINTS verification key`.
+- `ledger ID` 32-byte hash of the genesis `TSS Address Book`.
+- `WRAPS proving key` : used to produce a (recursive) `WRAPS proof` that the next `TSS Address Book`  and `HINTS verification key`  are signed off by sufficient members of the prior `TSS Address Book` (signed using the `Schnorr private key`). This proving key is 2 GB, and, despite its name, is not a secret key and can be visible to the world.
+- `WRAPS verification key`: used to verify the above `WRAPS proof`, with respect to a given `ledger ID`. This verification key is about 1.7 KB.
+- `WRAPS proof` : recursive proof, which includes the cryptographic proof data along with the (public) statement: `ledger ID` and latest `TSS Address Book` hash and `HINTS verification key` hash. A `WRAPS proof` can be verified using only the `ledger ID` and the `WRAPS verification key`.
 
-We have the following operations:
+WRAPS has the following lifecycle:
+- **Setup**: TSS ceremony that establishes the `WRAPS proving key` and `WRAPS verification key`.
+- **WRAPS signing**: nodes in the previous `TSS Address Book` use their `Schnorr private key`  to sign the message = [next `TSS Address Book` || `HINTS verification key`], where || denotes concatenation. Specifically, they engage in a 3-round Schnorr multisig protocol [5]. The output of this protocol is an aggregate Schnorr signature, which makes the following task efficient.
+- **WRAPS proving**: Anyone use the aggregate Schnorr signature and the  `WRAPS proving key` to generate a `WRAPS proof`, which completes the transition to the next `TSS Address Book`.
 
-- **Address Book rotation** (from AB_prev to AB_next):
-    - **HINTS setup**: nodes in AB_next broadcast some cryptographic material derived from their  `HINTS secret key` , after which the `HINTS aggregation key` and `HINTS verification key` are computed.
-    - **WRAPS signing**: nodes in AB_prev use their `Schnorr private key`  to sign hash(AB_next) || `HINTS verification key` , where || denotes concatenation. Specifically, they engage in a 3-round Schnorr multisig protocol (called musig). The output of this protocol is a single (aggregate) Schnorr signature, which makes the following task efficient.
-    - **WRAPS proving**: nodes in AB_next use the above aggregate Schnorr signature and the  `WRAPS proving key`  to generate the `WRAPS proof` . If this is a valid proof, nodes in AB_prev can safely transition to using AB_next.
-- **Block Signing**:
-    - **HINTS signing**: nodes use their `HINTS secret key` to sign the `block root hash`. The output of this algorithm is a “partial” signature which is broadcasted to all nodes.
-    - **HINTS aggregation**: any node can use the `HINTS aggregation key` to combine a set of partial signatures and produce a `HINTS signature`  over the `block root hash`. This signature is always ~1200 bytes, regardless of network size.
-
-After all these steps, we have a cryptographic attestation on a block, comprising the `WRAPS proof` , `HINTS verification key`, and `HINTS signature` . The block can be verified w.r.t. the `ledger ID` as follows.
-
-- **Verification**: can be decomposed into the following two checks
-    - **WRAPS verification**: uses `WRAPS verification key` to verify `WRAPS proof` with respect to the claimed `ledger ID` and claimed `HINTS verification key` . That is, we have the following api: `verify(wraps_verification_key, wraps_proof, genesis_ab_hash, hints_verification_key)`.
-    - **HINTS verification**: uses `HINTS verification key`  to verify `HINTS signature` with respect to the claimed `block root hash` . That is, we have the following api: `verify(hints_verification_key, message, hints_signature)` .
-
+The remainder of this HIP discusses the TSS ceremony that forms the above **Setup** phase.
 
 ## Rationale
 
@@ -164,17 +159,18 @@ If an adversary learns all toxic waste secrets for the relevant ceremony steps, 
 Security holds as long as at least one participant in the relevant phase(s) contributes true randomness and deletes it.
 
 ## Reference Implementation
-Please refer to the Hedera Cryptography 
-[repository](https://github.com/hashgraph/hedera-cryptography) for the reference 
-implementation.
+Please refer to the Hedera Cryptography [repository](https://github.com/hashgraph/hedera-cryptography) for the reference implementation.
 
 ## Open Issues
 No known issues are currently under discussion.
 
 ## References
 
-1. Kohlweiss, M., Maller, M., Siim, J., Volkhov, M. (2021). *Snarky Ceremonies*. Cryptology ePrint Archive, Paper 2021/219. Retrieved from [https://eprint.iacr.org/2021/219](https://eprint.iacr.org/2021/219.pdf)
-2. [HIP-1200: TSS](https://hips.hedera.com/hip/hip-1200)
+1. [HIP-1200: TSS](https://hips.hedera.com/hip/hip-1200)
+2. Kohlweiss, M., Maller, M., Siim, J., Volkhov, M. (2021). *Snarky Ceremonies*. Cryptology ePrint Archive, Paper 2021/219. Retrieved from [https://eprint.iacr.org/2021/219](https://eprint.iacr.org/2021/219.pdf)
+3. Garg, S., Jain, A., Mukherjee, P., Sinha, R., Wang, M., & Zhang, Y. (2023). *hinTS: Threshold Signatures with Silent Setup*. Cryptology ePrint Archive, Paper 2023/567. Retrieved from [https://eprint.iacr.org/2023/567](https://eprint.iacr.org/2023/567)
+4. Das, S., Camacho, P., Xiang, Z., Nieto, J., Bünz, B., & Ren, L. (2023). *Threshold Signatures from Inner Product Argument: Succinct, Weighted, and Multi-threshold*. Cryptology ePrint Archive, Paper 2023/598. Retrieved from [https://eprint.iacr.org/2023/598](https://eprint.iacr.org/2023/598)
+5. Maxwell, G., Poelstra, A., Seurin, Y., Wuille, P. (2018). *Simple Schnorr Multi-Signatures with Applications to Bitcoin*. Cryptology ePrint Archive, Paper 2018/068. Retrieved from [https://eprint.iacr.org/2018/068](https://eprint.iacr.org/2018/068)
 
 ## Copyright/license
 This document is licensed under the Apache License, Version 2.0 —
