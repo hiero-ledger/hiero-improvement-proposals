@@ -1,5 +1,26 @@
 [
   {
+    "title": "HIP-1398: TSS ceremony",
+    "number": 1398,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1398",
+    "headRefOid": "3eba73ebc9bd592cad2f64fe798d4bc0480cf670",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1398.md",
+            "changeType": "ADDED",
+            "additions": 114,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "rsinha"
+    }
+  },
+  {
     "title": "HIP for Enhanced Error Responses",
     "number": 1383,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1383",
