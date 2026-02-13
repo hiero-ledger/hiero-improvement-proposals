@@ -1,5 +1,26 @@
 [
   {
+    "title": "Add HIP-1331: An ExtendedAssetChanges extra for large atomic swaps",
+    "number": 1408,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1408",
+    "headRefOid": "b94714744034f533369987dd4e73540c18a0a48a",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1331.md",
+            "changeType": "ADDED",
+            "additions": 233,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
     "title": "HIP-1398: TSS ceremony",
     "number": 1398,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1398",
@@ -398,14 +419,14 @@
     "title": " An `ExtendedAssetChanges` extra for large atomic swaps",
     "number": 1331,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1331",
-    "headRefOid": "ccc9bc34aa311fedae95baede0edabfceea5bab4",
+    "headRefOid": "309893784e9ded49401df634775315c521bd7861",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1331.md",
             "changeType": "ADDED",
-            "additions": 232,
+            "additions": 233,
             "deletions": 0
           }
         }
