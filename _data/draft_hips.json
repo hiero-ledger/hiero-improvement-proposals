@@ -24,14 +24,14 @@
     "title": "HIP-1398: TSS ceremony",
     "number": 1398,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1398",
-    "headRefOid": "3eba73ebc9bd592cad2f64fe798d4bc0480cf670",
+    "headRefOid": "df18829f779e4a0b2fcb689fd175a29491990697",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1398.md",
             "changeType": "ADDED",
-            "additions": 114,
+            "additions": 115,
             "deletions": 0
           }
         }
