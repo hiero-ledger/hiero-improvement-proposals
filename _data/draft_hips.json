@@ -1,5 +1,26 @@
 [
   {
+    "title": "HIP: CryptoTransfer Contract Calls",
+    "number": 1414,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
+    "headRefOid": "93d62256d33fa7d3c141f7c6ed804f17565b301e",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000.md",
+            "changeType": "ADDED",
+            "additions": 188,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "lukasz-hashgraph"
+    }
+  },
+  {
     "title": "HIP-1398: TSS ceremony",
     "number": 1412,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1412",
@@ -377,7 +398,7 @@
     "title": "safeTransferFrom support for HTS Precompile and Facade Contract",
     "number": 1349,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1349",
-    "headRefOid": "815d47446c0b0e5a08048a5771a8978ac6890700",
+    "headRefOid": "098c93c5ad7a44807cf1c9d4b01a4d19633720f6",
     "files": {
       "edges": [
         {
