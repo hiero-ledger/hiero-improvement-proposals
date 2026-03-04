@@ -1,5 +1,26 @@
 [
   {
+    "title": "Add HIP for configurable HBAR decimals",
+    "number": 1415,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1415",
+    "headRefOid": "43e0f3344e9233b52755f8450d5fcdc6ec3e547a",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-xxx.md",
+            "changeType": "ADDED",
+            "additions": 292,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "stoqnkpL"
+    }
+  },
+  {
     "title": "HIP: CryptoTransfer Contract Calls",
     "number": 1414,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
