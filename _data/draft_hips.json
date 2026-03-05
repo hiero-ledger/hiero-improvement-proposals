@@ -21,17 +21,17 @@
     }
   },
   {
-    "title": "HIP: CryptoTransfer Contract Calls",
+    "title": "HIP-1414: CryptoTransfer Contract Calls",
     "number": 1414,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
-    "headRefOid": "6efa40841dbe6df257bff52def025c8aef872adf",
+    "headRefOid": "98f0fb09b5323f5602f86df230eb5474f99b3c8e",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000.md",
+            "path": "HIP/hip-1414.md",
             "changeType": "ADDED",
-            "additions": 188,
+            "additions": 227,
             "deletions": 0
           }
         }
@@ -39,48 +39,6 @@
     },
     "author": {
       "login": "lukasz-hashgraph"
-    }
-  },
-  {
-    "title": "HIP-1398: TSS ceremony",
-    "number": 1412,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1412",
-    "headRefOid": "fa446bff6d491c77c0045d9242c1247538c13a1b",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1398.md",
-            "changeType": "ADDED",
-            "additions": 115,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "mgarbs"
-    }
-  },
-  {
-    "title": "HIP-1398: TSS ceremony",
-    "number": 1398,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1398",
-    "headRefOid": "deae3624f6fd0e12ee6ab54309c516e578c54fb3",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1398.md",
-            "changeType": "ADDED",
-            "additions": 116,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "rsinha"
     }
   },
   {
