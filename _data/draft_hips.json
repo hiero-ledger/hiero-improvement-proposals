@@ -1,5 +1,110 @@
 [
   {
+    "title": "Add HIP-1415 for configurable HBAR decimals",
+    "number": 1415,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1415",
+    "headRefOid": "1f0687c3750daafe42bc463e68f7814bccee4776",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1415.md",
+            "changeType": "ADDED",
+            "additions": 292,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "stoqnkpL"
+    }
+  },
+  {
+    "title": "HIP: CryptoTransfer Contract Calls",
+    "number": 1414,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
+    "headRefOid": "6efa40841dbe6df257bff52def025c8aef872adf",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000.md",
+            "changeType": "ADDED",
+            "additions": 188,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "lukasz-hashgraph"
+    }
+  },
+  {
+    "title": "HIP-1398: TSS ceremony",
+    "number": 1412,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1412",
+    "headRefOid": "fa446bff6d491c77c0045d9242c1247538c13a1b",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1398.md",
+            "changeType": "ADDED",
+            "additions": 115,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mgarbs"
+    }
+  },
+  {
+    "title": "HIP-1398: TSS ceremony",
+    "number": 1398,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1398",
+    "headRefOid": "deae3624f6fd0e12ee6ab54309c516e578c54fb3",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1398.md",
+            "changeType": "ADDED",
+            "additions": 116,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "rsinha"
+    }
+  },
+  {
+    "title": "HIP for Enhanced Error Responses",
+    "number": 1383,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1383",
+    "headRefOid": "2825f4174a7488c44c7bfbbcd90bc85a4fcf16fd",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1383.md",
+            "changeType": "ADDED",
+            "additions": 578,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "timfn-hg"
+    }
+  },
+  {
     "title": "HIP-1373: Dollar-denominated values",
     "number": 1373,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1373",
@@ -77,31 +182,10 @@
     }
   },
   {
-    "title": "chore: Update HIP-1193 status to Review",
-    "number": 1369,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1369",
-    "headRefOid": "f1c9a553301cc07a821df14423c5f97a7fe5bfef",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1193.md",
-            "changeType": "ADDED",
-            "additions": 267,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "mgarbs"
-    }
-  },
-  {
     "title": "Feat/hcs registry hip",
     "number": 1364,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1364",
-    "headRefOid": "409064747881e211c83739f974c593bd599b649c",
+    "headRefOid": "89b0601f50a0a6c04ceb80656b4d657bbf5178e0",
     "files": {
       "edges": [
         {
@@ -116,7 +200,7 @@
           "node": {
             "path": "HCS/hcs-1.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -124,7 +208,7 @@
           "node": {
             "path": "HCS/hcs-10.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -132,7 +216,7 @@
           "node": {
             "path": "HCS/hcs-11.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -140,7 +224,7 @@
           "node": {
             "path": "HCS/hcs-12.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -148,7 +232,7 @@
           "node": {
             "path": "HCS/hcs-13.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -156,7 +240,7 @@
           "node": {
             "path": "HCS/hcs-14.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -164,7 +248,7 @@
           "node": {
             "path": "HCS/hcs-15.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -172,7 +256,7 @@
           "node": {
             "path": "HCS/hcs-16.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -180,7 +264,7 @@
           "node": {
             "path": "HCS/hcs-17.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -188,7 +272,7 @@
           "node": {
             "path": "HCS/hcs-18.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -196,7 +280,7 @@
           "node": {
             "path": "HCS/hcs-19.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -204,7 +288,7 @@
           "node": {
             "path": "HCS/hcs-2.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -212,7 +296,7 @@
           "node": {
             "path": "HCS/hcs-20.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -220,7 +304,7 @@
           "node": {
             "path": "HCS/hcs-21.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -228,7 +312,7 @@
           "node": {
             "path": "HCS/hcs-3.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -236,7 +320,7 @@
           "node": {
             "path": "HCS/hcs-4.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -244,7 +328,7 @@
           "node": {
             "path": "HCS/hcs-5.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -252,7 +336,7 @@
           "node": {
             "path": "HCS/hcs-6.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -260,7 +344,7 @@
           "node": {
             "path": "HCS/hcs-7.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -268,7 +352,7 @@
           "node": {
             "path": "HCS/hcs-8.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -276,7 +360,7 @@
           "node": {
             "path": "HCS/hcs-9.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -284,7 +368,7 @@
           "node": {
             "path": "HCS/hcs-definitions.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 17,
             "deletions": 0
           }
         },
@@ -292,7 +376,7 @@
           "node": {
             "path": "HCS/hcs-xx.md",
             "changeType": "ADDED",
-            "additions": 12,
+            "additions": 14,
             "deletions": 0
           }
         },
@@ -311,59 +395,17 @@
     }
   },
   {
-    "title": "Tier 1 Block Node Operation Rewards",
-    "number": 1357,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1357",
-    "headRefOid": "cd2abd9cdf21009640e52c6670e7dd79b3f6962d",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1357.md",
-            "changeType": "ADDED",
-            "additions": 159,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Nana-EC"
-    }
-  },
-  {
-    "title": "New HIP \"Add `isAssociated(address account)` to HTS Token Facade Contract\"",
-    "number": 1351,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1351",
-    "headRefOid": "db7574f022859b0c23bf07c98bcc1973e45644fc",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1351.md",
-            "changeType": "ADDED",
-            "additions": 157,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Reccetech"
-    }
-  },
-  {
     "title": "safeTransferFrom support for HTS Precompile and Facade Contract",
     "number": 1349,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1349",
-    "headRefOid": "42c5cf65e064c285ac5a5664c4da43cf73cbb982",
+    "headRefOid": "098c93c5ad7a44807cf1c9d4b01a4d19633720f6",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1349.md",
             "changeType": "ADDED",
-            "additions": 124,
+            "additions": 280,
             "deletions": 0
           }
         }
@@ -374,149 +416,17 @@
     }
   },
   {
-    "title": "HIP-1347: Coherent Token Expiry Timestamp Encoding",
-    "number": 1347,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1347",
-    "headRefOid": "c98e48fc6e4b16f072b1e07636082416ae06da28",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1347-coherent-expiry-timestamp.md",
-            "changeType": "ADDED",
-            "additions": 250,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Neurone"
-    }
-  },
-  {
     "title": "HIP-1342: Ignore Trailing Calldata for System Contracts",
     "number": 1342,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1342",
-    "headRefOid": "99f352e27976e6edd3773cea04a8679b8831bc53",
+    "headRefOid": "ad018a465430b701819e4e1581b0eada592740ce",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-hts-trailing-calldata.md",
+            "path": "HIP/hip-1342.md",
             "changeType": "ADDED",
             "additions": 177,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Neurone"
-    }
-  },
-  {
-    "title": "HIP-1341: General Pectra HIP",
-    "number": 1341,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1341",
-    "headRefOid": "4bc63dc30e74ace4cef6293b5b3809929bf0a851",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1341.md",
-            "changeType": "ADDED",
-            "additions": 151,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "lukelee-sl"
-    }
-  },
-  {
-    "title": "HIP-1340: EOA Code Delegation",
-    "number": 1340,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1340",
-    "headRefOid": "91e10b1c5e4cf396197ab6c7e28c06765159dabf",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1340.md",
-            "changeType": "ADDED",
-            "additions": 605,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/eoa_code_delegation_high_level.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/example_user_flow_native.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/example_user_flow_type_4.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/has_facade.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/hscs_hts_interoperability.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        },
-        {
-          "node": {
-            "path": "assets/hip-1340/hts_hss_facade.png",
-            "changeType": "ADDED",
-            "additions": 0,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "lukasz-hashgraph"
-    }
-  },
-  {
-    "title": "HIP-1334: Private Message Box Standard for Hiero Accounts",
-    "number": 1334,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1334",
-    "headRefOid": "a86a3f2d7ea0c0e1094702cd9d1cd5e330d93658",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1334.md",
-            "changeType": "ADDED",
-            "additions": 844,
             "deletions": 0
           }
         }
@@ -530,14 +440,14 @@
     "title": " An `ExtendedAssetChanges` extra for large atomic swaps",
     "number": 1331,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1331",
-    "headRefOid": "ccc9bc34aa311fedae95baede0edabfceea5bab4",
+    "headRefOid": "309893784e9ded49401df634775315c521bd7861",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1331.md",
             "changeType": "ADDED",
-            "additions": 232,
+            "additions": 233,
             "deletions": 0
           }
         }
@@ -593,7 +503,7 @@
     "title": "HIP-1193 - Records to block streams cutover",
     "number": 1193,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1193",
-    "headRefOid": "b6a950e96b6cd1374c424c0b6760f93dc8b06ae7",
+    "headRefOid": "ae4b309b57589db350541412ae8967525064fc8e",
     "files": {
       "edges": [
         {
@@ -608,27 +518,6 @@
     },
     "author": {
       "login": "Mark-Swirlds"
-    }
-  },
-  {
-    "title": "HIP-1137: Block Node Discoverability",
-    "number": 1137,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1137",
-    "headRefOid": "e45fba227c3ddd12dc7da9ad38d49613f2345527",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1137.md",
-            "changeType": "ADDED",
-            "additions": 616,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "jsync-swirlds"
     }
   },
   {
