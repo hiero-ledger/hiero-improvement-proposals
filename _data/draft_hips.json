@@ -24,14 +24,14 @@
     "title": "HIP-1414: CryptoTransfer Contract Calls",
     "number": 1414,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
-    "headRefOid": "98f0fb09b5323f5602f86df230eb5474f99b3c8e",
+    "headRefOid": "03503e9af0f9820165f40cf858ce414edc25a62e",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1414.md",
             "changeType": "ADDED",
-            "additions": 227,
+            "additions": 250,
             "deletions": 0
           }
         }
