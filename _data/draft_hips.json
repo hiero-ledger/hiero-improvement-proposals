@@ -1,44 +1,44 @@
 [
   {
-    "title": "Add HIP-1331: An ExtendedAssetChanges extra for large atomic swaps",
-    "number": 1408,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1408",
-    "headRefOid": "b94714744034f533369987dd4e73540c18a0a48a",
+    "title": "Add HIP-1415 for configurable HBAR decimals",
+    "number": 1415,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1415",
+    "headRefOid": "1f0687c3750daafe42bc463e68f7814bccee4776",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-1331.md",
+            "path": "HIP/hip-1415.md",
             "changeType": "ADDED",
-            "additions": 233,
+            "additions": 292,
             "deletions": 0
           }
         }
       ]
     },
     "author": {
-      "login": "mgarbs"
+      "login": "stoqnkpL"
     }
   },
   {
-    "title": "HIP-1398: TSS ceremony",
-    "number": 1398,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1398",
-    "headRefOid": "3eba73ebc9bd592cad2f64fe798d4bc0480cf670",
+    "title": "HIP-1414: CryptoTransfer Contract Calls",
+    "number": 1414,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
+    "headRefOid": "03503e9af0f9820165f40cf858ce414edc25a62e",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-1398.md",
+            "path": "HIP/hip-1414.md",
             "changeType": "ADDED",
-            "additions": 114,
+            "additions": 250,
             "deletions": 0
           }
         }
       ]
     },
     "author": {
-      "login": "rsinha"
+      "login": "lukasz-hashgraph"
     }
   },
   {
@@ -356,7 +356,7 @@
     "title": "safeTransferFrom support for HTS Precompile and Facade Contract",
     "number": 1349,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1349",
-    "headRefOid": "815d47446c0b0e5a08048a5771a8978ac6890700",
+    "headRefOid": "098c93c5ad7a44807cf1c9d4b01a4d19633720f6",
     "files": {
       "edges": [
         {
