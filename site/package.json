@@ -1,0 +1,16 @@
+{
+  "name": "hips-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:data": "node scripts/build-data.js",
+    "dev": "npm run build:data && vite",
+    "build": "npm run build:data && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "marked": "^15.0.0",
+    "gray-matter": "^4.0.3",
+    "vite": "^6.0.0"
+  }
+}
