@@ -459,8 +459,8 @@ function showDetail(num) {
   // Meta table
   const rows = [
     ['Author', fmtAuthor(hip.author)],
-    hip['working-group'] ? ['Working Group', esc(hip['working-group'])] : null,
-    hip['requested-by'] ? ['Requested By', esc(hip['requested-by'])] : null,
+    hip['working-group'] ? ['Working Group', fmtPeople(hip['working-group'])] : null,
+    hip['requested-by'] ? ['Requested By', fmtPeople(hip['requested-by'])] : null,
     hip['discussions-to'] ? ['Discussions-To', `<a href="${esc(hip['discussions-to'])}" target="_blank">${esc(truncUrl(hip['discussions-to']))}</a>`] : null,
     ['Status', `${badge(hip.status)} <span class="status-info-icon" style="width:16px;height:16px;font-size:.6rem">i<span class="tip">${esc(STATUS_TIPS[hip.status] || '')}</span></span>`],
     hip['needs-hiero-approval'] ? ['Needs Hiero Approval', norm(hip['needs-hiero-approval'])] : null,
@@ -726,10 +726,27 @@ function shortAuthor(a) {
   return a.split(',')[0].trim().replace(/<[^>]+>/g, '').replace(/\([^)]+\)/g, '').trim();
 }
 
-function fmtAuthor(a) {
+function fmtPeople(a) {
   if (!a) return '';
-  return esc(a).replace(/@(\w[\w-]*)/g, '<a href="https://github.com/$1" target="_blank">@$1</a>');
+  return a.split(',').map(s => {
+    s = s.trim();
+    // Match "Name <@github>" or "Name <email>"
+    const m = s.match(/^(.+?)\s*<([^>]+)>$/);
+    if (!m) return esc(s);
+    const name = m[1].trim();
+    const ref = m[2].trim();
+    if (ref.startsWith('@')) {
+      const user = ref.slice(1);
+      return `${esc(name)} (<a href="https://github.com/${encodeURIComponent(user)}" target="_blank">@${esc(user)}</a>)`;
+    }
+    if (ref.includes('@')) {
+      return `${esc(name)} (${esc(ref)})`;
+    }
+    return esc(s);
+  }).join(', ');
 }
+
+function fmtAuthor(a) { return fmtPeople(a); }
 
 function hipLinks(val) {
   if (!val) return '';
