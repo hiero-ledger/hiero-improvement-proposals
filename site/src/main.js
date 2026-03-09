@@ -730,11 +730,11 @@ function fmtPeople(a) {
   if (!a) return '';
   return a.split(',').map(s => {
     s = s.trim();
-    // Match "Name <@github>" or "Name <email>"
-    const m = s.match(/^(.+?)\s*<([^>]+)>$/);
+    // Match "Name <@github>", "Name <email>", or "Name (@github)"
+    const m = s.match(/^(.+?)\s*(?:<([^>]+)>|\(([^)]+)\))$/);
     if (!m) return esc(s);
     const name = m[1].trim();
-    const ref = m[2].trim();
+    const ref = (m[2] || m[3]).trim();
     if (ref.startsWith('@')) {
       const user = ref.slice(1);
       return `<a href="https://github.com/${encodeURIComponent(user)}" target="_blank">${esc(name)}</a>`;
