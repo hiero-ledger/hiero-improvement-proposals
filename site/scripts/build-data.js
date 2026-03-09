@@ -39,7 +39,7 @@ function extractHip(data, content, extra = {}) {
     updated: data.updated || '',
     'discussions-to': data['discussions-to'] || '',
     'needs-hiero-approval': data['needs-hiero-approval'] || '',
-    'needs-hedera-review': data['needs-hedera-review'] || '',
+    'needs-hedera-review': data['needs-hedera-review'] || data['needs-council-approval'] || '',
     'last-call-date-time': data['last-call-date-time'] || '',
     'requested-by': data['requested-by'] || '',
     'working-group': data['working-group'] || '',
