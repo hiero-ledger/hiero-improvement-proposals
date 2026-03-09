@@ -473,7 +473,7 @@ function showDetail(num) {
     hip.requires ? ['Requires', hipLinks(hip.requires)] : null,
     hip.replaces ? ['Replaces', hipLinks(hip.replaces)] : null,
     hip['superseded-by'] ? ['Superseded By', hipLinks(hip['superseded-by'])] : null,
-    hip.release ? ['Release', esc(String(hip.release))] : null,
+    hip.release ? ['Release', fmtRelease(hip.release, hip.category)] : null,
   ].filter(Boolean);
 
   $('#hip-meta-table tbody').innerHTML = rows.map(([l, v]) =>
@@ -747,6 +747,25 @@ function fmtPeople(a) {
 }
 
 function fmtAuthor(a) { return fmtPeople(a); }
+
+function releaseRepo(category) {
+  const cats = (category || '').toLowerCase().split(/,\s*/);
+  const hasCore = cats.some(c => c === 'core' || c === 'service');
+  const hasMirror = cats.some(c => c === 'mirror' || c === 'mirror node');
+  const hasBlock = cats.some(c => c === 'block' || c === 'block node');
+  if (hasCore) return 'hiero-ledger/hiero-consensus-node';
+  if (hasMirror) return 'hiero-ledger/hiero-mirror-node';
+  if (hasBlock) return 'hiero-ledger/hiero-block-node';
+  return 'hiero-ledger/hiero-consensus-node';
+}
+
+function fmtRelease(release, category) {
+  const v = String(release).trim();
+  if (!v || v.toLowerCase() === 'tbd') return esc(v);
+  const repo = releaseRepo(category);
+  const tag = v.startsWith('v') ? v : `v${v}`;
+  return `<a href="https://github.com/${repo}/releases/tag/${encodeURIComponent(tag)}" target="_blank">${esc(v)}</a>`;
+}
 
 function hipLinks(val) {
   if (!val) return '';
