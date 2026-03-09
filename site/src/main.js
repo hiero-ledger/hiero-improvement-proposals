@@ -737,10 +737,10 @@ function fmtPeople(a) {
     const ref = m[2].trim();
     if (ref.startsWith('@')) {
       const user = ref.slice(1);
-      return `${esc(name)} (<a href="https://github.com/${encodeURIComponent(user)}" target="_blank">@${esc(user)}</a>)`;
+      return `<a href="https://github.com/${encodeURIComponent(user)}" target="_blank">${esc(name)}</a>`;
     }
     if (ref.includes('@')) {
-      return `${esc(name)} (${esc(ref)})`;
+      return `<a href="mailto:${encodeURIComponent(ref)}">${esc(name)}</a>`;
     }
     return esc(s);
   }).join(', ');
