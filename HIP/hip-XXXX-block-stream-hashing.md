@@ -22,15 +22,18 @@ requires: 1056
 ## Abstract
 
 This HIP specifies the complete hashing scheme and Merkle tree structures used by the Hiero network to compute
-verifiable, tamper-evident digests of all data in both the block stream and consensus node state. Building on the block
-stream format introduced in [HIP-1056](https://hips.hedera.com/hip/hip-1056), this specification defines: the
-node-prefixing convention that provides domain separation between leaf and internal nodes; the three distinct Merkle
-tree types used for different parts of the block; the fixed 16-leaf block root structure with its eight defined
-sub-trees and eight reserved expansion slots; the streaming incremental Merkle tree algorithm designed for efficient
-hash computation as block items are produced; and the complete set of protobuf messages for the block footer, block
-proof variants, and filtered or redacted item representations. Together, these primitives enable any party to verify
-the integrity of any individual item in any block or state, and to generate concise Merkle proofs for both recent and
-historical blocks.
+verifiable, tamper-evident digests of all data in both the block stream and consensus node state.
+
+Building on the block stream format introduced in [HIP-1056](https://hips.hedera.com/hip/hip-1056), this specification
+defines
+- the node-prefixing convention that provides domain separation between leaf and internal nodes
+- the three distinct Merkle tree types used for different parts of the block; the fixed 16-leaf block root structure
+    with its eight defined sub-trees and eight reserved expansion slots
+- the streaming incremental Merkle tree algorithm designed for efficient hash computation as block items are produced
+- the complete set of protobuf messages for the block footer, block proof variants, and filtered or redacted item representations.
+
+Together, these primitives enable any party to verify the integrity of any individual item in any block or state, and
+to generate concise Merkle proofs for both recent and historical blocks.
 
 ## Motivation
 
