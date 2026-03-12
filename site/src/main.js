@@ -23,7 +23,7 @@ const PIPELINE_STAGES = ['Draft', 'Review', 'Last Call', 'Approved', 'Final', 'A
 const STATUS_TIPS = {
   Draft: 'The formal starting point. The HIP is being drafted and is not yet ready for review.',
   Review: 'The HIP is ready for review by the community and HIP editors.',
-  'Last Call': 'Final review window (typically 14 days) before moving to a Hiero TSC approval vote or Active.',
+  'Last Call': 'Last chance for community input before this HIP moves forward.',
   Approved: 'A Standards Track HIP has been approved by Hiero TSC.',
   Accepted: 'A Standards Track HIP has been accepted.',
   Final: 'Approved by Hiero TSC and its reference implementation has been merged.',
