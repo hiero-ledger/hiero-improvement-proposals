@@ -1109,7 +1109,6 @@ article hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
    ============================================= */
 .about-content { max-width: 800px; animation: fadeIn .3s var(--ease); }
 .about-logo { height: 48px; margin-bottom: 1rem; }
-[data-theme="dark"] .about-logo { filter: brightness(1.5); }
 .about-badges { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
 .about-badges img { border-radius: 3px; }
 .about-content h2 { font-size: 1.1rem; font-weight: 700; margin-top: 1.5em; margin-bottom: .5em; }
