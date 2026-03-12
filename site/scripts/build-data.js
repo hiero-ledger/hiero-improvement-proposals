@@ -126,7 +126,7 @@ async function fetchDraftHips() {
         'discussions-to': parsed.data['discussions-to'] || pr.url || '',
       };
 
-      hips.push(extractHip(data, parsed.content));
+      hips.push(extractHip(data, parsed.content, { prNumber: pr.number }));
       hipBodies[hipNum] = parsed.content;
       fetched++;
       console.log(`  PR-${pr.number}: fetched HIP-${hipNum} "${data.title}"`);

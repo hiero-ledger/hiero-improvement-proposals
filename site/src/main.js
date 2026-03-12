@@ -454,9 +454,10 @@ function showDetail(num) {
 
   // Title
   const isDraft = hip.status === 'Draft';
-  const prFilesUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${hip.hip}/files`;
-  const mainFileUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/HIP/hip-${hip.hip}.md`;
+  const prNum = hip.prNumber || hip.hip;
+  const prFilesUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${prNum}/files`;
   const mainEditUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/main/HIP/hip-${hip.hip}.md`;
+  const mainFileUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/HIP/hip-${hip.hip}.md`;
   $('#hip-title').innerHTML = `<span class="hip-number">HIP-${hip.hip}:</span> ${esc(hip.title)}`;
 
   // Action buttons — drafts link to PR files, merged HIPs link to file on main
