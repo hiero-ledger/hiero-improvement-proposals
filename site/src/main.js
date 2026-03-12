@@ -453,11 +453,17 @@ function showDetail(num) {
   window.scrollTo(0, 0);
 
   // Title
-  const ghUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/HIP/hip-${hip.hip}.md`;
+  const isDraft = hip.status === 'Draft';
+  const prUrl = hip['discussions-to']?.includes('/pull/') ? hip['discussions-to'] : '';
+  const ghUrl = isDraft && prUrl
+    ? `${prUrl}/files`
+    : `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/HIP/hip-${hip.hip}.md`;
   $('#hip-title').innerHTML = `<span class="hip-number">HIP-${hip.hip}:</span> ${esc(hip.title)}`;
 
-  // Action buttons
-  const editUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/main/HIP/hip-${hip.hip}.md`;
+  // Action buttons — drafts link to the PR, merged HIPs link to the file on main
+  const editUrl = isDraft && prUrl
+    ? prUrl
+    : `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/main/HIP/hip-${hip.hip}.md`;
   $('#suggest-edit').href = editUrl;
   const discussUrl = hip['discussions-to'] || ghUrl;
   $('#discuss-link').href = discussUrl;
