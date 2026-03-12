@@ -949,6 +949,50 @@ article hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
   border-top: 1px solid var(--border-lt);
   margin: .75em 0;
 }
+
+/* GitHub-style suggestion blocks */
+.suggestion-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin: .65em 0;
+  overflow: hidden;
+}
+.suggestion-header {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--fg-muted);
+  background: var(--bg-alt);
+  padding: .35rem .75rem;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: .02em;
+}
+.suggestion-diff {
+  font-family: var(--mono);
+  font-size: .82rem;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+.suggestion-line {
+  padding: .2rem .75rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.suggestion-add {
+  background: rgba(46, 160, 67, .12);
+  border-left: 3px solid #2ea043;
+}
+[data-theme="dark"] .suggestion-add {
+  background: rgba(46, 160, 67, .15);
+  border-left-color: #3fb950;
+}
+.suggestion-prefix {
+  display: inline-block;
+  width: 1.25rem;
+  color: #2ea043;
+  font-weight: 700;
+  user-select: none;
+}
+[data-theme="dark"] .suggestion-prefix { color: #3fb950; }
 .comment-reactions {
   display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .65rem;
 }

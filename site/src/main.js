@@ -773,8 +773,24 @@ function fmtDate(d) {
 }
 
 // Render a comment from the REST API (PR issue comments)
+function parseSuggestions(raw) {
+  // Transform ```suggestion blocks into styled HTML before markdown parsing
+  return raw.replace(/```suggestion\r?\n([\s\S]*?)```/g, (_, code) => {
+    const lines = code.replace(/\n$/, '').split('\n');
+    const lineHtml = lines.map(l =>
+      `<div class="suggestion-line suggestion-add"><span class="suggestion-prefix">+</span>${esc(l)}</div>`
+    ).join('');
+    return `<div class="suggestion-block"><div class="suggestion-header">Suggested change</div><div class="suggestion-diff">${lineHtml}</div></div>`;
+  });
+}
+
+function parseBody(raw) {
+  const processed = parseSuggestions(raw || '');
+  return marked.parse(processed);
+}
+
 function renderRestComment(c) {
-  let body = marked.parse(c.body || '');
+  let body = parseBody(c.body);
   return `<div class="comment">
     <img class="comment-avatar" src="${c.user?.avatar_url || ''}" alt="" loading="lazy">
     <div class="comment-body">
@@ -790,7 +806,7 @@ function renderRestComment(c) {
 
 // Render a comment from pre-built GraphQL data (discussions + review threads)
 function renderGqlComment(c) {
-  const body = marked.parse(c.body || '');
+  const body = parseBody(c.body);
   const login = c.author?.login || 'unknown';
   const avatar = c.author?.avatarUrl || '';
   const profileUrl = c.author?.url || '#';
