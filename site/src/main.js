@@ -454,18 +454,14 @@ function showDetail(num) {
 
   // Title
   const isDraft = hip.status === 'Draft';
-  const prUrl = hip['discussions-to']?.includes('/pull/') ? hip['discussions-to'] : '';
-  const ghUrl = isDraft && prUrl
-    ? `${prUrl}/files`
-    : `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/HIP/hip-${hip.hip}.md`;
+  const prFilesUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${hip.hip}/files`;
+  const mainFileUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/HIP/hip-${hip.hip}.md`;
+  const mainEditUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/main/HIP/hip-${hip.hip}.md`;
   $('#hip-title').innerHTML = `<span class="hip-number">HIP-${hip.hip}:</span> ${esc(hip.title)}`;
 
-  // Action buttons — drafts link to the PR, merged HIPs link to the file on main
-  const editUrl = isDraft && prUrl
-    ? prUrl
-    : `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/main/HIP/hip-${hip.hip}.md`;
-  $('#suggest-edit').href = editUrl;
-  const discussUrl = hip['discussions-to'] || ghUrl;
+  // Action buttons — drafts link to PR files, merged HIPs link to file on main
+  $('#suggest-edit').href = isDraft ? prFilesUrl : mainEditUrl;
+  const discussUrl = hip['discussions-to'] || (isDraft ? prFilesUrl : mainFileUrl);
   $('#discuss-link').href = discussUrl;
   $('#join-discussion').href = discussUrl;
 
