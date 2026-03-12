@@ -536,6 +536,7 @@ function showDetail(num) {
   // Render markdown content
   const body = hipBodies[hip.hip] || '';
   $('#hip-content').innerHTML = marked.parse(body);
+  applyRainbowIndent($('#hip-content'));
 
   // Build TOC
   buildTOC();
@@ -840,6 +841,165 @@ function stripEmailFooter(raw) {
     .replace(/\n*>?\s*Reply to this email directly[\s\S]*$/im, '')
     .replace(/\n*>?\s*You are receiving this because[\s\S]*$/im, '')
     .replace(/\n*>?\s*Message ID:\s*<[^>]+>[\s\S]*$/im, '');
+}
+
+/* =============================================
+   CODE ENHANCEMENTS — VS Code-style visualization
+   ============================================= */
+
+// Indent Rainbow colors
+const INDENT_COLORS = [
+  'rgba(255,99,99,.09)',    // red
+  'rgba(255,166,77,.09)',   // orange
+  'rgba(230,230,80,.09)',   // yellow
+  'rgba(99,210,130,.09)',   // green
+  'rgba(99,170,255,.09)',   // blue
+  'rgba(180,130,255,.09)',  // purple
+];
+
+// Bracket pair colorization colors
+const BRACKET_COLORS = [
+  '#e5c07b', // gold
+  '#c678dd', // purple
+  '#56b6c2', // cyan
+  '#61afef', // blue
+  '#e06c75', // red
+  '#98c379', // green
+];
+
+const OPEN_BRACKETS = ['(', '[', '{'];
+const CLOSE_BRACKETS = [')', ']', '}'];
+const BRACKET_PAIRS = { ')': '(', ']': '[', '}': '{' };
+
+function applyRainbowIndent(container) {
+  container.querySelectorAll('pre code').forEach(block => {
+    // --- 1) Indent Rainbow ---
+    let html = block.innerHTML;
+    const lines = html.split('\n');
+    html = lines.map(line => {
+      const plain = line.replace(/<[^>]*>/g, '');
+      const m = plain.match(/^(\s+)/);
+      if (!m) return line;
+      const ws = m[1];
+      const tabSize = ws.includes('\t') ? 1 : (plain.match(/^ {4}/) ? 4 : 2);
+      const level = ws.includes('\t') ? ws.length : Math.floor(ws.length / tabSize);
+      if (level === 0) return line;
+
+      let plainIdx = 0, htmlIdx = 0;
+      while (plainIdx < ws.length && htmlIdx < line.length) {
+        if (line[htmlIdx] === '<') {
+          const close = line.indexOf('>', htmlIdx);
+          if (close !== -1) { htmlIdx = close + 1; continue; }
+        }
+        plainIdx++;
+        htmlIdx++;
+      }
+
+      const rest = line.slice(htmlIdx);
+      let result = '';
+      const unit = ws.includes('\t') ? '\t' : ' '.repeat(tabSize);
+      for (let i = 0; i < level; i++) {
+        const color = INDENT_COLORS[i % INDENT_COLORS.length];
+        result += `<span class="indent-guide" style="background:${color}">${unit}</span>`;
+      }
+      const remainder = ws.length - (level * (ws.includes('\t') ? 1 : tabSize));
+      if (remainder > 0) result += ' '.repeat(remainder);
+      return result + rest;
+    }).join('\n');
+
+    // --- 2) Bracket Pair Colorization ---
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    let depth = 0;
+    const walker = document.createTreeWalker(tmp, NodeFilter.SHOW_TEXT);
+    const replacements = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      const text = node.textContent;
+      if (!/[(){}\[\]]/.test(text)) continue;
+      const frag = document.createDocumentFragment();
+      let last = 0;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (CLOSE_BRACKETS.includes(ch)) depth = Math.max(0, depth - 1);
+        if (OPEN_BRACKETS.includes(ch) || CLOSE_BRACKETS.includes(ch)) {
+          if (i > last) frag.appendChild(document.createTextNode(text.slice(last, i)));
+          const span = document.createElement('span');
+          span.className = 'bracket-color';
+          span.style.color = BRACKET_COLORS[depth % BRACKET_COLORS.length];
+          span.textContent = ch;
+          span.dataset.bracket = ch;
+          span.dataset.depth = depth;
+          frag.appendChild(span);
+          if (OPEN_BRACKETS.includes(ch)) depth++;
+          last = i + 1;
+        }
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      replacements.push({ node, frag });
+    }
+    for (const { node, frag } of replacements) {
+      node.parentNode.replaceChild(frag, node);
+    }
+    block.innerHTML = tmp.innerHTML;
+
+    // --- 3) Matching Tag Highlight (HTML/XML blocks) ---
+    block.querySelectorAll('.hljs-name').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        const tagName = el.textContent;
+        const allNames = [...block.querySelectorAll('.hljs-name')].filter(n => n.textContent === tagName);
+        allNames.forEach(n => n.classList.add('tag-match'));
+      });
+      el.addEventListener('mouseleave', () => {
+        block.querySelectorAll('.tag-match').forEach(n => n.classList.remove('tag-match'));
+      });
+    });
+
+    // --- 4) Matching Bracket Highlight on hover ---
+    block.querySelectorAll('.bracket-color').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        const br = el.dataset.bracket;
+        const d = Number(el.dataset.depth);
+        const all = [...block.querySelectorAll('.bracket-color')];
+        const idx = all.indexOf(el);
+        if (OPEN_BRACKETS.includes(br)) {
+          let dd = 0;
+          for (let i = idx; i < all.length; i++) {
+            const b = all[i].dataset.bracket;
+            if (OPEN_BRACKETS.includes(b) && Number(all[i].dataset.depth) === d) dd++;
+            if (CLOSE_BRACKETS.includes(b) && BRACKET_PAIRS[b] === br) {
+              dd--;
+              if (dd === 0) { el.classList.add('bracket-hover'); all[i].classList.add('bracket-hover'); break; }
+            }
+          }
+        } else {
+          let dd = 0;
+          for (let i = idx; i >= 0; i--) {
+            const b = all[i].dataset.bracket;
+            if (CLOSE_BRACKETS.includes(b) && Number(all[i].dataset.depth) === d) dd++;
+            if (OPEN_BRACKETS.includes(b) && BRACKET_PAIRS[br] === b) {
+              dd--;
+              if (dd === 0) { el.classList.add('bracket-hover'); all[i].classList.add('bracket-hover'); break; }
+            }
+          }
+        }
+      });
+      el.addEventListener('mouseleave', () => {
+        block.querySelectorAll('.bracket-hover').forEach(n => n.classList.remove('bracket-hover'));
+      });
+    });
+
+    // --- 5) Colorize — inline color swatches for hex/rgb/hsl values ---
+    const colorRe = /#(?:[0-9a-fA-F]{3,8})\b|rgba?\([^)]+\)|hsla?\([^)]+\)/g;
+    block.querySelectorAll('.hljs-number, .hljs-string, .hljs-attr').forEach(el => {
+      const text = el.textContent;
+      if (!colorRe.test(text)) return;
+      colorRe.lastIndex = 0;
+      el.innerHTML = text.replace(colorRe, match => {
+        return `<span class="color-swatch-wrap">${esc(match)}<span class="color-swatch" style="background:${esc(match)}"></span></span>`;
+      });
+    });
+  });
 }
 
 function parseBody(raw) {

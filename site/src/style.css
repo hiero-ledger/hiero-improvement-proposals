@@ -784,6 +784,56 @@ article pre code.hljs { background: transparent; padding: 0; }
 .hljs-quote { color: #98c379; font-style: italic; }
 .hljs-punctuation { color: #abb2bf; }
 
+/* ---- VS Code-style code enhancements ---- */
+
+/* Indent Rainbow */
+article pre code .indent-guide {
+  border-left: 1px solid rgba(255,255,255,.1);
+  display: inline;
+}
+
+/* Bracket pair colorization */
+.bracket-color {
+  font-weight: 600;
+  transition: transform .1s, text-shadow .1s;
+}
+.bracket-hover {
+  text-shadow: 0 0 8px currentColor;
+  transform: scale(1.2);
+  display: inline-block;
+}
+
+/* Matching tag highlight (HTML/XML) */
+.tag-match {
+  background: rgba(255,255,255,.12);
+  border-radius: 2px;
+  outline: 1px solid rgba(255,255,255,.2);
+  padding: 0 1px;
+}
+
+/* Colorize — inline color swatches */
+.color-swatch-wrap {
+  position: relative;
+}
+.color-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-left: 3px;
+  vertical-align: middle;
+  border: 1px solid rgba(255,255,255,.25);
+  box-shadow: 0 0 2px rgba(0,0,0,.3);
+}
+
+/* Line numbers gutter feel */
+article pre {
+  counter-reset: line;
+}
+article pre code {
+  counter-increment: none;
+}
+
 article blockquote {
   border-left: 4px solid var(--accent);
   padding: .6rem 1rem;
