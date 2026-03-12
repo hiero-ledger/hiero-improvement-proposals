@@ -139,10 +139,10 @@ a:hover { color: var(--link-h); }
   justify-content: space-between;
 }
 .header-left { display: flex; align-items: center; gap: 1.5rem; }
-.site-logo { display: flex; flex-direction: column; align-items: flex-start; text-decoration: none; gap: 2px; }
+.site-logo { display: flex; align-items: center; text-decoration: none; }
 .logo-img { height: 32px; width: auto; }
 .logo-dark { display: none; }
-.logo-subtitle { font-size: .75rem; font-weight: 500; color: var(--fg-muted); letter-spacing: .02em; }
+
 [data-theme="dark"] .logo-light { display: none; }
 [data-theme="dark"] .logo-dark { display: block; }
 
