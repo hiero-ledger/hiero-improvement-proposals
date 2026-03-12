@@ -432,8 +432,8 @@ function renderList() {
         <th class="${sc(sort,'hip')}" data-sort="hip" data-status="${esc(status)}">Number</th>
         <th class="${sc(sort,'title')}" data-sort="title" data-status="${esc(status)}">Title</th>
         <th class="col-author ${sc(sort,'author')}" data-sort="author" data-status="${esc(status)}">Author</th>
-        <th class="col-hiero ${sc(sort,'hiero')}" data-sort="hiero" data-status="${esc(status)}">Hiero Approval</th>
-        <th class="col-hedera ${sc(sort,'hedera')}" data-sort="hedera" data-status="${esc(status)}">Hedera Review</th>
+        <th class="col-hiero ${sc(sort,'hiero')}" data-sort="hiero" data-status="${esc(status)}">Requires Hiero Approval</th>
+        <th class="col-hedera ${sc(sort,'hedera')}" data-sort="hedera" data-status="${esc(status)}">Requires Hedera Review</th>
         ${isLC
           ? `<th class="col-extra ${sc(sort,'lastcall')}" data-sort="lastcall" data-status="${esc(status)}">Last Call Ends</th>`
           : isFinal
@@ -519,8 +519,8 @@ function showDetail(num) {
     hip['requested-by'] ? ['Requested By', fmtPeople(hip['requested-by'])] : null,
     hip['discussions-to'] ? ['Discussions-To', `<a href="${esc(hip['discussions-to'])}" target="_blank">${esc(truncUrl(hip['discussions-to']))}</a>`] : null,
     ['Status', `${badge(hip.status)} <span class="status-info-icon" style="width:16px;height:16px;font-size:.6rem">i<span class="tip">${esc(STATUS_TIPS[hip.status] || '')}</span></span>`],
-    hip['needs-hiero-approval'] ? ['Needs Hiero Approval', norm(hip['needs-hiero-approval'])] : null,
-    hip['needs-hedera-review'] ? ['Needs Hedera Review', norm(hip['needs-hedera-review'])] : null,
+    hip['needs-hiero-approval'] ? ['Requires Hiero Approval', norm(hip['needs-hiero-approval'])] : null,
+    hip['needs-hedera-review'] ? ['Requires Hedera Review', norm(hip['needs-hedera-review'])] : null,
     hip['last-call-date-time'] ? ['Last Call Ends', formatDate(hip['last-call-date-time'])] : null,
     ['Type', esc(hip.type)],
     hip.category ? ['Category', esc(hip.category)] : null,
@@ -1479,14 +1479,14 @@ function renderBasicsStep(form) {
       </select>
     </div>
     <div class="wz-field">
-      <label>Needs Hiero Approval</label>
+      <label>Requires Hiero Approval</label>
       <select data-field="needsHiero">
         <option value="Yes" ${d.needsHiero === 'Yes' ? 'selected' : ''}>Yes</option>
         <option value="No" ${d.needsHiero === 'No' ? 'selected' : ''}>No</option>
       </select>
     </div>
     <div class="wz-field">
-      <label>Needs Hedera Review</label>
+      <label>Requires Hedera Review</label>
       <select data-field="needsHedera">
         <option value="Yes" ${d.needsHedera === 'Yes' ? 'selected' : ''}>Yes</option>
         <option value="No" ${d.needsHedera === 'No' ? 'selected' : ''}>No</option>
@@ -1869,8 +1869,8 @@ function updateWizardPreview() {
     ['Author', fmtPeople(author)],
     d.workingGroupText ? ['Working Group', fmtPeople(d.workingGroupText)] : null,
     ['Status', badge('Draft')],
-    d.needsHiero ? ['Needs Hiero Approval', d.needsHiero] : null,
-    d.needsHedera ? ['Needs Hedera Review', d.needsHedera] : null,
+    d.needsHiero ? ['Requires Hiero Approval', d.needsHiero] : null,
+    d.needsHedera ? ['Requires Hedera Review', d.needsHedera] : null,
     ['Type', esc(d.type || '')],
     d.category ? ['Category', esc(d.category)] : null,
     ['Created', new Date().toISOString().slice(0, 10)],
