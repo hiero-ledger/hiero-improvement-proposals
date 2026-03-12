@@ -784,8 +784,17 @@ function parseSuggestions(raw) {
   });
 }
 
+function stripEmailFooter(raw) {
+  // Remove GitHub email notification footers from comments posted via email reply
+  return raw
+    .replace(/\n*---?\n*>?\s*Reply to this email directly[\s\S]*$/i, '')
+    .replace(/\n*—\n*Reply to this email directly[\s\S]*$/i, '')
+    .replace(/\n*--\n*You are receiving this because[\s\S]*$/i, '');
+}
+
 function parseBody(raw) {
-  const processed = parseSuggestions(raw || '');
+  const cleaned = stripEmailFooter(raw || '');
+  const processed = parseSuggestions(cleaned);
   return marked.parse(processed);
 }
 
