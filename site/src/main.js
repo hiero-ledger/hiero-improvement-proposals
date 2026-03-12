@@ -786,14 +786,17 @@ function parseSuggestions(raw) {
 
 function stripEmailFooter(raw) {
   // Remove GitHub email notification footers from comments posted via email reply
+  // Handles both direct text and blockquoted (> prefixed) versions
   return raw
-    .replace(/\n*---?\n*>?\s*Reply to this email directly[\s\S]*$/i, '')
-    .replace(/\n*—\n*Reply to this email directly[\s\S]*$/i, '')
-    .replace(/\n*--\n*You are receiving this because[\s\S]*$/i, '');
+    .replace(/\n*>?\s*[—\-]{1,3}\s*\n(?:>?\s*)?Reply to this email directly[\s\S]*$/im, '')
+    .replace(/\n*[—\-]{1,3}\s*\n\s*Reply to this email directly[\s\S]*$/im, '')
+    .replace(/\n*>?\s*Reply to this email directly[\s\S]*$/im, '')
+    .replace(/\n*>?\s*You are receiving this because[\s\S]*$/im, '')
+    .replace(/\n*>?\s*Message ID:\s*<[^>]+>[\s\S]*$/im, '');
 }
 
 function parseBody(raw) {
-  const cleaned = stripEmailFooter(raw || '');
+  const cleaned = stripEmailFooter(raw || '').replace(/\n>?\s*$/, '').trimEnd();
   const processed = parseSuggestions(cleaned);
   return marked.parse(processed);
 }
