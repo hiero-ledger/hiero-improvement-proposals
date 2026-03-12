@@ -141,8 +141,9 @@ a:hover { color: var(--link-h); }
   justify-content: space-between;
 }
 .header-left { display: flex; align-items: center; gap: 1.5rem; }
-.site-logo { display: flex; align-items: center; text-decoration: none; }
+.site-logo { display: flex; align-items: center; text-decoration: none; gap: 8px; }
 .logo-img { height: 32px; width: auto; }
+.logo-text { font-size: 1.25rem; font-weight: 700; color: var(--fg); letter-spacing: -0.02em; }
 .logo-dark { display: none; }
 
 [data-theme="dark"] .logo-light { display: none; }
