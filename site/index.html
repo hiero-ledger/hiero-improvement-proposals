@@ -52,7 +52,7 @@
         </div>
         <div class="info-links">
           <a href="#hip-1" class="info-link">Read HIP-1</a>
-          <a href="https://github.com/hiero-ledger/hiero-improvement-proposals/blob/main/hip-0000-template.md" target="_blank" class="info-link">HIP Template</a>
+          <a href="#create" class="info-link">Create a HIP</a>
           <a href="https://discord.com/channels/905194001349627914/1289954446712770600" target="_blank" class="info-link">Discord</a>
         </div>
       </div>
@@ -157,6 +157,34 @@
             <ul id="toc-list"></ul>
           </div>
         </aside>
+      </div>
+    </div>
+
+    <!-- ===== CREATE HIP WIZARD ===== -->
+    <div id="create-view" class="hidden">
+      <a href="#" class="back-link" id="create-back">&larr; All HIPs</a>
+      <div class="wizard-container">
+        <div class="wizard-left">
+          <div class="wizard-progress">
+            <div class="wizard-steps" id="wizard-steps"></div>
+          </div>
+          <div class="wizard-form" id="wizard-form"></div>
+          <div class="wizard-nav">
+            <button id="wizard-prev" class="wizard-btn wizard-btn--secondary" disabled>Back</button>
+            <button id="wizard-next" class="wizard-btn wizard-btn--primary">Next</button>
+          </div>
+        </div>
+        <div class="wizard-right">
+          <div class="wizard-preview-header">
+            <span>Live Preview</span>
+            <button id="wizard-preview-toggle" class="wizard-preview-collapse" title="Toggle preview">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2v4H0V1a1 1 0 011-1h5v2H2zm12 0h-4V0h5a1 1 0 011 1v5h-2V2zM2 14h4v2H1a1 1 0 01-1-1v-5h2v4zm12 0v-4h2v5a1 1 0 01-1 1h-5v-2h4z"/></svg>
+            </button>
+          </div>
+          <div class="wizard-preview" id="wizard-preview">
+            <div class="detail-main" id="wizard-preview-content"></div>
+          </div>
+        </div>
       </div>
     </div>
 

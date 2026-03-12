@@ -301,6 +301,9 @@ function handleRoute() {
   if (hash === '#about') {
     show('about-view');
     $('[data-nav="about"]')?.classList.add('active');
+  } else if (hash === '#create') {
+    show('create-view');
+    initWizard();
   } else if (hash.startsWith('#hip-')) {
     showDetail(hash.slice(5));
     $('[data-nav="hips"]')?.classList.add('active');
@@ -313,7 +316,7 @@ function handleRoute() {
 }
 
 function show(id) {
-  ['list-view', 'detail-view', 'about-view'].forEach(v =>
+  ['list-view', 'detail-view', 'about-view', 'create-view'].forEach(v =>
     document.getElementById(v).classList.toggle('hidden', v !== id)
   );
 }
@@ -847,7 +850,7 @@ function stripEmailFooter(raw) {
    CODE ENHANCEMENTS — VS Code-style visualization
    ============================================= */
 
-// Indent Rainbow colors
+// Indent Rainbow colors (more visible than before)
 const INDENT_COLORS = [
   'rgba(255,99,99,.09)',    // red
   'rgba(255,166,77,.09)',   // orange
@@ -877,6 +880,7 @@ function applyRainbowIndent(container) {
     let html = block.innerHTML;
     const lines = html.split('\n');
     html = lines.map(line => {
+      // Strip to plain text to count leading whitespace accurately
       const plain = line.replace(/<[^>]*>/g, '');
       const m = plain.match(/^(\s+)/);
       if (!m) return line;
@@ -885,6 +889,7 @@ function applyRainbowIndent(container) {
       const level = ws.includes('\t') ? ws.length : Math.floor(ws.length / tabSize);
       if (level === 0) return line;
 
+      // Find how many chars of the HTML correspond to the leading whitespace
       let plainIdx = 0, htmlIdx = 0;
       while (plainIdx < ws.length && htmlIdx < line.length) {
         if (line[htmlIdx] === '<') {
@@ -895,19 +900,24 @@ function applyRainbowIndent(container) {
         htmlIdx++;
       }
 
+      const wsHtml = line.slice(0, htmlIdx);
       const rest = line.slice(htmlIdx);
+
+      // Build rainbow-colored indent blocks
       let result = '';
       const unit = ws.includes('\t') ? '\t' : ' '.repeat(tabSize);
       for (let i = 0; i < level; i++) {
         const color = INDENT_COLORS[i % INDENT_COLORS.length];
         result += `<span class="indent-guide" style="background:${color}">${unit}</span>`;
       }
+      // Any remaining whitespace beyond full indent levels
       const remainder = ws.length - (level * (ws.includes('\t') ? 1 : tabSize));
       if (remainder > 0) result += ' '.repeat(remainder);
       return result + rest;
     }).join('\n');
 
     // --- 2) Bracket Pair Colorization ---
+    // Process text nodes to colorize brackets
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     let depth = 0;
@@ -963,6 +973,7 @@ function applyRainbowIndent(container) {
         const all = [...block.querySelectorAll('.bracket-color')];
         const idx = all.indexOf(el);
         if (OPEN_BRACKETS.includes(br)) {
+          // Find matching close
           let dd = 0;
           for (let i = idx; i < all.length; i++) {
             const b = all[i].dataset.bracket;
@@ -973,11 +984,12 @@ function applyRainbowIndent(container) {
             }
           }
         } else {
+          // Find matching open
           let dd = 0;
           for (let i = idx; i >= 0; i--) {
             const b = all[i].dataset.bracket;
             if (CLOSE_BRACKETS.includes(b) && Number(all[i].dataset.depth) === d) dd++;
-            if (OPEN_BRACKETS.includes(b) && BRACKET_PAIRS[br] === b) {
+            if (OPEN_BRACKETS.includes(b) && br === BRACKET_PAIRS[br] === undefined ? false : BRACKET_PAIRS[br] === b) {
               dd--;
               if (dd === 0) { el.classList.add('bracket-hover'); all[i].classList.add('bracket-hover'); break; }
             }
@@ -1179,6 +1191,708 @@ function esc(s) {
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
+}
+
+function showDiscordModal(intro) {
+  const overlay = document.createElement('div');
+  overlay.className = 'discord-modal-overlay';
+  overlay.innerHTML = `
+    <div class="discord-modal">
+      <button class="discord-modal-close" title="Close">&times;</button>
+      <h3>Share on Discord</h3>
+      <div class="discord-modal-steps">
+        <div class="discord-modal-step"><span class="discord-step-num">1</span> Copy the intro message below</div>
+        <div class="discord-modal-step"><span class="discord-step-num">2</span> Click "Download HIP &amp; Open Discord"</div>
+        <div class="discord-modal-step"><span class="discord-step-num">3</span> Paste the message in the channel and drag the downloaded file into the chat</div>
+      </div>
+      <div class="discord-modal-msg-wrap">
+        <textarea class="discord-modal-msg" id="discord-msg" rows="6" readonly></textarea>
+        <button class="discord-modal-copy" id="discord-copy">Copy Message</button>
+      </div>
+      <button class="discord-modal-open" id="discord-open">Download HIP &amp; Open Discord</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#discord-msg').value = intro;
+
+  overlay.querySelector('.discord-modal-close').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  overlay.querySelector('#discord-copy').addEventListener('click', (e) => {
+    const textarea = overlay.querySelector('#discord-msg');
+    navigator.clipboard.writeText(textarea.value);
+    const btn = e.currentTarget;
+    btn.textContent = 'Copied!';
+    btn.classList.add('discord-modal-copy--done');
+    setTimeout(() => { btn.textContent = 'Copy Message'; btn.classList.remove('discord-modal-copy--done'); }, 2000);
+  });
+
+  overlay.querySelector('#discord-open').addEventListener('click', () => {
+    // Download the .md file
+    const d = wizardData;
+    const slug = d.title ? d.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'proposal';
+    const blob = new Blob([generateHipMarkdown()], { type: 'text/markdown' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `hip-${slug}.md`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    // Open Discord
+    window.open('https://discord.com/channels/905194001349627914/1289954446712770600', '_blank');
+  });
+
+  requestAnimationFrame(() => overlay.classList.add('discord-modal-overlay--visible'));
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('toast--visible'));
+  setTimeout(() => {
+    el.classList.remove('toast--visible');
+    setTimeout(() => el.remove(), 300);
+  }, 5000);
+}
+
+/* =============================================
+   HIP CREATION WIZARD
+   ============================================= */
+const WIZARD_STORAGE_KEY = 'hip-wizard-draft';
+const MIN_WORDS = { abstract: 100, motivation: 15, rationale: 15, specification: 20 };
+const MAX_WORDS = { abstract: 250 };
+function countWords(text) {
+  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+const WIZARD_STEPS = [
+  { id: 'basics', label: 'Basics', required: true },
+  { id: 'authors', label: 'Authors', required: true },
+  { id: 'abstract', label: 'Abstract', required: true },
+  { id: 'motivation', label: 'Motivation', required: true },
+  { id: 'rationale', label: 'Rationale', required: true },
+  { id: 'specification', label: 'Specification', required: true },
+  { id: 'compat', label: 'Compatibility & Security', required: false },
+  { id: 'submit', label: 'Review & Submit', required: false },
+];
+
+let wizardStep = 0;
+let wizardData = {};
+let wizardInitialized = false;
+let previewDebounce = null;
+
+function defaultWizardData() {
+  return {
+    title: '', type: '', category: '',
+    authorName: '', authorHandle: '', authorEmail: '',
+    extraAuthors: [],
+    workingGroup: [],
+    abstract: '', motivation: '', rationale: '', specification: '',
+    backwards: '', security: '',
+    needsHiero: 'Yes', needsHedera: 'No',
+  };
+}
+
+function loadWizardDraft() {
+  try {
+    const raw = localStorage.getItem(WIZARD_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
+function saveWizardDraft() {
+  try {
+    localStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify(wizardData));
+  } catch {}
+}
+
+function clearWizardDraft() {
+  localStorage.removeItem(WIZARD_STORAGE_KEY);
+}
+
+function initWizard() {
+  document.title = 'Create a HIP';
+  window.scrollTo(0, 0);
+
+  if (!wizardInitialized) {
+    const draft = loadWizardDraft();
+    if (draft && draft.title) {
+      const resume = confirm('You have a draft in progress. Resume where you left off?');
+      wizardData = resume ? draft : defaultWizardData();
+      if (!resume) clearWizardDraft();
+    } else {
+      wizardData = defaultWizardData();
+    }
+    wizardInitialized = true;
+
+    $('#wizard-prev').addEventListener('click', () => { if (wizardStep > 0) { wizardStep--; renderWizardStep(); } });
+    $('#wizard-next').addEventListener('click', () => {
+      if (wizardStep < WIZARD_STEPS.length - 1) {
+        if (!validateWizardStep()) return;
+        collectWizardFields();
+        wizardStep++;
+        renderWizardStep();
+      }
+    });
+    $('#create-back').addEventListener('click', e => { e.preventDefault(); location.hash = ''; });
+  }
+
+  renderWizardSteps();
+  renderWizardStep();
+}
+
+function renderWizardSteps() {
+  const el = $('#wizard-steps');
+  el.innerHTML = WIZARD_STEPS.map((s, i) => {
+    const valid = isStepValid(i);
+    return `<button class="wz-step ${i === wizardStep ? 'wz-step--active' : ''} ${valid ? 'wz-step--done' : ''}" data-step="${i}">
+      <span class="wz-step-num">${valid && i !== wizardStep ? '✓' : i + 1}</span>
+      <span class="wz-step-label">${s.label}</span>
+    </button>`;
+  }).join('');
+
+  el.querySelectorAll('.wz-step').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = Number(btn.dataset.step);
+      // Allow jumping to any visited or previous step, or next if current is valid
+      if (target <= wizardStep || (target === wizardStep + 1 && validateWizardStep())) {
+        if (target > wizardStep) collectWizardFields();
+        wizardStep = target;
+        renderWizardStep();
+      }
+    });
+  });
+}
+
+function isStepValid(idx) {
+  const d = wizardData;
+  switch (idx) {
+    case 0: return !!(d.title && d.type && (d.type !== 'Standards Track' || d.category));
+    case 1: return !!(d.authorName && (d.authorHandle || d.authorEmail));
+    case 2: { const wc = countWords(d.abstract || ''); return wc >= (MIN_WORDS.abstract || 15) && wc <= (MAX_WORDS.abstract || Infinity); }
+    case 3: return countWords(d.motivation || '') >= (MIN_WORDS.motivation || 15);
+    case 4: return countWords(d.rationale || '') >= (MIN_WORDS.rationale || 15);
+    case 5: return countWords(d.specification || '') >= (MIN_WORDS.specification || 15);
+    case 6: return true; // optional
+    case 7: return true; // submit
+    default: return false;
+  }
+}
+
+function validateWizardStep() {
+  collectWizardFields();
+  if (!isStepValid(wizardStep)) {
+    const form = $('#wizard-form');
+    // Mark empty required fields
+    form.querySelectorAll('.wz-field').forEach(f => {
+      const input = f.querySelector('input, textarea, select');
+      if (input && input.required && !input.value.trim()) {
+        f.classList.add('wz-field--error');
+      }
+    });
+    // Authors step: validate contact group
+    if (wizardStep === 1) {
+      const d = wizardData;
+      if (!d.authorName) {
+        form.querySelector('[data-field="authorName"]')?.closest('.wz-field')?.classList.add('wz-field--error');
+      }
+      if (!d.authorHandle && !d.authorEmail) {
+        form.querySelector('#wz-contact-group')?.classList.add('wz-field-group--error');
+      }
+    }
+    // Shake the form to draw attention
+    form.classList.add('wz-shake');
+    setTimeout(() => form.classList.remove('wz-shake'), 400);
+    const first = form.querySelector('.wz-field--error input, .wz-field--error textarea, .wz-field--error select, .wz-field-group--error input');
+    if (first) first.focus();
+    return false;
+  }
+  return true;
+}
+
+function collectWizardFields() {
+  const form = $('#wizard-form');
+  if (!form) return;
+  form.querySelectorAll('[data-field]').forEach(el => {
+    wizardData[el.dataset.field] = el.value;
+  });
+  saveWizardDraft();
+}
+
+function renderWizardStep() {
+  renderWizardSteps();
+  const form = $('#wizard-form');
+  const prev = $('#wizard-prev');
+  const next = $('#wizard-next');
+
+  prev.disabled = wizardStep === 0;
+  const isLast = wizardStep === WIZARD_STEPS.length - 1;
+  next.textContent = isLast ? '' : 'Next';
+  next.style.display = isLast ? 'none' : '';
+
+  switch (wizardStep) {
+    case 0: renderBasicsStep(form); break;
+    case 1: renderAuthorsStep(form); break;
+    case 2: renderTextStep(form, 'abstract', 'Abstract', 'A short (~200 word) description of the technical issue being addressed.', true); break;
+    case 3: renderTextStep(form, 'motivation', 'Motivation', 'Why is this change needed? What problem does it solve?', true); break;
+    case 4: renderTextStep(form, 'rationale', 'Rationale', 'Why this design? What alternatives were considered?', true); break;
+    case 5: renderTextStep(form, 'specification', 'Specification', 'The technical specification. Be as detailed as possible.', true); break;
+    case 6: renderCompatStep(form); break;
+    case 7: renderSubmitStep(form); break;
+  }
+
+  updateWizardPreview();
+}
+
+function renderBasicsStep(form) {
+  const d = wizardData;
+  form.innerHTML = `
+    <h3>Basics</h3>
+    <p class="wz-hint">Start with the fundamentals of your proposal.</p>
+    <div class="wz-field">
+      <label>Title <span class="wz-req">*</span></label>
+      <input type="text" data-field="title" value="${esc(d.title)}" placeholder="e.g. Token Metadata Standard" required>
+    </div>
+    <div class="wz-field">
+      <label>Type <span class="wz-req">*</span></label>
+      <select data-field="type" required>
+        <option value="">Select type...</option>
+        <option value="Standards Track" ${d.type === 'Standards Track' ? 'selected' : ''}>Standards Track</option>
+        <option value="Informational" ${d.type === 'Informational' ? 'selected' : ''}>Informational</option>
+        <option value="Process" ${d.type === 'Process' ? 'selected' : ''}>Process</option>
+      </select>
+    </div>
+    <div class="wz-field" id="wz-category-field" style="display:${d.type === 'Standards Track' ? '' : 'none'}">
+      <label>Category <span class="wz-req">*</span></label>
+      <select data-field="category">
+        <option value="">Select category...</option>
+        <option value="Core" ${d.category === 'Core' ? 'selected' : ''}>Core</option>
+        <option value="Service" ${d.category === 'Service' ? 'selected' : ''}>Service</option>
+        <option value="Mirror" ${d.category === 'Mirror' ? 'selected' : ''}>Mirror</option>
+        <option value="Block Node" ${d.category === 'Block Node' ? 'selected' : ''}>Block Node</option>
+        <option value="Application" ${d.category === 'Application' ? 'selected' : ''}>Application</option>
+      </select>
+    </div>
+    <div class="wz-field">
+      <label>Needs Hiero Approval</label>
+      <select data-field="needsHiero">
+        <option value="Yes" ${d.needsHiero === 'Yes' ? 'selected' : ''}>Yes</option>
+        <option value="No" ${d.needsHiero === 'No' ? 'selected' : ''}>No</option>
+      </select>
+    </div>
+    <div class="wz-field">
+      <label>Needs Hedera Review</label>
+      <select data-field="needsHedera">
+        <option value="Yes" ${d.needsHedera === 'Yes' ? 'selected' : ''}>Yes</option>
+        <option value="No" ${d.needsHedera === 'No' ? 'selected' : ''}>No</option>
+      </select>
+    </div>
+  `;
+
+  const typeSelect = form.querySelector('[data-field="type"]');
+  const catField = form.querySelector('#wz-category-field');
+  typeSelect.addEventListener('change', () => {
+    catField.style.display = typeSelect.value === 'Standards Track' ? '' : 'none';
+    schedulePreview();
+  });
+  bindWizardInputs(form);
+}
+
+function renderAuthorsStep(form) {
+  const d = wizardData;
+  form.innerHTML = `
+    <h3>Authors</h3>
+    <p class="wz-hint">Who is proposing this HIP?</p>
+    <div class="wz-field">
+      <label>Your Name <span class="wz-req">*</span></label>
+      <input type="text" data-field="authorName" value="${esc(d.authorName)}" placeholder="e.g. Jane Smith" required>
+      <span class="wz-inline-error" id="err-authorName">Please enter your name</span>
+    </div>
+    <div class="wz-field-group" id="wz-contact-group">
+      <div class="wz-field-group-label">GitHub Handle or Email <span class="wz-req">*</span> <span class="wz-field-help" style="display:inline">(at least one is required so people can reach you)</span></div>
+      <div class="wz-field">
+        <label>GitHub Handle</label>
+        <input type="text" data-field="authorHandle" value="${esc(d.authorHandle)}" placeholder="e.g. @janesmith">
+      </div>
+      <div class="wz-field">
+        <label>Email</label>
+        <input type="email" data-field="authorEmail" value="${esc(d.authorEmail)}" placeholder="e.g. jane@example.com">
+      </div>
+      <span class="wz-inline-error" id="err-contact">Please enter a GitHub handle or email address</span>
+    </div>
+    <div class="wz-field">
+      <label>Working Group <span class="wz-opt">(optional)</span></label>
+      <input type="text" data-field="workingGroupText" value="${esc(d.workingGroupText || '')}" placeholder="e.g. Bob Jones <@bjones>, Alice Lee <alice@example.com>">
+      <span class="wz-field-help">Comma-separated. Format: Name &lt;@github&gt; or Name &lt;email&gt;</span>
+    </div>
+  `;
+
+  // Live validation on blur for contact fields
+  const handleEl = form.querySelector('[data-field="authorHandle"]');
+  const emailEl = form.querySelector('[data-field="authorEmail"]');
+  const contactGroup = form.querySelector('#wz-contact-group');
+  const validateContact = () => {
+    const hasContact = !!(handleEl.value.trim() || emailEl.value.trim());
+    contactGroup.classList.toggle('wz-field-group--error', !hasContact);
+  };
+  handleEl.addEventListener('blur', validateContact);
+  emailEl.addEventListener('blur', validateContact);
+  handleEl.addEventListener('input', () => { if (handleEl.value.trim()) contactGroup.classList.remove('wz-field-group--error'); });
+  emailEl.addEventListener('input', () => { if (emailEl.value.trim()) contactGroup.classList.remove('wz-field-group--error'); });
+
+  // Name blur validation
+  const nameEl = form.querySelector('[data-field="authorName"]');
+  nameEl.addEventListener('blur', () => {
+    nameEl.closest('.wz-field').classList.toggle('wz-field--error', !nameEl.value.trim());
+  });
+
+  bindWizardInputs(form);
+}
+
+function renderTextStep(form, field, label, hint, required) {
+  const d = wizardData;
+  const val = d[field] || '';
+  const minW = MIN_WORDS[field] || 15;
+  const maxW = MAX_WORDS[field] || 0;
+  const wc = countWords(val);
+  const pct = Math.min(100, Math.round((wc / minW) * 100));
+  const met = wc >= minW;
+  const over = maxW > 0 && wc > maxW;
+  const rangeLabel = maxW > 0 ? `${minW}–${maxW}` : `${minW}`;
+
+  form.innerHTML = `
+    <h3>${label}</h3>
+    <p class="wz-hint">${hint}${maxW > 0 ? ` (${rangeLabel} words)` : ''}</p>
+    <div class="wz-toolbar" id="wz-toolbar"></div>
+    <div class="wz-field wz-field--full">
+      <textarea data-field="${field}" id="wz-textarea" rows="14" ${required ? 'required' : ''} placeholder="Write in Markdown...">${esc(val)}</textarea>
+      <div class="wz-word-status">
+        <div class="wz-word-bar">
+          <div class="wz-word-fill ${over ? 'wz-word-fill--over' : met ? 'wz-word-fill--met' : ''}" style="width:${pct}%"></div>
+        </div>
+        <span class="wz-word-count ${over ? 'wz-word-count--over' : met ? 'wz-word-count--met' : ''}">
+          <span id="wz-wordcount">${wc}</span> / ${rangeLabel} words ${over ? '(too long)' : met ? '&#10003;' : 'minimum'}
+        </span>
+      </div>
+      ${over ? '<span class="wz-inline-error wz-inline-error--visible">Too long — please shorten to ' + maxW + ' words or fewer</span>' : ''}
+      ${!met && !over && val.length > 0 ? '<span class="wz-inline-error wz-inline-error--visible">Keep going — need at least ' + minW + ' words to continue</span>' : ''}
+    </div>
+  `;
+
+  const textarea = form.querySelector('#wz-textarea');
+  const updateWordCount = () => {
+    const w = countWords(textarea.value);
+    const p = Math.min(100, Math.round((w / minW) * 100));
+    const ok = w >= minW;
+    const isOver = maxW > 0 && w > maxW;
+    const wcEl = form.querySelector('#wz-wordcount');
+    const bar = form.querySelector('.wz-word-fill');
+    const countSpan = form.querySelector('.wz-word-count');
+    form.querySelectorAll('.wz-inline-error').forEach(e => e.remove());
+    if (wcEl) wcEl.textContent = w;
+    if (bar) {
+      bar.style.width = p + '%';
+      bar.classList.remove('wz-word-fill--met', 'wz-word-fill--over');
+      if (isOver) bar.classList.add('wz-word-fill--over');
+      else if (ok) bar.classList.add('wz-word-fill--met');
+    }
+    if (countSpan) {
+      countSpan.classList.remove('wz-word-count--met', 'wz-word-count--over');
+      if (isOver) countSpan.classList.add('wz-word-count--over');
+      else if (ok) countSpan.classList.add('wz-word-count--met');
+      countSpan.innerHTML = `<span id="wz-wordcount">${w}</span> / ${rangeLabel} words ${isOver ? '(too long)' : ok ? '&#10003;' : 'minimum'}`;
+    }
+    if (isOver) {
+      const err = document.createElement('span');
+      err.className = 'wz-inline-error wz-inline-error--visible';
+      err.textContent = `Too long — please shorten to ${maxW} words or fewer`;
+      textarea.closest('.wz-field')?.appendChild(err);
+    } else if (!ok && textarea.value.trim().length > 0) {
+      const err = document.createElement('span');
+      err.className = 'wz-inline-error wz-inline-error--visible';
+      err.textContent = `Keep going — need at least ${minW} words to continue`;
+      textarea.closest('.wz-field')?.appendChild(err);
+    }
+  };
+  textarea.addEventListener('input', updateWordCount);
+
+  setupMarkdownToolbar(form.querySelector('#wz-toolbar'), textarea);
+  bindWizardInputs(form);
+}
+
+function renderCompatStep(form) {
+  const d = wizardData;
+  form.innerHTML = `
+    <h3>Compatibility & Security</h3>
+    <p class="wz-hint">These sections are optional but strongly recommended.</p>
+    <div class="wz-toolbar" id="wz-toolbar-compat"></div>
+    <div class="wz-field">
+      <label>Backwards Compatibility</label>
+      <textarea data-field="backwards" id="wz-textarea-compat" rows="6" placeholder="How does this affect existing systems?">${esc(d.backwards || '')}</textarea>
+    </div>
+    <div class="wz-toolbar" id="wz-toolbar-sec"></div>
+    <div class="wz-field">
+      <label>Security Implications</label>
+      <textarea data-field="security" id="wz-textarea-sec" rows="6" placeholder="Are there security considerations?">${esc(d.security || '')}</textarea>
+    </div>
+  `;
+  setupMarkdownToolbar(form.querySelector('#wz-toolbar-compat'), form.querySelector('#wz-textarea-compat'));
+  setupMarkdownToolbar(form.querySelector('#wz-toolbar-sec'), form.querySelector('#wz-textarea-sec'));
+  bindWizardInputs(form);
+}
+
+function renderSubmitStep(form) {
+  collectWizardFields();
+  const md = generateHipMarkdown();
+  const allValid = Array.from({ length: 6 }, (_, i) => isStepValid(i)).every(Boolean);
+  const issues = [];
+  if (!isStepValid(0)) issues.push('Basics: title, type, and category are required');
+  if (!isStepValid(1)) issues.push('Authors: name and GitHub handle or email required');
+  if (!isStepValid(2)) issues.push(`Abstract: need at least ${MIN_WORDS.abstract} words (currently ${countWords(wizardData.abstract || '')})`);
+  if (!isStepValid(3)) issues.push(`Motivation: need at least ${MIN_WORDS.motivation} words (currently ${countWords(wizardData.motivation || '')})`);
+  if (!isStepValid(4)) issues.push(`Rationale: need at least ${MIN_WORDS.rationale} words (currently ${countWords(wizardData.rationale || '')})`);
+  if (!isStepValid(5)) issues.push(`Specification: need at least ${MIN_WORDS.specification} words (currently ${countWords(wizardData.specification || '')})`);
+
+  const slug = wizardData.title ? wizardData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'my-proposal';
+  const filename = `HIP/hip-${slug}.md`;
+  const ghUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/new/main?filename=${encodeURIComponent(filename)}&value=${encodeURIComponent(md)}`;
+
+  form.innerHTML = `
+    <h3>Review & Submit</h3>
+    ${issues.length ? `
+      <div class="wz-issues">
+        <strong>Please fix these issues before submitting:</strong>
+        <ul>${issues.map(i => `<li>${esc(i)}</li>`).join('')}</ul>
+      </div>
+    ` : `<p class="wz-success">All required fields are complete. Your HIP is ready to submit!</p>`}
+    <div class="wz-submit-options">
+      <a href="${esc(ghUrl)}" target="_blank" class="wz-submit-btn wz-submit-btn--primary ${!allValid ? 'wz-submit-btn--disabled' : ''}">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        Submit on GitHub
+      </a>
+      <button class="wz-submit-btn wz-submit-btn--secondary" id="wz-download">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"/></svg>
+        Download .md
+      </button>
+      <button class="wz-submit-btn wz-submit-btn--secondary" id="wz-copy">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/></svg>
+        Copy Markdown
+      </button>
+      <button class="wz-submit-btn wz-submit-btn--secondary" id="wz-discord">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M13.545 2.907a13.2 13.2 0 00-3.257-1.011.05.05 0 00-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 00-3.658 0 8.8 8.8 0 00-.412-.833.05.05 0 00-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 00-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.3 13.3 0 003.995 2.02.05.05 0 00.056-.019c.308-.42.582-.863.818-1.329a.05.05 0 00-.01-.059.05.05 0 00-.018-.011 8.8 8.8 0 01-1.248-.595.05.05 0 01-.005-.084c.084-.063.168-.129.248-.195a.05.05 0 01.051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 01.053.007c.08.066.164.132.248.195a.05.05 0 01-.004.084c-.399.233-.813.44-1.249.595a.05.05 0 00-.029.07c.24.465.515.909.817 1.329a.05.05 0 00.056.019 13.2 13.2 0 004-2.02.05.05 0 00.021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 00-.02-.019zm-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612zm5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612z"/></svg>
+        Discuss on Discord
+      </button>
+    </div>
+    <div class="wz-startover">
+      <button id="wz-clear" class="wz-clear-btn">Start Over</button>
+    </div>
+  `;
+
+  if (!allValid) {
+    const ghLink = form.querySelector('.wz-submit-btn--primary');
+    ghLink.addEventListener('click', e => e.preventDefault());
+  }
+
+  form.querySelector('#wz-download')?.addEventListener('click', () => {
+    const blob = new Blob([generateHipMarkdown()], { type: 'text/markdown' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `hip-${wizardData.title ? wizardData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'proposal'}.md`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  form.querySelector('#wz-copy')?.addEventListener('click', (e) => {
+    navigator.clipboard.writeText(generateHipMarkdown());
+    const btn = e.currentTarget;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span style="color:var(--green)">Copied!</span>';
+    setTimeout(() => { btn.innerHTML = orig; }, 1500);
+  });
+
+  form.querySelector('#wz-discord')?.addEventListener('click', () => {
+    const d = wizardData;
+    const abstractSnippet = (d.abstract || '').slice(0, 300) + ((d.abstract || '').length > 300 ? '...' : '');
+    const intro = `Hi! I'd like to propose a new HIP: **${d.title || 'Untitled'}** (${d.type || 'Standards Track'})\n\n${abstractSnippet}\n\nI've attached the full proposal as a file. Looking forward to feedback!`;
+
+    // Show modal first — file downloads when they click "Open Discord"
+    showDiscordModal(intro);
+  });
+
+  form.querySelector('#wz-clear')?.addEventListener('click', () => {
+    if (confirm('Discard this draft and start over?')) {
+      clearWizardDraft();
+      wizardData = defaultWizardData();
+      wizardStep = 0;
+      renderWizardStep();
+    }
+  });
+}
+
+function generateHipMarkdown() {
+  const d = wizardData;
+  let author = d.authorName || '';
+  if (d.authorHandle) {
+    const h = d.authorHandle.startsWith('@') ? d.authorHandle : `@${d.authorHandle}`;
+    author += ` <${h}>`;
+  } else if (d.authorEmail) {
+    author += ` <${d.authorEmail}>`;
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  let fm = `---\nhip: <to be assigned>\ntitle: ${d.title || ''}\nauthor: ${author}\n`;
+  if (d.workingGroupText) fm += `working-group: ${d.workingGroupText}\n`;
+  fm += `type: ${d.type || ''}\n`;
+  if (d.type === 'Standards Track' && d.category) fm += `category: ${d.category}\n`;
+  fm += `needs-hiero-approval: ${d.needsHiero || 'Yes'}\n`;
+  fm += `needs-hedera-review: ${d.needsHedera || 'No'}\n`;
+  fm += `status: Draft\ncreated: ${today}\ndiscussions-to: <to be assigned>\n---\n\n`;
+
+  fm += `## Abstract\n\n${d.abstract || ''}\n\n`;
+  fm += `## Motivation\n\n${d.motivation || ''}\n\n`;
+  fm += `## Rationale\n\n${d.rationale || ''}\n\n`;
+  fm += `## Specification\n\n${d.specification || ''}\n\n`;
+  if (d.backwards) fm += `## Backwards Compatibility\n\n${d.backwards}\n\n`;
+  if (d.security) fm += `## Security Implications\n\n${d.security}\n\n`;
+  return fm;
+}
+
+/* Markdown toolbar */
+function setupMarkdownToolbar(toolbar, textarea) {
+  if (!toolbar || !textarea) return;
+  const btns = [
+    { label: 'B', title: 'Bold (Ctrl+B)', wrap: ['**', '**'], key: 'b' },
+    { label: 'I', title: 'Italic (Ctrl+I)', wrap: ['*', '*'], key: 'i' },
+    { label: '`', title: 'Inline Code', wrap: ['`', '`'] },
+    { label: '```', title: 'Code Block', wrap: ['```\n', '\n```'] },
+    { label: 'H', title: 'Heading', prefix: '## ' },
+    { label: '🔗', title: 'Link (Ctrl+K)', wrap: ['[', '](url)'], key: 'k' },
+    { label: '•', title: 'Bullet List', prefix: '- ' },
+    { label: '1.', title: 'Numbered List', prefix: '1. ' },
+    { label: '▦', title: 'Table', insert: '| Header | Header |\n| ------ | ------ |\n| Cell   | Cell   |' },
+  ];
+
+  toolbar.innerHTML = btns.map(b =>
+    `<button type="button" class="wz-tb-btn" title="${esc(b.title)}" data-idx="${btns.indexOf(b)}">${b.label}</button>`
+  ).join('');
+
+  toolbar.querySelectorAll('.wz-tb-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const b = btns[Number(btn.dataset.idx)];
+      applyToolbarAction(textarea, b);
+    });
+  });
+
+  textarea.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+      const btn = btns.find(b => b.key === e.key);
+      if (btn) { e.preventDefault(); applyToolbarAction(textarea, btn); }
+    }
+  });
+
+  textarea.addEventListener('input', () => {
+    const cc = document.getElementById('wz-charcount');
+    if (cc) cc.textContent = textarea.value.length;
+    schedulePreview();
+  });
+}
+
+function applyToolbarAction(textarea, action) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+  const selected = text.slice(start, end) || 'text';
+
+  let replacement, cursorPos;
+  if (action.wrap) {
+    replacement = action.wrap[0] + selected + action.wrap[1];
+    cursorPos = start + action.wrap[0].length + selected.length;
+  } else if (action.prefix) {
+    const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+    replacement = action.prefix + text.slice(lineStart, end);
+    textarea.value = text.slice(0, lineStart) + replacement + text.slice(end);
+    textarea.selectionStart = textarea.selectionEnd = lineStart + replacement.length;
+    textarea.dispatchEvent(new Event('input'));
+    textarea.focus();
+    return;
+  } else if (action.insert) {
+    replacement = action.insert;
+    cursorPos = start + replacement.length;
+  }
+
+  textarea.value = text.slice(0, start) + replacement + text.slice(end);
+  textarea.selectionStart = textarea.selectionEnd = cursorPos;
+  textarea.dispatchEvent(new Event('input'));
+  textarea.focus();
+}
+
+function bindWizardInputs(form) {
+  form.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('input', () => {
+      el.closest('.wz-field')?.classList.remove('wz-field--error');
+      schedulePreview();
+    });
+    el.addEventListener('change', () => {
+      schedulePreview();
+    });
+  });
+}
+
+function schedulePreview() {
+  clearTimeout(previewDebounce);
+  previewDebounce = setTimeout(() => {
+    collectWizardFields();
+    updateWizardPreview();
+  }, 300);
+}
+
+function updateWizardPreview() {
+  const preview = $('#wizard-preview-content');
+  if (!preview) return;
+  const md = generateHipMarkdown();
+
+  // Parse the frontmatter for the meta table
+  const d = wizardData;
+  let author = d.authorName || '';
+  if (d.authorHandle) {
+    const h = d.authorHandle.startsWith('@') ? d.authorHandle : `@${d.authorHandle}`;
+    author += ` <${h}>`;
+  } else if (d.authorEmail) {
+    author += ` <${d.authorEmail}>`;
+  }
+
+  const rows = [
+    ['Author', fmtPeople(author)],
+    d.workingGroupText ? ['Working Group', fmtPeople(d.workingGroupText)] : null,
+    ['Status', badge('Draft')],
+    d.needsHiero ? ['Needs Hiero Approval', d.needsHiero] : null,
+    d.needsHedera ? ['Needs Hedera Review', d.needsHedera] : null,
+    ['Type', esc(d.type || '')],
+    d.category ? ['Category', esc(d.category)] : null,
+    ['Created', new Date().toISOString().slice(0, 10)],
+  ].filter(Boolean);
+
+  const metaHtml = `<table class="meta-table"><tbody>${rows.map(([l, v]) =>
+    `<tr><th>${l}</th><td>${v}</td></tr>`
+  ).join('')}</tbody></table>`;
+
+  // Extract body (everything after the frontmatter closing ---)
+  const bodyMatch = md.match(/^---[\s\S]*?---\n\n?([\s\S]*)$/);
+  const bodyMd = bodyMatch ? bodyMatch[1] : '';
+
+  preview.innerHTML = `
+    <div class="detail-header">
+      <h1><span class="hip-number">HIP-???:</span> ${esc(d.title || 'Untitled')}</h1>
+    </div>
+    ${metaHtml}
+    <article>${marked.parse(bodyMd)}</article>
+  `;
+
+  applyRainbowIndent(preview);
 }
 
 /* =============================================
