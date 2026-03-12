@@ -49,11 +49,12 @@ let sectionSorts = {};
 async function init() {
   initTheme();
 
+  const base = import.meta.env.BASE_URL;
   const [hipsRes, bodiesRes, discRes, prRevRes] = await Promise.all([
-    fetch('/data/hips.json'),
-    fetch('/data/hip-bodies.json'),
-    fetch('/data/discussions.json').catch(() => ({ json: () => ({}) })),
-    fetch('/data/pr-reviews.json').catch(() => ({ json: () => ({}) })),
+    fetch(`${base}data/hips.json`),
+    fetch(`${base}data/hip-bodies.json`),
+    fetch(`${base}data/discussions.json`).catch(() => ({ json: () => ({}) })),
+    fetch(`${base}data/pr-reviews.json`).catch(() => ({ json: () => ({}) })),
   ]);
   allHips = await hipsRes.json();
   hipBodies = await bodiesRes.json();
