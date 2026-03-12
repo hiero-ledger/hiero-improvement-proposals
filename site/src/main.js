@@ -6,6 +6,8 @@ import './style.css';
    ============================================= */
 let allHips = [];
 let hipBodies = {};
+let discussionsData = {};
+let prReviewsData = {};
 let viewMode = 'list'; // 'list' | 'grid'
 
 const REPO_OWNER = 'hiero-ledger';
@@ -47,12 +49,16 @@ let sectionSorts = {};
 async function init() {
   initTheme();
 
-  const [hipsRes, bodiesRes] = await Promise.all([
+  const [hipsRes, bodiesRes, discRes, prRevRes] = await Promise.all([
     fetch('/data/hips.json'),
     fetch('/data/hip-bodies.json'),
+    fetch('/data/discussions.json').catch(() => ({ json: () => ({}) })),
+    fetch('/data/pr-reviews.json').catch(() => ({ json: () => ({}) })),
   ]);
   allHips = await hipsRes.json();
   hipBodies = await bodiesRes.json();
+  discussionsData = await discRes.json().catch(() => ({}));
+  prReviewsData = await prRevRes.json().catch(() => ({}));
 
   setupMultiSelect('type-filter', [
     'Core', 'Service', 'Mirror', 'Block Node', 'Application', 'Informational', 'Process'
@@ -557,17 +563,13 @@ async function loadGitHubData(hip) {
   commentsList.innerHTML = '';
   commentsLoading.style.display = '';
 
-  // Try discussions-to first, then fall back to the PR URL for the HIP number
   const url = hip['discussions-to'] || '';
   let gh = parseGitHubUrl(url);
 
-  // If no discussions-to, try to find the PR by HIP number in the main repo
   if (!gh) {
     const fallbackUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${hip.hip}`;
     gh = parseGitHubUrl(fallbackUrl);
-    // Only use fallback if the HIP number looks like a PR number (draft HIPs)
     if (!gh) return;
-    // Verify this PR exists before showing the section
     const check = await ghFetch(`/repos/${gh.owner}/${gh.repo}/pulls/${gh.num}`);
     if (!check) return;
   }
@@ -576,17 +578,49 @@ async function loadGitHubData(hip) {
 
   const els = { prStatus, reactionsBar, commentsList, commentsLoading, commentCount };
 
-  if (gh.type === 'pull') {
-    await loadPRData(gh.owner, gh.repo, gh.num, url, els);
+  if (gh.type === 'discussions') {
+    await loadDiscussionData(hip, url, els);
+  } else if (gh.type === 'pull') {
+    await loadPRData(gh.owner, gh.repo, gh.num, url, hip, els);
   } else if (gh.type === 'issues') {
     await loadIssueComments(gh.owner, gh.repo, gh.num, url, els);
-  } else if (gh.type === 'discussions') {
-    // GitHub Discussions require GraphQL — show link
-    commentsLoading.innerHTML = `<a href="${esc(url)}" target="_blank" style="color:var(--link)">View discussion on GitHub</a>`;
   }
 }
 
-async function loadPRData(owner, repo, prNum, url, els) {
+// ---- Discussion rendering (from pre-built data) ----
+async function loadDiscussionData(hip, url, els) {
+  const disc = discussionsData[hip.hip];
+  els.commentsLoading.style.display = 'none';
+
+  if (!disc) {
+    els.commentsList.innerHTML = `<p style="color:var(--fg-muted);font-size:.88rem">Discussion comments not yet cached. <a href="${esc(url)}" target="_blank" style="color:var(--link)">View on GitHub</a></p>`;
+    els.commentCount.textContent = '0';
+    return;
+  }
+
+  // Count all comments + replies
+  const total = disc.comments.reduce((n, c) => n + 1 + (c.replies?.length || 0), 0);
+  els.commentCount.textContent = total;
+
+  let html = '';
+  for (const comment of disc.comments) {
+    html += '<div class="thread">';
+    html += renderGqlComment(comment);
+    if (comment.replies?.length) {
+      html += '<div class="thread-replies">';
+      for (const reply of comment.replies) {
+        html += renderGqlComment(reply);
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  els.commentsList.innerHTML = html || '<p style="color:var(--fg-muted);font-size:.88rem">No comments yet.</p>';
+}
+
+// ---- PR rendering (REST + pre-built review threads) ----
+async function loadPRData(owner, repo, prNum, url, hip, els) {
   try {
     const prRes = await ghFetch(`/repos/${owner}/${repo}/pulls/${prNum}`);
     if (prRes) {
@@ -609,16 +643,52 @@ async function loadPRData(owner, repo, prNum, url, els) {
       }
     }
 
-    const comments = await ghFetch(`/repos/${owner}/${repo}/issues/${prNum}/comments?per_page=50`);
+    // Fetch top-level issue comments via REST
+    const comments = await ghFetch(`/repos/${owner}/${repo}/issues/${prNum}/comments?per_page=100`);
     els.commentsLoading.style.display = 'none';
 
+    let html = '';
+    let total = 0;
+
+    // Render top-level conversation comments
     if (comments?.length) {
-      els.commentCount.textContent = comments.length;
-      els.commentsList.innerHTML = comments.map(renderComment).join('');
-    } else {
-      els.commentCount.textContent = '0';
-      els.commentsList.innerHTML = '<p style="color:var(--fg-muted);font-size:.88rem;padding:.5rem 0">No comments yet. Be the first to discuss this HIP.</p>';
+      html += '<h3 class="thread-section-title">Conversation</h3>';
+      for (const c of comments) {
+        html += '<div class="thread">';
+        html += renderRestComment(c);
+        html += '</div>';
+        total++;
+      }
     }
+
+    // Render pre-built review threads (including resolved)
+    const reviewThreads = prReviewsData[hip.hip];
+    if (reviewThreads?.length) {
+      html += '<h3 class="thread-section-title">Review Threads</h3>';
+      for (const thread of reviewThreads) {
+        const resolvedClass = thread.isResolved ? ' thread--resolved' : '';
+        html += `<div class="thread${resolvedClass}">`;
+        if (thread.isResolved) {
+          html += '<div class="thread-resolved-badge">Resolved</div>';
+        }
+        const threadComments = thread.comments || [];
+        if (threadComments.length) {
+          html += renderGqlComment(threadComments[0]);
+          if (threadComments.length > 1) {
+            html += '<div class="thread-replies">';
+            for (let i = 1; i < threadComments.length; i++) {
+              html += renderGqlComment(threadComments[i]);
+            }
+            html += '</div>';
+          }
+        }
+        html += '</div>';
+        total += threadComments.length;
+      }
+    }
+
+    els.commentCount.textContent = total;
+    els.commentsList.innerHTML = html || '<p style="color:var(--fg-muted);font-size:.88rem;padding:.5rem 0">No comments yet. Be the first to discuss this HIP.</p>';
   } catch (e) {
     els.commentsLoading.innerHTML = `<span style="color:var(--fg-muted)">Could not load comments. <a href="${esc(url || `https://github.com/${owner}/${repo}/pull/${prNum}`)}" target="_blank" style="color:var(--link)">View on GitHub</a></span>`;
   }
@@ -631,12 +701,18 @@ async function loadIssueComments(owner, repo, issueNum, url, els) {
       renderReactions(issue.reactions, els.reactionsBar);
     }
 
-    const comments = await ghFetch(`/repos/${owner}/${repo}/issues/${issueNum}/comments?per_page=50`);
+    const comments = await ghFetch(`/repos/${owner}/${repo}/issues/${issueNum}/comments?per_page=100`);
     els.commentsLoading.style.display = 'none';
 
     if (comments?.length) {
       els.commentCount.textContent = comments.length;
-      els.commentsList.innerHTML = comments.map(renderComment).join('');
+      let html = '';
+      for (const c of comments) {
+        html += '<div class="thread">';
+        html += renderRestComment(c);
+        html += '</div>';
+      }
+      els.commentsList.innerHTML = html;
     } else {
       els.commentCount.textContent = '0';
       els.commentsList.innerHTML = '<p style="color:var(--fg-muted);font-size:.88rem">No comments yet.</p>';
@@ -645,6 +721,9 @@ async function loadIssueComments(owner, repo, issueNum, url, els) {
     els.commentsLoading.innerHTML = `<span style="color:var(--fg-muted)">Could not load comments. <a href="${esc(url)}" target="_blank" style="color:var(--link)">View on GitHub</a></span>`;
   }
 }
+
+// ---- Shared rendering helpers ----
+const REACTION_EMOJI = { '+1': '\ud83d\udc4d', '-1': '\ud83d\udc4e', THUMBS_UP: '\ud83d\udc4d', THUMBS_DOWN: '\ud83d\udc4e', laugh: '\ud83d\ude04', LAUGH: '\ud83d\ude04', hooray: '\ud83c\udf89', HOORAY: '\ud83c\udf89', confused: '\ud83d\ude15', CONFUSED: '\ud83d\ude15', heart: '\u2764\ufe0f', HEART: '\u2764\ufe0f', rocket: '\ud83d\ude80', ROCKET: '\ud83d\ude80', eyes: '\ud83d\udc40', EYES: '\ud83d\udc40' };
 
 function renderReactions(reactions, container) {
   const map = [
@@ -657,11 +736,10 @@ function renderReactions(reactions, container) {
     ['rocket', reactions.rocket],
     ['eyes', reactions.eyes],
   ];
-  const emoji = { '+1': '\ud83d\udc4d', '-1': '\ud83d\udc4e', laugh: '\ud83d\ude04', hooray: '\ud83c\udf89', confused: '\ud83d\ude15', heart: '\u2764\ufe0f', rocket: '\ud83d\ude80', eyes: '\ud83d\udc40' };
 
   const chips = map
     .filter(([, count]) => count > 0)
-    .map(([key, count]) => `<span class="reaction-chip">${emoji[key] || key} <span class="reaction-count">${count}</span></span>`)
+    .map(([key, count]) => `<span class="reaction-chip">${REACTION_EMOJI[key] || key} <span class="reaction-count">${count}</span></span>`)
     .join('');
 
   if (chips) {
@@ -670,32 +748,61 @@ function renderReactions(reactions, container) {
   }
 }
 
-function renderComment(c) {
-  const date = new Date(c.created_at);
-  const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  // Simple markdown rendering for comment body
-  let body = c.body || '';
-  body = marked.parse(body);
-
-  let reactionsHtml = '';
-  if (c.reactions) {
-    const emoji = { '+1': '\ud83d\udc4d', '-1': '\ud83d\udc4e', laugh: '\ud83d\ude04', hooray: '\ud83c\udf89', confused: '\ud83d\ude15', heart: '\u2764\ufe0f', rocket: '\ud83d\ude80', eyes: '\ud83d\udc40' };
+function renderReactionChips(reactions) {
+  if (!reactions) return '';
+  // REST API format: { "+1": 2, ... }
+  if (typeof reactions['+1'] === 'number') {
     const chips = ['+1', '-1', 'laugh', 'hooray', 'confused', 'heart', 'rocket', 'eyes']
-      .filter(k => c.reactions[k] > 0)
-      .map(k => `<span class="reaction-chip">${emoji[k]} <span class="reaction-count">${c.reactions[k]}</span></span>`);
-    if (chips.length) reactionsHtml = `<div class="comment-reactions">${chips.join('')}</div>`;
+      .filter(k => reactions[k] > 0)
+      .map(k => `<span class="reaction-chip">${REACTION_EMOJI[k]} <span class="reaction-count">${reactions[k]}</span></span>`);
+    return chips.length ? `<div class="comment-reactions">${chips.join('')}</div>` : '';
   }
+  // GraphQL format: [{ content: "THUMBS_UP" }, ...]
+  if (Array.isArray(reactions)) {
+    const counts = {};
+    for (const r of reactions) { counts[r.content] = (counts[r.content] || 0) + 1; }
+    const chips = Object.entries(counts)
+      .map(([k, n]) => `<span class="reaction-chip">${REACTION_EMOJI[k] || k} <span class="reaction-count">${n}</span></span>`);
+    return chips.length ? `<div class="comment-reactions">${chips.join('')}</div>` : '';
+  }
+  return '';
+}
 
+function fmtDate(d) {
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// Render a comment from the REST API (PR issue comments)
+function renderRestComment(c) {
+  let body = marked.parse(c.body || '');
   return `<div class="comment">
     <img class="comment-avatar" src="${c.user?.avatar_url || ''}" alt="" loading="lazy">
     <div class="comment-body">
       <div class="comment-header">
         <span class="comment-author"><a href="${c.user?.html_url || '#'}" target="_blank">${esc(c.user?.login || 'unknown')}</a></span>
-        <span class="comment-date">${dateStr}</span>
+        <span class="comment-date">${fmtDate(c.created_at)}</span>
       </div>
       <div class="comment-text">${body}</div>
-      ${reactionsHtml}
+      ${renderReactionChips(c.reactions)}
+    </div>
+  </div>`;
+}
+
+// Render a comment from pre-built GraphQL data (discussions + review threads)
+function renderGqlComment(c) {
+  const body = marked.parse(c.body || '');
+  const login = c.author?.login || 'unknown';
+  const avatar = c.author?.avatarUrl || '';
+  const profileUrl = c.author?.url || '#';
+  return `<div class="comment">
+    <img class="comment-avatar" src="${avatar}" alt="" loading="lazy">
+    <div class="comment-body">
+      <div class="comment-header">
+        <span class="comment-author"><a href="${profileUrl}" target="_blank">${esc(login)}</a></span>
+        <span class="comment-date">${fmtDate(c.createdAt)}</span>
+      </div>
+      <div class="comment-text">${body}</div>
+      ${renderReactionChips(c.reactions)}
     </div>
   </div>`;
 }

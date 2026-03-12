@@ -138,15 +138,214 @@ async function fetchDraftHips() {
   console.log(`Fetched ${fetched} draft HIPs from open PRs (${skipped} already merged)`);
 }
 
+// ---- Fetch discussion comments via GraphQL (requires GITHUB_TOKEN) ----
+async function fetchDiscussions() {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.log('No GITHUB_TOKEN set — skipping discussion comment fetch');
+    return {};
+  }
+
+  // Collect all discussion URLs from HIPs
+  const discussionUrls = [];
+  for (const hip of hips) {
+    const url = hip['discussions-to'] || '';
+    const m = url.match(/github\.com\/([^/]+)\/([^/]+)\/discussions\/(\d+)/);
+    if (m) {
+      discussionUrls.push({ hip: hip.hip, owner: m[1], repo: m[2], num: Number(m[3]) });
+    }
+  }
+
+  if (!discussionUrls.length) return {};
+
+  console.log(`Fetching comments for ${discussionUrls.length} discussions...`);
+  const discussions = {};
+
+  for (const d of discussionUrls) {
+    const query = `query {
+      repository(owner: "${d.owner}", name: "${d.repo}") {
+        discussion(number: ${d.num}) {
+          body
+          author { login avatarUrl url }
+          createdAt
+          reactions(first: 10) { nodes { content } }
+          comments(first: 100) {
+            nodes {
+              body
+              author { login avatarUrl url }
+              createdAt
+              isMinimized
+              reactions(first: 10) { nodes { content } }
+              replies(first: 50) {
+                nodes {
+                  body
+                  author { login avatarUrl url }
+                  createdAt
+                  isMinimized
+                  reactions(first: 10) { nodes { content } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }`;
+
+    try {
+      const res = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'hips-build',
+        },
+        body: JSON.stringify({ query }),
+      });
+      const json = await res.json();
+      const disc = json.data?.repository?.discussion;
+      if (!disc) {
+        console.warn(`  Discussion ${d.num}: not found`);
+        continue;
+      }
+
+      discussions[d.hip] = {
+        body: disc.body,
+        author: disc.author,
+        createdAt: disc.createdAt,
+        reactions: disc.reactions?.nodes || [],
+        comments: (disc.comments?.nodes || []).map(c => ({
+          body: c.body,
+          author: c.author,
+          createdAt: c.createdAt,
+          isMinimized: c.isMinimized,
+          reactions: c.reactions?.nodes || [],
+          replies: (c.replies?.nodes || []).map(r => ({
+            body: r.body,
+            author: r.author,
+            createdAt: r.createdAt,
+            isMinimized: r.isMinimized,
+            reactions: r.reactions?.nodes || [],
+          })),
+        })),
+      };
+      const total = discussions[d.hip].comments.reduce((n, c) => n + 1 + c.replies.length, 0);
+      console.log(`  HIP-${d.hip}: fetched discussion #${d.num} (${total} comments)`);
+    } catch (e) {
+      console.warn(`  HIP-${d.hip}: error fetching discussion #${d.num}: ${e.message}`);
+    }
+  }
+
+  return discussions;
+}
+
+// ---- Fetch PR review comments (including resolved threads) ----
+async function fetchPRReviewComments() {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.log('No GITHUB_TOKEN set — skipping PR review comment fetch');
+    return {};
+  }
+
+  // Collect all PR URLs from HIPs
+  const prUrls = [];
+  for (const hip of hips) {
+    const url = hip['discussions-to'] || '';
+    const m = url.match(/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+    if (m) {
+      prUrls.push({ hip: hip.hip, owner: m[1], repo: m[2], num: Number(m[3]) });
+    }
+  }
+
+  // Also add draft HIPs that use their PR number
+  for (const hip of hips) {
+    if (hip.status === 'Draft' && !prUrls.find(p => p.hip === hip.hip)) {
+      prUrls.push({ hip: hip.hip, owner: REPO_OWNER, repo: REPO_NAME, num: Number(hip.hip) });
+    }
+  }
+
+  if (!prUrls.length) return {};
+
+  console.log(`Fetching PR review threads for ${prUrls.length} PRs...`);
+  const prReviews = {};
+
+  for (const pr of prUrls) {
+    const query = `query {
+      repository(owner: "${pr.owner}", name: "${pr.repo}") {
+        pullRequest(number: ${pr.num}) {
+          reviewThreads(first: 100) {
+            nodes {
+              isResolved
+              isOutdated
+              comments(first: 50) {
+                nodes {
+                  body
+                  author { login avatarUrl url }
+                  createdAt
+                  reactions(first: 10) { nodes { content } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }`;
+
+    try {
+      const res = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'hips-build',
+        },
+        body: JSON.stringify({ query }),
+      });
+      const json = await res.json();
+      const prData = json.data?.repository?.pullRequest;
+      if (!prData) continue;
+
+      const threads = (prData.reviewThreads?.nodes || []).map(t => ({
+        isResolved: t.isResolved,
+        isOutdated: t.isOutdated,
+        comments: (t.comments?.nodes || []).map(c => ({
+          body: c.body,
+          author: c.author,
+          createdAt: c.createdAt,
+          reactions: c.reactions?.nodes || [],
+        })),
+      }));
+
+      if (threads.length) {
+        prReviews[pr.hip] = threads;
+        const total = threads.reduce((n, t) => n + t.comments.length, 0);
+        console.log(`  HIP-${pr.hip}: fetched ${threads.length} review threads (${total} comments)`);
+      }
+    } catch (e) {
+      console.warn(`  HIP-${pr.hip}: error fetching review threads: ${e.message}`);
+    }
+  }
+
+  return prReviews;
+}
+
 async function main() {
   await fetchDraftHips();
 
   hips.sort((a, b) => Number(a.hip) - Number(b.hip));
 
+  const [discussions, prReviews] = await Promise.all([
+    fetchDiscussions(),
+    fetchPRReviewComments(),
+  ]);
+
   fs.writeFileSync(path.join(OUT_DIR, 'hips.json'), JSON.stringify(hips, null, 2));
   fs.writeFileSync(path.join(OUT_DIR, 'hip-bodies.json'), JSON.stringify(hipBodies));
+  fs.writeFileSync(path.join(OUT_DIR, 'discussions.json'), JSON.stringify(discussions));
+  fs.writeFileSync(path.join(OUT_DIR, 'pr-reviews.json'), JSON.stringify(prReviews));
 
   console.log(`Built data for ${hips.length} total HIPs`);
+  if (Object.keys(discussions).length) console.log(`  ${Object.keys(discussions).length} discussions cached`);
+  if (Object.keys(prReviews).length) console.log(`  ${Object.keys(prReviews).length} PR review threads cached`);
 }
 
 main();

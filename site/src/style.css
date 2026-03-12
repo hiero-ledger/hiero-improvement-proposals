@@ -788,15 +788,57 @@ article hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
   padding: .1rem .45rem; border-radius: 9999px;
 }
 
-.comments-list { display: flex; flex-direction: column; gap: .75rem; }
+.comments-list { display: flex; flex-direction: column; gap: 1rem; }
+
+.thread-section-title {
+  font-size: .95rem; font-weight: 700;
+  color: var(--fg-muted);
+  margin: 1.25rem 0 .5rem;
+  padding-bottom: .35rem;
+  border-bottom: 1px solid var(--border-lt);
+}
+.thread-section-title:first-child { margin-top: 0; }
+
+.thread {
+  border: 1px solid var(--border-lt);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-card);
+  animation: fadeIn .3s var(--ease);
+}
+
+.thread--resolved {
+  opacity: .75;
+  border-style: dashed;
+}
+
+.thread-resolved-badge {
+  font-size: .72rem; font-weight: 600;
+  color: var(--fg-muted);
+  background: var(--bg-alt);
+  padding: .25rem .75rem;
+  border-bottom: 1px solid var(--border-lt);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.thread-replies {
+  border-left: 3px solid var(--accent);
+  margin-left: 1.25rem;
+}
+
+.thread-replies .comment {
+  border: none;
+  border-radius: 0;
+  border-top: 1px solid var(--border-lt);
+  background: transparent;
+}
 
 .comment {
   display: flex; gap: .75rem;
   padding: 1rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-lt);
-  border-radius: var(--radius);
-  animation: fadeIn .3s var(--ease);
+  border-radius: 0;
 }
 .comment-avatar {
   width: 36px; height: 36px;
@@ -828,6 +870,17 @@ article hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
   padding: .1em .3em;
   border-radius: 3px;
 }
+.comment-text blockquote {
+  border-left: 3px solid var(--border);
+  padding: .3rem .75rem;
+  margin: .4em 0;
+  color: var(--fg-muted);
+  background: var(--bg-alt);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: .85em;
+}
+.comment-text blockquote p { margin-bottom: .25em; }
+.comment-text blockquote p:last-child { margin-bottom: 0; }
 .comment-reactions {
   display: flex; gap: .3rem; margin-top: .5rem;
 }
