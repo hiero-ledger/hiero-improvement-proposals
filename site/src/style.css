@@ -802,29 +802,34 @@ article hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
 .thread {
   border: 1px solid var(--border-lt);
   border-radius: var(--radius);
-  overflow: hidden;
   background: var(--bg-card);
   animation: fadeIn .3s var(--ease);
 }
 
 .thread--resolved {
-  opacity: .75;
-  border-style: dashed;
+  opacity: .8;
+  border-color: var(--border);
 }
 
 .thread-resolved-badge {
   font-size: .72rem; font-weight: 600;
   color: var(--fg-muted);
   background: var(--bg-alt);
-  padding: .25rem .75rem;
+  padding: .35rem .75rem;
   border-bottom: 1px solid var(--border-lt);
   text-transform: uppercase;
   letter-spacing: .05em;
+  display: flex; align-items: center; gap: .4rem;
+}
+.thread-resolved-badge::before {
+  content: "\2713";
+  font-size: .8rem;
 }
 
 .thread-replies {
   border-left: 3px solid var(--accent);
-  margin-left: 1.25rem;
+  margin-left: 1.5rem;
+  margin-bottom: .5rem;
 }
 
 .thread-replies .comment {
@@ -832,57 +837,113 @@ article hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
   border-radius: 0;
   border-top: 1px solid var(--border-lt);
   background: transparent;
+  padding: .85rem 1rem;
 }
 
 .comment {
-  display: flex; gap: .75rem;
-  padding: 1rem;
+  display: flex; gap: .85rem;
+  padding: 1.1rem 1.25rem;
   background: var(--bg-card);
   border-radius: 0;
 }
 .comment-avatar {
-  width: 36px; height: 36px;
+  width: 32px; height: 32px;
   border-radius: 50%;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 .comment-body { flex: 1; min-width: 0; }
 .comment-header {
-  display: flex; align-items: center; gap: .5rem;
-  margin-bottom: .35rem;
+  display: flex; align-items: baseline; gap: .5rem;
+  margin-bottom: .5rem;
 }
 .comment-author {
-  font-weight: 600; font-size: .88rem;
+  font-weight: 600; font-size: .85rem;
   color: var(--fg);
 }
-.comment-author a { color: inherit; }
+.comment-author a { color: inherit; text-decoration: none; }
 .comment-author a:hover { color: var(--link); }
-.comment-date { font-size: .78rem; color: var(--fg-muted); }
+.comment-date { font-size: .75rem; color: var(--fg-muted); }
 .comment-text {
-  font-size: .88rem; line-height: 1.6;
+  font-size: .9rem;
+  line-height: 1.7;
   color: var(--fg);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
-.comment-text p { margin-bottom: .5em; }
+.comment-text p { margin-bottom: .65em; }
 .comment-text p:last-child { margin-bottom: 0; }
+.comment-text ul, .comment-text ol {
+  margin-bottom: .65em;
+  padding-left: 1.5rem;
+}
+.comment-text li { margin-bottom: .25em; }
+.comment-text pre {
+  background: var(--code-bg);
+  padding: .75rem 1rem;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin-bottom: .65em;
+  font-size: .82rem;
+  line-height: 1.5;
+}
+.comment-text pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
 .comment-text code {
   font-family: var(--mono);
-  font-size: .85em;
+  font-size: .84em;
   background: var(--code-bg);
-  padding: .1em .3em;
+  padding: .15em .35em;
   border-radius: 3px;
 }
 .comment-text blockquote {
-  border-left: 3px solid var(--border);
-  padding: .3rem .75rem;
-  margin: .4em 0;
+  border-left: 3px solid var(--accent);
+  padding: .5rem 1rem;
+  margin: .65em 0;
   color: var(--fg-muted);
   background: var(--bg-alt);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  font-size: .85em;
+  font-size: .88rem;
+  line-height: 1.6;
 }
-.comment-text blockquote p { margin-bottom: .25em; }
+.comment-text blockquote p { margin-bottom: .35em; }
 .comment-text blockquote p:last-child { margin-bottom: 0; }
+.comment-text img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  margin: .5em 0;
+}
+.comment-text a {
+  color: var(--link);
+  text-decoration: none;
+}
+.comment-text a:hover { text-decoration: underline; }
+.comment-text h1, .comment-text h2, .comment-text h3, .comment-text h4 {
+  font-size: .95rem;
+  font-weight: 700;
+  margin: .75em 0 .35em;
+}
+.comment-text table {
+  width: 100%; border-collapse: collapse;
+  margin-bottom: .65em; font-size: .85rem;
+}
+.comment-text table th, .comment-text table td {
+  padding: .35rem .6rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.comment-text table th { background: var(--bg-alt); font-weight: 600; }
+.comment-text hr {
+  border: none;
+  border-top: 1px solid var(--border-lt);
+  margin: .75em 0;
+}
 .comment-reactions {
-  display: flex; gap: .3rem; margin-top: .5rem;
+  display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .65rem;
 }
 
 .comments-loading {
