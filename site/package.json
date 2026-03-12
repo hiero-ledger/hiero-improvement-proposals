@@ -9,8 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "marked": "^15.0.0",
     "gray-matter": "^4.0.3",
+    "highlight.js": "^11.11.1",
+    "highlightjs-solidity": "^2.0.6",
+    "marked": "^15.0.0",
+    "marked-highlight": "^2.2.3",
     "vite": "^6.0.0"
   }
 }

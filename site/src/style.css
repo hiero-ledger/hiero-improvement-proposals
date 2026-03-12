@@ -46,8 +46,9 @@
   --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
   --header-bg: rgba(255,255,255,.85);
   --code-bg:   #f1f3f5;
-  --pre-bg:    #212529;
-  --pre-fg:    #e9ecef;
+  --pre-bg:    #22272e;
+  --pre-fg:    #adbac7;
+  --pre-border: transparent;
 }
 
 [data-theme="dark"] {
@@ -81,8 +82,9 @@
   --shadow-lg: 0 8px 24px rgba(0,0,0,.4);
   --header-bg: rgba(17,19,24,.85);
   --code-bg:   #21242b;
-  --pre-bg:    #0d1117;
-  --pre-fg:    #c9d1d9;
+  --pre-bg:    #22272e;
+  --pre-fg:    #adbac7;
+  --pre-border: #373e47;
 }
 
 html {
@@ -739,11 +741,48 @@ article pre {
   background: var(--pre-bg); color: var(--pre-fg);
   padding: 1rem 1.25rem;
   border-radius: var(--radius);
+  border: 1px solid var(--pre-border);
   overflow-x: auto;
   margin-bottom: 1.25em;
   font-size: .84rem; line-height: 1.6;
 }
-article pre code { background: none; padding: 0; color: inherit; }
+article pre code { background: none; padding: 0; }
+article pre code.hljs { background: transparent; padding: 0; }
+
+/* ---- Vibrant rainbow syntax theme (inspired by One Dark Pro / Dracula) ---- */
+.hljs { color: #abb2bf; background: transparent; }
+.hljs-keyword, .hljs-meta .hljs-keyword, .hljs-template-tag, .hljs-type { color: #c678dd; font-weight: 500; }
+.hljs-variable.language_ { color: #e06c75; }
+.hljs-title, .hljs-title.class_ { color: #e5c07b; }
+.hljs-title.function_, .hljs-title.class_.inherited__ { color: #61afef; }
+.hljs-attr, .hljs-attribute { color: #e5c07b; }
+.hljs-number, .hljs-literal { color: #d19a66; }
+.hljs-string, .hljs-meta .hljs-string, .hljs-regexp { color: #98c379; }
+.hljs-built_in, .hljs-symbol { color: #56b6c2; }
+.hljs-comment, .hljs-code, .hljs-formula { color: #5c6370; font-style: italic; }
+.hljs-name, .hljs-selector-tag { color: #e06c75; }
+.hljs-selector-class { color: #e5c07b; }
+.hljs-selector-id { color: #61afef; }
+.hljs-selector-attr, .hljs-selector-pseudo { color: #56b6c2; }
+.hljs-operator { color: #56b6c2; }
+.hljs-variable { color: #e06c75; }
+.hljs-template-variable { color: #e06c75; }
+.hljs-doctag { color: #c678dd; }
+.hljs-tag { color: #abb2bf; }
+.hljs-tag .hljs-name { color: #e06c75; }
+.hljs-tag .hljs-attr { color: #d19a66; }
+.hljs-tag .hljs-string { color: #98c379; }
+.hljs-params { color: #abb2bf; }
+.hljs-section { color: #61afef; font-weight: 700; }
+.hljs-bullet { color: #d19a66; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+.hljs-addition { color: #98c379; background: rgba(152,195,121,.12); }
+.hljs-deletion { color: #e06c75; background: rgba(224,108,117,.12); }
+.hljs-subst { color: #e06c75; }
+.hljs-link { color: #61afef; text-decoration: underline; }
+.hljs-quote { color: #98c379; font-style: italic; }
+.hljs-punctuation { color: #abb2bf; }
 
 article blockquote {
   border-left: 4px solid var(--accent);
