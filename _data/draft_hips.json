@@ -1,44 +1,158 @@
 [
   {
-    "title": "Add HIP-1331: An ExtendedAssetChanges extra for large atomic swaps",
-    "number": 1408,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1408",
-    "headRefOid": "b94714744034f533369987dd4e73540c18a0a48a",
+    "title": "Historical Record File Bootstrap for Block Stream Cutover",
+    "number": 1427,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1427",
+    "headRefOid": "6a21ad757596863e14d369a1a648b23724db9ce9",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-1331.md",
+            "path": "HIP/hip-1427.md",
             "changeType": "ADDED",
-            "additions": 233,
+            "additions": 590,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/jumpstart-format.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/overview.svg",
+            "changeType": "ADDED",
+            "additions": 90,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/pipeline.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/wrap-pipeline.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/wrapped-block.png",
+            "changeType": "ADDED",
+            "additions": 0,
             "deletions": 0
           }
         }
       ]
     },
     "author": {
-      "login": "mgarbs"
+      "login": "Nana-EC"
     }
   },
   {
-    "title": "HIP-1398: TSS ceremony",
-    "number": 1398,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1398",
-    "headRefOid": "3eba73ebc9bd592cad2f64fe798d4bc0480cf670",
+    "title": "Block and State Merkle Tree Hashing Scheme",
+    "number": 1424,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1424",
+    "headRefOid": "d79bd71090479c09b891ee1e1584aedfc1328697",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-1398.md",
+            "path": "HIP/hip-1424.md",
             "changeType": "ADDED",
-            "additions": 114,
+            "additions": 594,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/Hashing - Block Root Tree.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/Hashing - Block Root.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/Hashing - Simplified Block Root.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/Merkle proof sketches.png",
+            "changeType": "ADDED",
+            "additions": 0,
             "deletions": 0
           }
         }
       ]
     },
     "author": {
-      "login": "rsinha"
+      "login": "Nana-EC"
+    }
+  },
+  {
+    "title": "Add HIP-1415 for configurable HBAR decimals",
+    "number": 1415,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1415",
+    "headRefOid": "1f0687c3750daafe42bc463e68f7814bccee4776",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1415.md",
+            "changeType": "ADDED",
+            "additions": 292,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "stoqnkpL"
+    }
+  },
+  {
+    "title": "HIP-1414: Introduce EVM transfer semantics to CryptoTransfer",
+    "number": 1414,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
+    "headRefOid": "b454ed789ec2e6090736a9ab639ad2c6cf9fa2a9",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1414.md",
+            "changeType": "ADDED",
+            "additions": 251,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "lukasz-hashgraph"
     }
   },
   {
@@ -356,7 +470,7 @@
     "title": "safeTransferFrom support for HTS Precompile and Facade Contract",
     "number": 1349,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1349",
-    "headRefOid": "815d47446c0b0e5a08048a5771a8978ac6890700",
+    "headRefOid": "098c93c5ad7a44807cf1c9d4b01a4d19633720f6",
     "files": {
       "edges": [
         {
@@ -458,38 +572,17 @@
     }
   },
   {
-    "title": "HIP-1193 - Records to block streams cutover",
-    "number": 1193,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1193",
-    "headRefOid": "ae4b309b57589db350541412ae8967525064fc8e",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1193.md",
-            "changeType": "ADDED",
-            "additions": 267,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Mark-Swirlds"
-    }
-  },
-  {
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "5dfd71e5d801dc5a34b6e633855bf82177e22b48",
+    "headRefOid": "f264d51e6e416a2a10b1891a726a87ca45323d86",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 543,
+            "additions": 542,
             "deletions": 0
           }
         },

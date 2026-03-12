@@ -38,3 +38,9 @@ gem 'kramdown-parser-gfm'
 
 # Added to support Ruby >= 3.0, see https://github.com/jekyll/jekyll/issues/8523
 gem "webrick", "~> 1.7"
+
+# Required for Ruby >= 3.4, where these are no longer default gems
+gem "csv"
+gem "base64"
+gem "bigdecimal"
+gem "logger"
