@@ -141,9 +141,8 @@ a:hover { color: var(--link-h); }
   justify-content: space-between;
 }
 .header-left { display: flex; align-items: center; gap: 1.5rem; }
-.site-logo { display: flex; align-items: center; text-decoration: none; gap: 6px; }
-.logo-img { height: 28px; width: auto; }
-.logo-text { font-size: 1.5rem; font-weight: 450; color: var(--fg); letter-spacing: -0.01em; font-family: var(--font); position: relative; top: 3px; }
+.site-logo { display: flex; align-items: center; text-decoration: none; }
+.logo-img { height: 32px; width: auto; }
 .logo-dark { display: none; }
 
 [data-theme="dark"] .logo-light { display: none; }
