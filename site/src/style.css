@@ -141,9 +141,9 @@ a:hover { color: var(--link-h); }
   justify-content: space-between;
 }
 .header-left { display: flex; align-items: center; gap: 1.5rem; }
-.site-logo { display: flex; align-items: center; text-decoration: none; gap: 8px; }
-.logo-img { height: 32px; width: auto; }
-.logo-text { font-size: 1.25rem; font-weight: 700; color: var(--fg); letter-spacing: -0.02em; }
+.site-logo { display: flex; align-items: center; text-decoration: none; gap: 6px; }
+.logo-img { height: 28px; width: auto; position: relative; top: -2px; }
+.logo-text { font-size: 1.5rem; font-weight: 450; color: var(--fg); letter-spacing: -0.01em; font-family: var(--font); position: relative; top: -5px; }
 .logo-dark { display: none; }
 
 [data-theme="dark"] .logo-light { display: none; }
