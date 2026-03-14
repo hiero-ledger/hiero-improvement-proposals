@@ -150,7 +150,10 @@ async function fetchDiscussions() {
     const url = hip['discussions-to'] || '';
     const m = url.match(/github\.com\/([^/]+)\/([^/]+)\/discussions\/(\d+)/);
     if (m) {
-      discussionUrls.push({ hip: hip.hip, owner: m[1], repo: m[2], num: Number(m[3]) });
+      // Redirect old repo references to current repo
+      const owner = (m[1] === 'hashgraph' && m[2] === 'hedera-improvement-proposal') ? REPO_OWNER : m[1];
+      const repo = (m[1] === 'hashgraph' && m[2] === 'hedera-improvement-proposal') ? REPO_NAME : m[2];
+      discussionUrls.push({ hip: hip.hip, owner, repo, num: Number(m[3]) });
     }
   }
 
@@ -200,9 +203,14 @@ async function fetchDiscussions() {
         body: JSON.stringify({ query }),
       });
       const json = await res.json();
+      if (json.errors) {
+        console.warn(`  Discussion ${d.num} (${d.owner}/${d.repo}): ${json.errors[0].message}`);
+        if (json.errors[0].type === 'RATE_LIMIT') break;
+        continue;
+      }
       const disc = json.data?.repository?.discussion;
       if (!disc) {
-        console.warn(`  Discussion ${d.num}: not found`);
+        console.warn(`  Discussion ${d.num} (${d.owner}/${d.repo}): not found`);
         continue;
       }
 
