@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js/lib/core';
@@ -48,9 +49,9 @@ marked.use(markedHighlight({
    DATA & CONSTANTS
    ============================================= */
 let allHips = [];
-let hipBodies = {};
-let discussionsData = {};
-let prReviewsData = {};
+let hipBodies = new Map();
+let discussionsData = new Map();
+let prReviewsData = new Map();
 let viewMode = 'list'; // 'list' | 'grid'
 
 const REPO_OWNER = 'hiero-ledger';
@@ -63,28 +64,29 @@ const STATUS_ORDER = [
 
 const PIPELINE_STAGES = ['Draft', 'Review', 'Last Call', 'Approved', 'Final', 'Active'];
 
-const STATUS_TIPS = {
-  Draft: 'The formal starting point. The HIP is being drafted and is not yet ready for review.',
-  Review: 'The HIP is ready for review by the community and HIP editors.',
-  'Last Call': 'Last chance for community input before this HIP moves forward.',
-  Approved: 'A Standards Track HIP has been approved by Hiero TSC.',
-  Accepted: 'A Standards Track HIP has been accepted.',
-  Final: 'Approved by Hiero TSC and its reference implementation has been merged.',
-  Active: 'A Process, Informational, or Application HIP currently in effect.',
-  Deferred: 'Not currently being pursued but may be revisited.',
-  Withdrawn: 'Author has withdrawn the HIP.',
-  Stagnant: 'Inactive for 6+ months, marked as Stagnant by HIP editors.',
-  Rejected: 'Rejected by HIP editors, the community, or a Hiero TSC vote.',
-  Replaced: 'Replaced by a newer HIP.',
-};
+const STATUS_TIPS = new Map([
+  ['Draft', 'The formal starting point. The HIP is being drafted and is not yet ready for review.'],
+  ['Review', 'The HIP is ready for review by the community and HIP editors.'],
+  ['Last Call', 'Last chance for community input before this HIP moves forward.'],
+  ['Approved', 'A Standards Track HIP has been approved by Hiero TSC.'],
+  ['Accepted', 'A Standards Track HIP has been accepted.'],
+  ['Final', 'Approved by Hiero TSC and its reference implementation has been merged.'],
+  ['Active', 'A Process, Informational, or Application HIP currently in effect.'],
+  ['Deferred', 'Not currently being pursued but may be revisited.'],
+  ['Withdrawn', 'Author has withdrawn the HIP.'],
+  ['Stagnant', 'Inactive for 6+ months, marked as Stagnant by HIP editors.'],
+  ['Rejected', 'Rejected by HIP editors, the community, or a Hiero TSC vote.'],
+  ['Replaced', 'Replaced by a newer HIP.'],
+]);
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
+const safeHTML = (el, html) => { el.innerHTML = DOMPurify.sanitize(html); };
 
 // Filter state
 let filters = { types: [], statuses: [], hiero: null, hedera: null };
 let searchQuery = '';
-let sectionSorts = {};
+let sectionSorts = new Map();
 
 /* =============================================
    INIT
@@ -100,9 +102,9 @@ async function init() {
     fetch(`${base}data/pr-reviews.json`).catch(() => ({ json: () => ({}) })),
   ]);
   allHips = await hipsRes.json();
-  hipBodies = await bodiesRes.json();
-  discussionsData = await discRes.json().catch(() => ({}));
-  prReviewsData = await prRevRes.json().catch(() => ({}));
+  hipBodies = new Map(Object.entries(await bodiesRes.json()));
+  discussionsData = new Map(Object.entries(await discRes.json().catch(() => ({}))));
+  prReviewsData = new Map(Object.entries(await prRevRes.json().catch(() => ({}))));
 
   setupMultiSelect('type-filter', [
     'Core', 'Service', 'Mirror', 'Block Node', 'Application', 'Informational', 'Process'
@@ -143,10 +145,9 @@ function setupMultiSelect(id, options) {
   const textEl = el.querySelector('.ms-text');
   const placeholder = el.dataset.placeholder;
 
-  // nosemgrep: javascript.browser.security.innerHTML -- trusted static options list
-  dropdown.innerHTML = options.map(o =>
+  safeHTML(dropdown, options.map(o =>
     `<label class="ms-option"><input type="checkbox" value="${o}"> ${o}</label>`
-  ).join('');
+  ).join(''));
 
   trigger.addEventListener('click', e => {
     e.stopPropagation();
@@ -159,10 +160,9 @@ function setupMultiSelect(id, options) {
     if (!checked.length) {
       textEl.textContent = placeholder;
     } else {
-      // nosemgrep: javascript.browser.security.innerHTML -- values are escaped via esc()
-      textEl.innerHTML = checked.map(v =>
+      safeHTML(textEl, checked.map(v =>
         `<span class="ms-tag">${esc(v)}<span class="ms-tag-x" data-val="${esc(v)}">&times;</span></span>`
-      ).join('');
+      ).join(''));
     }
     updateFilters();
     renderList();
@@ -300,10 +300,10 @@ function handleRoute() {
   const hash = location.hash;
   $$('.nav-link').forEach(l => l.classList.remove('active'));
 
-  if (hash === '#about') {
+  if (hash.startsWith('#about') && hash.length === 6) {
     show('about-view');
     $('[data-nav="about"]')?.classList.add('active');
-  } else if (hash === '#create') {
+  } else if (hash.startsWith('#create') && hash.length === 7) {
     show('create-view');
     initWizard();
   } else if (hash.startsWith('#hip-')) {
@@ -327,21 +327,20 @@ function show(id) {
    PIPELINE
    ============================================= */
 function renderPipeline() {
-  const counts = {};
+  const counts = new Map();
   for (const h of allHips) {
     let s = h.status || 'Unknown';
     if (s === 'Accepted') s = 'Approved';
-    counts[s] = (counts[s] || 0) + 1;
+    counts.set(s, (counts.get(s) || 0) + 1);
   }
 
   const el = $('#pipeline');
-  // nosemgrep: javascript.browser.security.innerHTML -- trusted static pipeline stage data
-  el.innerHTML = PIPELINE_STAGES.map(stage => `
+  safeHTML(el, PIPELINE_STAGES.map(stage => `
     <div class="pipeline-stage" data-status="${stage}">
-      <span class="pipeline-stage-count">${counts[stage] || 0}</span>
+      <span class="pipeline-stage-count">${counts.get(stage) || 0}</span>
       <span class="pipeline-stage-name">${stage}</span>
     </div>
-  `).join('');
+  `).join(''));
 
   el.querySelectorAll('.pipeline-stage').forEach(stage => {
     stage.addEventListener('click', () => {
@@ -364,7 +363,7 @@ function renderPipeline() {
           cb.checked = cb.value === status;
         });
         const textEl = $('#status-filter .ms-text');
-        textEl.innerHTML = `<span class="ms-tag">${status}<span class="ms-tag-x" data-val="${status}">&times;</span></span>`; // nosemgrep: javascript.browser.security.innerHTML
+        safeHTML(textEl, `<span class="ms-tag">${status}<span class="ms-tag-x" data-val="${status}">&times;</span></span>`);
       }
       updateClearBtn();
       renderList();
@@ -385,12 +384,12 @@ function renderList() {
     : `${filtered.length} of ${allHips.length}`;
 
   // Group by status
-  const groups = {};
+  const groups = new Map();
   for (const h of filtered) {
     let s = h.status || 'Unknown';
     if (s === 'Accepted') s = 'Approved';
-    if (!groups[s]) groups[s] = [];
-    groups[s].push(h);
+    if (!groups.has(s)) groups.set(s, []);
+    groups.get(s).push(h);
   }
 
   const ordered = STATUS_ORDER.filter(s => s !== 'Accepted');
@@ -398,11 +397,11 @@ function renderList() {
   let any = false;
 
   for (const status of ordered) {
-    const hips = groups[status];
+    const hips = groups.get(status);
     if (!hips?.length) continue;
     any = true;
 
-    const sort = sectionSorts[status] || { key: 'hip', dir: 'desc' };
+    const sort = sectionSorts.get(status) || { key: 'hip', dir: 'desc' };
     sortArr(hips, sort);
     const isLC = status === 'Last Call';
     const isFinal = status === 'Final';
@@ -410,7 +409,7 @@ function renderList() {
     html += `<div class="status-section" data-status="${esc(status)}">`;
     html += `<h2 class="status-heading">${esc(status)}
       <span class="status-count">(${hips.length})</span>
-      <span class="status-info-icon">i<span class="tip">${esc(STATUS_TIPS[status] || '')}</span></span>
+      <span class="status-info-icon">i<span class="tip">${esc(STATUS_TIPS.get(status) || '')}</span></span>
     </h2>`;
 
     if (viewMode === 'grid') {
@@ -465,7 +464,7 @@ function renderList() {
     html += '</div>';
   }
 
-  container.innerHTML = html; // nosemgrep: javascript.browser.security.innerHTML -- escaped via esc()
+  safeHTML(container, html);
   noResults.style.display = any ? 'none' : '';
 
   // Bind sort handlers for table view
@@ -473,10 +472,10 @@ function renderList() {
     th.addEventListener('click', () => {
       const status = th.dataset.status;
       const key = th.dataset.sort;
-      const cur = sectionSorts[status] || { key: 'hip', dir: 'desc' };
-      sectionSorts[status] = cur.key === key
+      const cur = sectionSorts.get(status) || { key: 'hip', dir: 'desc' };
+      sectionSorts.set(status, cur.key === key
         ? { key, dir: cur.dir === 'asc' ? 'desc' : 'asc' }
-        : { key, dir: 'asc' };
+        : { key, dir: 'asc' });
       renderList();
     });
   });
@@ -507,7 +506,7 @@ function showDetail(num) {
   const prFilesUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${prNum}/files`;
   const mainEditUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/main/HIP/hip-${hip.hip}.md`;
   const mainFileUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/HIP/hip-${hip.hip}.md`;
-  $('#hip-title').innerHTML = `<span class="hip-number">HIP-${hip.hip}:</span> ${esc(hip.title)}`; // nosemgrep: javascript.browser.security.innerHTML
+  safeHTML($('#hip-title'), `<span class="hip-number">HIP-${hip.hip}:</span> ${esc(hip.title)}`);
 
   // Action buttons — drafts link to PR files, merged HIPs link to file on main
   $('#suggest-edit').href = isDraft ? prFilesUrl : mainEditUrl;
@@ -521,7 +520,7 @@ function showDetail(num) {
     hip['working-group'] ? ['Working Group', fmtPeople(hip['working-group'])] : null,
     hip['requested-by'] ? ['Requested By', fmtPeople(hip['requested-by'])] : null,
     hip['discussions-to'] ? ['Discussions-To', `<a href="${esc(hip['discussions-to'])}" target="_blank">${esc(truncUrl(hip['discussions-to']))}</a>`] : null,
-    ['Status', `${badge(hip.status)} <span class="status-info-icon" style="width:16px;height:16px;font-size:.6rem">i<span class="tip">${esc(STATUS_TIPS[hip.status] || '')}</span></span>`],
+    ['Status', `${badge(hip.status)} <span class="status-info-icon" style="width:16px;height:16px;font-size:.6rem">i<span class="tip">${esc(STATUS_TIPS.get(hip.status) || '')}</span></span>`],
     hip['needs-hiero-approval'] ? ['Requires Hiero Approval', norm(hip['needs-hiero-approval'])] : null,
     hip['needs-hedera-review'] ? ['Requires Hedera Review', norm(hip['needs-hedera-review'])] : null,
     hip['last-call-date-time'] ? ['Last Call Ends', formatDate(hip['last-call-date-time'])] : null,
@@ -535,14 +534,13 @@ function showDetail(num) {
     hip.release ? ['Release', fmtRelease(hip.release, hip.category)] : null,
   ].filter(Boolean);
 
-  // nosemgrep: javascript.browser.security.innerHTML -- trusted HIP metadata, values escaped
-  $('#hip-meta-table tbody').innerHTML = rows.map(([l, v]) =>
+  safeHTML($('#hip-meta-table tbody'), rows.map(([l, v]) =>
     `<tr><th>${l}</th><td>${v}</td></tr>`
-  ).join('');
+  ).join(''));
 
   // Render markdown content
-  const body = hipBodies[hip.hip] || '';
-  $('#hip-content').innerHTML = marked.parse(body); // nosemgrep: javascript.browser.security.innerHTML -- markdown rendering
+  const body = hipBodies.get(String(hip.hip)) || '';
+  safeHTML($('#hip-content'), marked.parse(body));
   applyRainbowIndent($('#hip-content'));
 
   // Build TOC
@@ -573,7 +571,7 @@ function buildTOC() {
     const lvl = h.tagName === 'H3' ? ' toc-h3' : h.tagName === 'H4' ? ' toc-h4' : '';
     html += `<li class="${lvl}"><a href="#${id}" data-toc-target="${id}">${h.textContent}</a></li>`;
   });
-  tocList.innerHTML = html; // nosemgrep: javascript.browser.security.innerHTML -- TOC from headings
+  safeHTML(tocList, html);
 }
 
 function setupScrollSpy() {
@@ -644,12 +642,11 @@ async function loadGitHubData(hip) {
 
 // ---- Discussion rendering (from pre-built data) ----
 async function loadDiscussionData(hip, url, els) {
-  const disc = discussionsData[hip.hip];
+  const disc = discussionsData.get(String(hip.hip));
   els.commentsLoading.style.display = 'none';
 
   if (!disc) {
-    // nosemgrep: javascript.browser.security.innerHTML -- URL is escaped via esc()
-    els.commentsList.innerHTML = `<p style="color:var(--fg-muted);font-size:.88rem">Discussion comments not yet cached. <a href="${esc(url)}" target="_blank" style="color:var(--link)">View on GitHub</a></p>`;
+    safeHTML(els.commentsList, `<p style="color:var(--fg-muted);font-size:.88rem">Discussion comments not yet cached. <a href="${esc(url)}" target="_blank" style="color:var(--link)">View on GitHub</a></p>`);
     els.commentCount.textContent = '0';
     return;
   }
@@ -672,7 +669,7 @@ async function loadDiscussionData(hip, url, els) {
     html += '</div>';
   }
 
-  els.commentsList.innerHTML = html || '<p style="color:var(--fg-muted);font-size:.88rem">No comments yet.</p>'; // nosemgrep: javascript.browser.security.innerHTML
+  safeHTML(els.commentsList, html || '<p style="color:var(--fg-muted);font-size:.88rem">No comments yet.</p>');
 }
 
 // ---- PR rendering (REST + pre-built review threads) ----
@@ -718,7 +715,7 @@ async function loadPRData(owner, repo, prNum, url, hip, els) {
     }
 
     // Render pre-built review threads (including resolved)
-    const reviewThreads = prReviewsData[hip.hip];
+    const reviewThreads = prReviewsData.get(String(hip.hip));
     if (reviewThreads?.length) {
       html += '<h3 class="thread-section-title">Review Threads</h3>';
       for (const thread of reviewThreads) {
@@ -744,10 +741,9 @@ async function loadPRData(owner, repo, prNum, url, hip, els) {
     }
 
     els.commentCount.textContent = total;
-    els.commentsList.innerHTML = html || '<p style="color:var(--fg-muted);font-size:.88rem;padding:.5rem 0">No comments yet. Be the first to discuss this HIP.</p>'; // nosemgrep: javascript.browser.security.innerHTML
+    safeHTML(els.commentsList, html || '<p style="color:var(--fg-muted);font-size:.88rem;padding:.5rem 0">No comments yet. Be the first to discuss this HIP.</p>');
   } catch (e) {
-    // nosemgrep: javascript.browser.security.innerHTML -- URL is escaped via esc()
-    els.commentsLoading.innerHTML = `<span style="color:var(--fg-muted)">Could not load comments. <a href="${esc(url || `https://github.com/${owner}/${repo}/pull/${prNum}`)}" target="_blank" style="color:var(--link)">View on GitHub</a></span>`;
+    safeHTML(els.commentsLoading, `<span style="color:var(--fg-muted)">Could not load comments. <a href="${esc(url || `https://github.com/${owner}/${repo}/pull/${prNum}`)}" target="_blank" style="color:var(--link)">View on GitHub</a></span>`);
   }
 }
 
@@ -769,19 +765,23 @@ async function loadIssueComments(owner, repo, issueNum, url, els) {
         html += renderRestComment(c);
         html += '</div>';
       }
-      els.commentsList.innerHTML = html; // nosemgrep: javascript.browser.security.innerHTML
+      safeHTML(els.commentsList, html);
     } else {
       els.commentCount.textContent = '0';
-      els.commentsList.innerHTML = '<p style="color:var(--fg-muted);font-size:.88rem">No comments yet.</p>'; // nosemgrep: javascript.browser.security.innerHTML
+      safeHTML(els.commentsList, '<p style="color:var(--fg-muted);font-size:.88rem">No comments yet.</p>');
     }
   } catch (e) {
-    // nosemgrep: javascript.browser.security.innerHTML -- URL is escaped via esc()
-    els.commentsLoading.innerHTML = `<span style="color:var(--fg-muted)">Could not load comments. <a href="${esc(url)}" target="_blank" style="color:var(--link)">View on GitHub</a></span>`;
+    safeHTML(els.commentsLoading, `<span style="color:var(--fg-muted)">Could not load comments. <a href="${esc(url)}" target="_blank" style="color:var(--link)">View on GitHub</a></span>`);
   }
 }
 
 // ---- Shared rendering helpers ----
-const REACTION_EMOJI = { '+1': '\ud83d\udc4d', '-1': '\ud83d\udc4e', THUMBS_UP: '\ud83d\udc4d', THUMBS_DOWN: '\ud83d\udc4e', laugh: '\ud83d\ude04', LAUGH: '\ud83d\ude04', hooray: '\ud83c\udf89', HOORAY: '\ud83c\udf89', confused: '\ud83d\ude15', CONFUSED: '\ud83d\ude15', heart: '\u2764\ufe0f', HEART: '\u2764\ufe0f', rocket: '\ud83d\ude80', ROCKET: '\ud83d\ude80', eyes: '\ud83d\udc40', EYES: '\ud83d\udc40' };
+const REACTION_EMOJI = new Map([
+  ['+1', '\ud83d\udc4d'], ['-1', '\ud83d\udc4e'], ['THUMBS_UP', '\ud83d\udc4d'], ['THUMBS_DOWN', '\ud83d\udc4e'],
+  ['laugh', '\ud83d\ude04'], ['LAUGH', '\ud83d\ude04'], ['hooray', '\ud83c\udf89'], ['HOORAY', '\ud83c\udf89'],
+  ['confused', '\ud83d\ude15'], ['CONFUSED', '\ud83d\ude15'], ['heart', '\u2764\ufe0f'], ['HEART', '\u2764\ufe0f'],
+  ['rocket', '\ud83d\ude80'], ['ROCKET', '\ud83d\ude80'], ['eyes', '\ud83d\udc40'], ['EYES', '\ud83d\udc40'],
+]);
 
 function renderReactions(reactions, container) {
   const map = [
@@ -797,11 +797,11 @@ function renderReactions(reactions, container) {
 
   const chips = map
     .filter(([, count]) => count > 0)
-    .map(([key, count]) => `<span class="reaction-chip">${REACTION_EMOJI[key] || key} <span class="reaction-count">${count}</span></span>`)
+    .map(([key, count]) => `<span class="reaction-chip">${(REACTION_EMOJI.get(key) || key)} <span class="reaction-count">${count}</span></span>`)
     .join('');
 
   if (chips) {
-    container.innerHTML = chips; // nosemgrep: javascript.browser.security.innerHTML -- trusted reaction emoji
+    safeHTML(container, chips);
     container.style.display = '';
   }
 }
@@ -810,17 +810,23 @@ function renderReactionChips(reactions) {
   if (!reactions) return '';
   // REST API format: { "+1": 2, ... }
   if (typeof reactions['+1'] === 'number') {
-    const chips = ['+1', '-1', 'laugh', 'hooray', 'confused', 'heart', 'rocket', 'eyes']
-      .filter(k => reactions[k] > 0)
-      .map(k => `<span class="reaction-chip">${REACTION_EMOJI[k]} <span class="reaction-count">${reactions[k]}</span></span>`);
+    const reactionMap = new Map([
+      ['+1', reactions['+1']], ['-1', reactions['-1']],
+      ['laugh', reactions.laugh], ['hooray', reactions.hooray],
+      ['confused', reactions.confused], ['heart', reactions.heart],
+      ['rocket', reactions.rocket], ['eyes', reactions.eyes],
+    ]);
+    const chips = [...reactionMap.entries()]
+      .filter(([, count]) => count > 0)
+      .map(([k, count]) => `<span class="reaction-chip">${(REACTION_EMOJI.get(k) || k)} <span class="reaction-count">${count}</span></span>`);
     return chips.length ? `<div class="comment-reactions">${chips.join('')}</div>` : '';
   }
   // GraphQL format: [{ content: "THUMBS_UP" }, ...]
   if (Array.isArray(reactions)) {
-    const counts = {};
-    for (const r of reactions) { counts[r.content] = (counts[r.content] || 0) + 1; }
-    const chips = Object.entries(counts)
-      .map(([k, n]) => `<span class="reaction-chip">${REACTION_EMOJI[k] || k} <span class="reaction-count">${n}</span></span>`);
+    const counts = new Map();
+    for (const r of reactions) { counts.set(r.content, (counts.get(r.content) || 0) + 1); }
+    const chips = [...counts.entries()]
+      .map(([k, n]) => `<span class="reaction-chip">${(REACTION_EMOJI.get(k) || k)} <span class="reaction-count">${n}</span></span>`);
     return chips.length ? `<div class="comment-reactions">${chips.join('')}</div>` : '';
   }
   return '';
@@ -926,7 +932,7 @@ function applyRainbowIndent(container) {
     // --- 2) Bracket Pair Colorization ---
     // Process text nodes to colorize brackets
     const tmp = document.createElement('div');
-    tmp.innerHTML = html; // nosemgrep: javascript.browser.security.innerHTML -- code block reformatting
+    safeHTML(tmp, html);
     let depth = 0;
     const walker = document.createTreeWalker(tmp, NodeFilter.SHOW_TEXT);
     const replacements = [];
@@ -958,7 +964,7 @@ function applyRainbowIndent(container) {
     for (const { node, frag } of replacements) {
       node.parentNode.replaceChild(frag, node);
     }
-    block.innerHTML = tmp.innerHTML; // nosemgrep: javascript.browser.security.innerHTML -- code block reformatting
+    safeHTML(block, tmp.innerHTML);
 
     // --- 3) Matching Tag Highlight (HTML/XML blocks) ---
     block.querySelectorAll('.hljs-name').forEach(el => {
@@ -1014,10 +1020,9 @@ function applyRainbowIndent(container) {
       const text = el.textContent;
       if (!colorRe.test(text)) return;
       colorRe.lastIndex = 0;
-      // nosemgrep: javascript.browser.security.innerHTML -- color swatch display, values escaped
-      el.innerHTML = text.replace(colorRe, match => {
+      safeHTML(el, text.replace(colorRe, match => {
         return `<span class="color-swatch-wrap">${esc(match)}<span class="color-swatch" style="background:${esc(match)}"></span></span>`;
-      });
+      }));
     });
   });
 }
@@ -1204,8 +1209,7 @@ function esc(s) {
 function showDiscordModal(intro) {
   const overlay = document.createElement('div');
   overlay.className = 'discord-modal-overlay';
-  // nosemgrep: javascript.browser.security.innerHTML -- trusted static modal template
-  overlay.innerHTML = `
+  safeHTML(overlay, `
     <div class="discord-modal">
       <button class="discord-modal-close" title="Close">&times;</button>
       <h3>Share on Discord</h3>
@@ -1220,7 +1224,7 @@ function showDiscordModal(intro) {
       </div>
       <button class="discord-modal-open" id="discord-open">Download HIP &amp; Open Discord</button>
     </div>
-  `;
+  `);
   document.body.appendChild(overlay);
 
   overlay.querySelector('#discord-msg').value = intro;
@@ -1273,8 +1277,8 @@ function showToast(msg) {
    HIP CREATION WIZARD
    ============================================= */
 const WIZARD_STORAGE_KEY = 'hip-wizard-draft';
-const MIN_WORDS = { abstract: 100, motivation: 15, rationale: 15, specification: 20 };
-const MAX_WORDS = { abstract: 250 };
+const MIN_WORDS = new Map([['abstract', 100], ['motivation', 15], ['rationale', 15], ['specification', 20]]);
+const MAX_WORDS = new Map([['abstract', 250]]);
 function countWords(text) {
   return text.trim().split(/\s+/).filter(w => w.length > 0).length;
 }
@@ -1357,14 +1361,13 @@ function initWizard() {
 
 function renderWizardSteps() {
   const el = $('#wizard-steps');
-  // nosemgrep: javascript.browser.security.innerHTML -- trusted static wizard step labels
-  el.innerHTML = WIZARD_STEPS.map((s, i) => {
+  safeHTML(el, WIZARD_STEPS.map((s, i) => {
     const valid = isStepValid(i);
     return `<button class="wz-step ${i === wizardStep ? 'wz-step--active' : ''} ${valid ? 'wz-step--done' : ''}" data-step="${i}">
       <span class="wz-step-num">${valid && i !== wizardStep ? '✓' : i + 1}</span>
       <span class="wz-step-label">${s.label}</span>
     </button>`;
-  }).join('');
+  }).join(''));
 
   el.querySelectorAll('.wz-step').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1384,10 +1387,10 @@ function isStepValid(idx) {
   switch (idx) {
     case 0: return !!(d.title && d.type && (d.type !== 'Standards Track' || d.category));
     case 1: return !!(d.authorName && (d.authorHandle || d.authorEmail));
-    case 2: { const wc = countWords(d.abstract || ''); return wc >= (MIN_WORDS.abstract || 15) && wc <= (MAX_WORDS.abstract || Infinity); }
-    case 3: return countWords(d.motivation || '') >= (MIN_WORDS.motivation || 15);
-    case 4: return countWords(d.rationale || '') >= (MIN_WORDS.rationale || 15);
-    case 5: return countWords(d.specification || '') >= (MIN_WORDS.specification || 15);
+    case 2: { const wc = countWords(d.abstract || ''); return wc >= (MIN_WORDS.get('abstract') || 15) && wc <= (MAX_WORDS.get('abstract') || Infinity); }
+    case 3: return countWords(d.motivation || '') >= (MIN_WORDS.get('motivation') || 15);
+    case 4: return countWords(d.rationale || '') >= (MIN_WORDS.get('rationale') || 15);
+    case 5: return countWords(d.specification || '') >= (MIN_WORDS.get('specification') || 15);
     case 6: return true; // optional
     case 7: return true; // submit
     default: return false;
@@ -1425,11 +1428,20 @@ function validateWizardStep() {
   return true;
 }
 
+const WIZARD_FIELDS = new Set([
+  'title', 'type', 'category', 'authorName', 'authorHandle', 'authorEmail',
+  'workingGroupText', 'abstract', 'motivation', 'rationale', 'specification',
+  'backwards', 'security', 'needsHiero', 'needsHedera',
+]);
+
 function collectWizardFields() {
   const form = $('#wizard-form');
   if (!form) return;
   form.querySelectorAll('[data-field]').forEach(el => {
-    wizardData[el.dataset.field] = el.value;
+    const field = el.dataset.field;
+    if (WIZARD_FIELDS.has(field)) {
+      wizardData[field] = el.value;
+    }
   });
   saveWizardDraft();
 }
@@ -1461,8 +1473,7 @@ function renderWizardStep() {
 
 function renderBasicsStep(form) {
   const d = wizardData;
-  // nosemgrep: javascript.browser.security.innerHTML -- wizard form template, values escaped via esc()
-  form.innerHTML = `
+  safeHTML(form, `
     <h3>Basics</h3>
     <p class="wz-hint">Start with the fundamentals of your proposal.</p>
     <div class="wz-field">
@@ -1503,7 +1514,7 @@ function renderBasicsStep(form) {
         <option value="No" ${d.needsHedera === 'No' ? 'selected' : ''}>No</option>
       </select>
     </div>
-  `;
+  `);
 
   const typeSelect = form.querySelector('[data-field="type"]');
   const catField = form.querySelector('#wz-category-field');
@@ -1516,8 +1527,7 @@ function renderBasicsStep(form) {
 
 function renderAuthorsStep(form) {
   const d = wizardData;
-  // nosemgrep: javascript.browser.security.innerHTML -- wizard form template, values escaped via esc()
-  form.innerHTML = `
+  safeHTML(form, `
     <h3>Authors</h3>
     <p class="wz-hint">Who is proposing this HIP?</p>
     <div class="wz-field">
@@ -1542,7 +1552,7 @@ function renderAuthorsStep(form) {
       <input type="text" data-field="workingGroupText" value="${esc(d.workingGroupText || '')}" placeholder="e.g. Bob Jones <@bjones>, Alice Lee <alice@example.com>">
       <span class="wz-field-help">Comma-separated. Format: Name &lt;@github&gt; or Name &lt;email&gt;</span>
     </div>
-  `;
+  `);
 
   // Live validation on blur for contact fields
   const handleEl = form.querySelector('[data-field="authorHandle"]');
@@ -1568,17 +1578,16 @@ function renderAuthorsStep(form) {
 
 function renderTextStep(form, field, label, hint, required) {
   const d = wizardData;
-  const val = d[field] || '';
-  const minW = MIN_WORDS[field] || 15;
-  const maxW = MAX_WORDS[field] || 0;
+  const val = WIZARD_FIELDS.has(field) ? (d[field] || '') : '';
+  const minW = MIN_WORDS.get(field) || 15;
+  const maxW = MAX_WORDS.get(field) || 0;
   const wc = countWords(val);
   const pct = Math.min(100, Math.round((wc / minW) * 100));
   const met = wc >= minW;
   const over = maxW > 0 && wc > maxW;
   const rangeLabel = maxW > 0 ? `${minW}–${maxW}` : `${minW}`;
 
-  // nosemgrep: javascript.browser.security.innerHTML -- wizard form template, values escaped via esc()
-  form.innerHTML = `
+  safeHTML(form, `
     <h3>${label}</h3>
     <p class="wz-hint">${hint}${maxW > 0 ? ` (${rangeLabel} words)` : ''}</p>
     <div class="wz-toolbar" id="wz-toolbar"></div>
@@ -1595,7 +1604,7 @@ function renderTextStep(form, field, label, hint, required) {
       ${over ? '<span class="wz-inline-error wz-inline-error--visible">Too long — please shorten to ' + maxW + ' words or fewer</span>' : ''}
       ${!met && !over && val.length > 0 ? '<span class="wz-inline-error wz-inline-error--visible">Keep going — need at least ' + minW + ' words to continue</span>' : ''}
     </div>
-  `;
+  `);
 
   const textarea = form.querySelector('#wz-textarea');
   const updateWordCount = () => {
@@ -1618,7 +1627,7 @@ function renderTextStep(form, field, label, hint, required) {
       countSpan.classList.remove('wz-word-count--met', 'wz-word-count--over');
       if (isOver) countSpan.classList.add('wz-word-count--over');
       else if (ok) countSpan.classList.add('wz-word-count--met');
-      countSpan.innerHTML = `<span id="wz-wordcount">${w}</span> / ${rangeLabel} words ${isOver ? '(too long)' : ok ? '&#10003;' : 'minimum'}`; // nosemgrep: javascript.browser.security.innerHTML
+      safeHTML(countSpan, `<span id="wz-wordcount">${w}</span> / ${rangeLabel} words ${isOver ? '(too long)' : ok ? '&#10003;' : 'minimum'}`);
     }
     if (isOver) {
       const err = document.createElement('span');
@@ -1640,8 +1649,7 @@ function renderTextStep(form, field, label, hint, required) {
 
 function renderCompatStep(form) {
   const d = wizardData;
-  // nosemgrep: javascript.browser.security.innerHTML -- wizard form template, values escaped via esc()
-  form.innerHTML = `
+  safeHTML(form, `
     <h3>Compatibility & Security</h3>
     <p class="wz-hint">These sections are optional but strongly recommended.</p>
     <div class="wz-toolbar" id="wz-toolbar-compat"></div>
@@ -1654,7 +1662,7 @@ function renderCompatStep(form) {
       <label>Security Implications</label>
       <textarea data-field="security" id="wz-textarea-sec" rows="6" placeholder="Are there security considerations?">${esc(d.security || '')}</textarea>
     </div>
-  `;
+  `);
   setupMarkdownToolbar(form.querySelector('#wz-toolbar-compat'), form.querySelector('#wz-textarea-compat'));
   setupMarkdownToolbar(form.querySelector('#wz-toolbar-sec'), form.querySelector('#wz-textarea-sec'));
   bindWizardInputs(form);
@@ -1667,17 +1675,16 @@ function renderSubmitStep(form) {
   const issues = [];
   if (!isStepValid(0)) issues.push('Basics: title, type, and category are required');
   if (!isStepValid(1)) issues.push('Authors: name and GitHub handle or email required');
-  if (!isStepValid(2)) issues.push(`Abstract: need at least ${MIN_WORDS.abstract} words (currently ${countWords(wizardData.abstract || '')})`);
-  if (!isStepValid(3)) issues.push(`Motivation: need at least ${MIN_WORDS.motivation} words (currently ${countWords(wizardData.motivation || '')})`);
-  if (!isStepValid(4)) issues.push(`Rationale: need at least ${MIN_WORDS.rationale} words (currently ${countWords(wizardData.rationale || '')})`);
-  if (!isStepValid(5)) issues.push(`Specification: need at least ${MIN_WORDS.specification} words (currently ${countWords(wizardData.specification || '')})`);
+  if (!isStepValid(2)) issues.push(`Abstract: need at least ${MIN_WORDS.get('abstract')} words (currently ${countWords(wizardData.abstract || '')})`);
+  if (!isStepValid(3)) issues.push(`Motivation: need at least ${MIN_WORDS.get('motivation')} words (currently ${countWords(wizardData.motivation || '')})`);
+  if (!isStepValid(4)) issues.push(`Rationale: need at least ${MIN_WORDS.get('rationale')} words (currently ${countWords(wizardData.rationale || '')})`);
+  if (!isStepValid(5)) issues.push(`Specification: need at least ${MIN_WORDS.get('specification')} words (currently ${countWords(wizardData.specification || '')})`);
 
   const slug = wizardData.title ? wizardData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'my-proposal';
   const filename = `HIP/hip-${slug}.md`;
   const ghUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/new/main?filename=${encodeURIComponent(filename)}&value=${encodeURIComponent(md)}`;
 
-  // nosemgrep: javascript.browser.security.innerHTML -- wizard form template, values escaped via esc()
-  form.innerHTML = `
+  safeHTML(form, `
     <h3>Review & Submit</h3>
     ${issues.length ? `
       <div class="wz-issues">
@@ -1706,7 +1713,7 @@ function renderSubmitStep(form) {
     <div class="wz-startover">
       <button id="wz-clear" class="wz-clear-btn">Start Over</button>
     </div>
-  `;
+  `);
 
   if (!allValid) {
     const ghLink = form.querySelector('.wz-submit-btn--primary');
@@ -1726,8 +1733,8 @@ function renderSubmitStep(form) {
     navigator.clipboard.writeText(generateHipMarkdown());
     const btn = e.currentTarget;
     const orig = btn.innerHTML;
-    btn.innerHTML = '<span style="color:var(--green)">Copied!</span>'; // nosemgrep: javascript.browser.security.innerHTML
-    setTimeout(() => { btn.innerHTML = orig; }, 1500); // nosemgrep: javascript.browser.security.innerHTML
+    safeHTML(btn, '<span style="color:var(--green)">Copied!</span>');
+    setTimeout(() => { safeHTML(btn, orig); }, 1500);
   });
 
   form.querySelector('#wz-discord')?.addEventListener('click', () => {
@@ -1791,10 +1798,9 @@ function setupMarkdownToolbar(toolbar, textarea) {
     { label: '▦', title: 'Table', insert: '| Header | Header |\n| ------ | ------ |\n| Cell   | Cell   |' },
   ];
 
-  // nosemgrep: javascript.browser.security.innerHTML -- trusted static toolbar buttons
-  toolbar.innerHTML = btns.map(b =>
+  safeHTML(toolbar, btns.map(b =>
     `<button type="button" class="wz-tb-btn" title="${esc(b.title)}" data-idx="${btns.indexOf(b)}">${b.label}</button>`
-  ).join('');
+  ).join(''));
 
   toolbar.querySelectorAll('.wz-tb-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1900,14 +1906,13 @@ function updateWizardPreview() {
   const bodyMatch = md.match(/^---[\s\S]*?---\n\n?([\s\S]*)$/);
   const bodyMd = bodyMatch ? bodyMatch[1] : '';
 
-  // nosemgrep: javascript.browser.security.innerHTML -- wizard preview with markdown rendering
-  preview.innerHTML = `
+  safeHTML(preview, `
     <div class="detail-header">
       <h1><span class="hip-number">HIP-???:</span> ${esc(d.title || 'Untitled')}</h1>
     </div>
     ${metaHtml}
     <article>${marked.parse(bodyMd)}</article>
-  `;
+  `);
 
   applyRainbowIndent(preview);
 }

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "dompurify": "^3.3.3",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",
     "highlightjs-solidity": "^2.0.6",

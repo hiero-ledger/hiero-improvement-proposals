@@ -17,13 +17,13 @@ function parseMarkdown(raw) {
     // Fallback: manual frontmatter parse for files with YAML issues
     const match = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
     if (!match) return null;
-    const data = {};
+    const dataMap = new Map();
     for (const line of match[1].split('\n')) {
       const idx = line.indexOf(':');
       if (idx === -1) continue;
-      data[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+      dataMap.set(line.slice(0, idx).trim(), line.slice(idx + 1).trim());
     }
-    return { data, content: match[2] };
+    return { data: Object.fromEntries(dataMap), content: match[2] };
   }
 }
 
