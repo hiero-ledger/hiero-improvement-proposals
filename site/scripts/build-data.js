@@ -61,8 +61,6 @@ for (const file of files) {
   const raw = fs.readFileSync(path.join(HIP_DIR, file), 'utf-8');
   const parsed = parseMarkdown(raw);
   if (!parsed || !parsed.data.hip) continue;
-
-  if (parsed !== null && !parsed.data.hip) continue;
   mergedHipNumbers.add(Number(parsed.data.hip));
   hips.push(extractHip(parsed.data, parsed.content));
   hipBodies[parsed.data.hip] = parsed.content;
@@ -110,7 +108,7 @@ async function fetchDraftHips() {
 
       const raw = await res.text();
       const parsed = parseMarkdown(raw);
-      if (!parsed || !parsed.data.hip && !parsed.data.title) {
+      if (!parsed || (!parsed.data.hip && !parsed.data.title)) {
         console.warn(`  PR-${pr.number}: could not parse frontmatter from ${filePath}`);
         continue;
       }
