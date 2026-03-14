@@ -4,11 +4,28 @@ import matter from 'gray-matter';
 
 const HIP_DIR = path.resolve('../HIP');
 const DATA_DIR = path.resolve('../_data');
+const ASSETS_DIR = path.resolve('../assets');
 const OUT_DIR = path.resolve('public/data');
+const PUBLIC_ASSETS = path.resolve('public/assets');
 const REPO_OWNER = 'hiero-ledger';
 const REPO_NAME = 'hiero-improvement-proposals';
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
+
+// Copy repo assets into public/ so images in HIPs resolve correctly
+function copyDirSync(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) copyDirSync(srcPath, destPath);
+    else fs.copyFileSync(srcPath, destPath);
+  }
+}
+if (fs.existsSync(ASSETS_DIR)) {
+  copyDirSync(ASSETS_DIR, PUBLIC_ASSETS);
+  console.log('Copied assets/ to public/assets/');
+}
 
 function parseMarkdown(raw) {
   try {
@@ -63,7 +80,7 @@ for (const file of files) {
   if (!parsed || !parsed.data.hip) continue;
   mergedHipNumbers.add(Number(parsed.data.hip));
   hips.push(extractHip(parsed.data, parsed.content));
-  hipBodies[parsed.data.hip] = parsed.content;
+  hipBodies[parsed.data.hip] = parsed.content.replace(/\.\.\/(assets\/)/g, '/$1');
 }
 
 console.log(`Parsed ${hips.length} merged HIPs`);
@@ -125,7 +142,7 @@ async function fetchDraftHips() {
       };
 
       hips.push(extractHip(data, parsed.content, { prNumber: pr.number }));
-      hipBodies[hipNum] = parsed.content;
+      hipBodies[hipNum] = parsed.content.replace(/\.\.\/(assets\/)/g, '/$1');
       fetched++;
       console.log(`  PR-${pr.number}: fetched HIP-${hipNum} "${data.title}"`);
     } catch (e) {
