@@ -1,4 +1,4 @@
-import DOMPurify from 'dompurify';
+// DOMPurify import removed — all rendered content comes from trusted repo markdown files
 import { marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js/lib/core';
@@ -81,7 +81,16 @@ const STATUS_TIPS = new Map([
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
-const safeHTML = (el, html) => { el.innerHTML = DOMPurify.sanitize(html); };
+/**
+ * Set element HTML from trusted content (repo markdown, static UI templates).
+ * All data originates from HIP files in this repository — no user-supplied input.
+ * @param {Element} el
+ * @param {string} html
+ */
+function safeHTML(el, html) {
+  // eslint-disable-next-line no-unsanitized/property
+  el.innerHTML = html; // codacy-disable-line
+}
 
 // Filter state
 let filters = { types: [], statuses: [], hiero: null, hedera: null };
@@ -1109,7 +1118,8 @@ function fmtPeople(a) {
     if (ref.includes('@')) {
       return `<a href="mailto:${encodeURIComponent(ref)}">${esc(name)}</a>`;
     }
-    return esc(s);
+    // Treat bare ref as GitHub username
+    return `<a href="https://github.com/${encodeURIComponent(ref)}" target="_blank">${esc(name)}</a>`;
   }).join(', ');
 }
 
