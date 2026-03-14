@@ -38,6 +38,8 @@ jobs:
       - name: Build data
         working-directory: site
         run: npm run build:data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build site
         working-directory: site
