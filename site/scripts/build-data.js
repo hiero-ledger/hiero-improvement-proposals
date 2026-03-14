@@ -169,21 +169,18 @@ async function fetchDiscussions() {
           body
           author { login avatarUrl url }
           createdAt
-          reactions(first: 10) { nodes { content } }
-          comments(first: 100) {
+          comments(first: 50) {
             nodes {
               body
               author { login avatarUrl url }
               createdAt
               isMinimized
-              reactions(first: 10) { nodes { content } }
-              replies(first: 50) {
+              replies(first: 20) {
                 nodes {
                   body
                   author { login avatarUrl url }
                   createdAt
                   isMinimized
-                  reactions(first: 10) { nodes { content } }
                 }
               }
             }
@@ -204,8 +201,9 @@ async function fetchDiscussions() {
       });
       const json = await res.json();
       if (json.errors) {
-        console.warn(`  Discussion ${d.num} (${d.owner}/${d.repo}): ${json.errors[0].message}`);
-        if (json.errors[0].type === 'RATE_LIMIT') break;
+        const msg = json.errors[0].message || '';
+        console.warn(`  Discussion ${d.num} (${d.owner}/${d.repo}): ${msg}`);
+        if (msg.toLowerCase().includes('rate limit')) break;
         continue;
       }
       const disc = json.data?.repository?.discussion;
@@ -218,19 +216,16 @@ async function fetchDiscussions() {
         body: disc.body,
         author: disc.author,
         createdAt: disc.createdAt,
-        reactions: disc.reactions?.nodes || [],
         comments: (disc.comments?.nodes || []).map(c => ({
           body: c.body,
           author: c.author,
           createdAt: c.createdAt,
           isMinimized: c.isMinimized,
-          reactions: c.reactions?.nodes || [],
           replies: (c.replies?.nodes || []).map(r => ({
             body: r.body,
             author: r.author,
             createdAt: r.createdAt,
             isMinimized: r.isMinimized,
-            reactions: r.reactions?.nodes || [],
           })),
         })),
       };
