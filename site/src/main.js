@@ -1,6 +1,7 @@
 // DOMPurify import removed — all rendered content comes from trusted repo markdown files
 import { marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
+import mermaid from 'mermaid';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
@@ -45,9 +46,92 @@ marked.use(markedHighlight({
   },
 }));
 
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  themeVariables: {
+    primaryColor: '#1a1a2e',
+    primaryTextColor: '#e0e0e0',
+    primaryBorderColor: '#52b788',
+    lineColor: '#52b788',
+    secondaryColor: '#16213e',
+    tertiaryColor: '#0f3460',
+    background: 'transparent',
+    mainBkg: '#1a1a2e',
+    nodeBorder: '#52b788',
+    edgeLabelBackground: 'transparent',
+    fontFamily: 'Inter, sans-serif',
+    fontSize: '15px',
+  },
+  flowchart: {
+    curve: 'basis',
+    padding: 20,
+    nodeSpacing: 50,
+    rankSpacing: 50,
+  },
+});
+
 /* =============================================
    DATA & CONSTANTS
    ============================================= */
+
+const DIAGRAM_STANDARDS_TRACK = `<div class="mermaid">
+graph TD
+    Idea([Idea]) --> Draft([Draft])
+    Draft --> Review([Review])
+    Draft --> Deferred([Deferred])
+    Draft --> Withdrawn([Withdrawn])
+    Review --> LastCall([Last Call])
+    Review --> Rejected([Rejected])
+    LastCall --> Rejected
+    LastCall --> TSC([Hiero TSC Review])
+    LastCall --> Hedera([Hedera Review])
+    TSC -- Yes --> Approved([Approved])
+    TSC -- No --> Rejected
+    Hedera -- Yes --> Accepted([Accepted])
+    Hedera -- No --> NotAccepted([Not Accepted])
+    Approved --> Final([Final])
+    Final --> Replaced([Replaced])
+
+    style Idea fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Draft fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Review fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style LastCall fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style TSC fill:#0f3460,stroke:#4cc9f0,stroke-width:2px,color:#fff
+    style Hedera fill:#0f3460,stroke:#4cc9f0,stroke-width:2px,color:#fff
+    style Approved fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Final fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
+    style Accepted fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
+    style Deferred fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+    style Withdrawn fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+    style Rejected fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
+    style NotAccepted fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
+    style Replaced fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+</div>`;
+
+const DIAGRAM_IPA = `<div class="mermaid">
+graph TD
+    Idea([Idea]) --> Draft([Draft])
+    Draft --> Review([Review])
+    Draft --> Deferred([Deferred])
+    Draft --> Withdrawn([Withdrawn])
+    Review --> LastCall([Last Call])
+    Review --> Rejected([Rejected])
+    LastCall --> Active([Active])
+    LastCall --> Rejected
+    Active --> Replaced([Replaced])
+
+    style Idea fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Draft fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Review fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style LastCall fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Active fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
+    style Deferred fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+    style Withdrawn fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+    style Rejected fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
+    style Replaced fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+</div>`;
+
 let allHips = [];
 let hipBodies = new Map();
 let discussionsData = new Map();
@@ -104,11 +188,13 @@ async function init() {
   initTheme();
 
   const base = import.meta.env.BASE_URL;
+  const manifest = await fetch(`${base}data/manifest.json?v=${Date.now()}`).then(r => r.json()).catch(() => ({}));
+  const h = manifest.buildHash || 'latest';
   const [hipsRes, bodiesRes, discRes, prRevRes] = await Promise.all([
-    fetch(`${base}data/hips.json`),
-    fetch(`${base}data/hip-bodies.json`),
-    fetch(`${base}data/discussions.json`).catch(() => ({ json: () => ({}) })),
-    fetch(`${base}data/pr-reviews.json`).catch(() => ({ json: () => ({}) })),
+    fetch(`${base}data/hips.${h}.json`),
+    fetch(`${base}data/hip-bodies.${h}.json`),
+    fetch(`${base}data/discussions.${h}.json`).catch(() => ({ json: () => ({}) })),
+    fetch(`${base}data/pr-reviews.${h}.json`).catch(() => ({ json: () => ({}) })),
   ]);
   allHips = await hipsRes.json();
   hipBodies = new Map(Object.entries(await bodiesRes.json()));
@@ -501,7 +587,7 @@ function renderList() {
 /* =============================================
    DETAIL VIEW
    ============================================= */
-function showDetail(num) {
+async function showDetail(num) {
   const hip = allHips.find(h => String(h.hip) === String(num));
   if (!hip) { location.hash = ''; return; }
 
@@ -549,8 +635,20 @@ function showDetail(num) {
 
   // Render markdown content
   const body = hipBodies.get(String(hip.hip)) || '';
-  safeHTML($('#hip-content'), marked.parse(body));
+  let rendered = marked.parse(body);
+  // Inject mermaid diagrams after markdown processing to avoid marked corrupting the syntax
+  rendered = rendered.replace(/<!--DIAGRAM:STANDARDS_TRACK-->/g, DIAGRAM_STANDARDS_TRACK);
+  rendered = rendered.replace(/<!--DIAGRAM:IPA-->/g, DIAGRAM_IPA);
+  safeHTML($('#hip-content'), rendered);
   applyRainbowIndent($('#hip-content'));
+
+  // Render any Mermaid diagrams
+  const mermaidEls = $('#hip-content').querySelectorAll('.mermaid');
+  if (mermaidEls.length) {
+    await mermaid.run({ nodes: mermaidEls });
+    addDiagramTooltips($('#hip-content'));
+    addDiagramZoom($('#hip-content'));
+  }
 
   // Build TOC
   buildTOC();
@@ -560,6 +658,71 @@ function showDetail(num) {
 
   // Load GitHub data (PR status, reactions, comments)
   loadGitHubData(hip);
+}
+
+const STATE_TOOLTIPS = new Map([
+  ['Idea', 'Propose your idea — create a GitHub issue to discuss it with the community before writing a formal HIP.'],
+  ['Draft', 'A formal HIP has been written and submitted as a pull request. The author is refining the proposal.'],
+  ['Review', 'The HIP editors and community are actively reviewing the proposal and providing feedback.'],
+  ['Last Call', 'Review period is ending (typically 14 days). Final chance to raise objections before approval.'],
+  ['Hiero TSC Review', 'The Hiero Technical Steering Committee reviews the HIP for technical soundness.'],
+  ['Hedera Review', 'Hedera Council reviews the HIP when it affects the Hedera network (needs-hedera-review: Yes).'],
+  ['Approved', 'The HIP has been approved by the Hiero TSC and is ready for implementation.'],
+  ['Final', 'The HIP has been implemented and is considered complete. No further changes expected.'],
+  ['Active', 'The HIP is active and in effect. Used for Informational, Process, and Application HIPs.'],
+  ['Accepted', 'The HIP has been accepted by both the Hiero TSC and Hedera Council.'],
+  ['Not Accepted', 'The Hedera Council did not accept the HIP after review.'],
+  ['Deferred', 'The HIP has been paused by the author. It can be resumed later by moving back to Draft.'],
+  ['Withdrawn', 'The author has pulled the HIP from consideration. It is no longer being pursued.'],
+  ['Rejected', 'The HIP was reviewed and rejected. It will not move forward in its current form.'],
+  ['Replaced', 'This HIP has been superseded by a newer HIP that covers the same topic.'],
+]);
+
+function addDiagramTooltips(container) {
+  const tooltip = document.createElement('div');
+  tooltip.className = 'diagram-tooltip';
+  document.body.appendChild(tooltip);
+
+  container.querySelectorAll('.mermaid .node').forEach(node => {
+    const label = node.querySelector('.nodeLabel');
+    if (!label) return;
+    const text = label.textContent.trim();
+    const tip = STATE_TOOLTIPS.get(text);
+    if (!tip) return;
+
+    node.style.cursor = 'pointer';
+    node.addEventListener('mouseenter', (e) => {
+      tooltip.textContent = tip;
+      tooltip.classList.add('visible');
+      const rect = node.getBoundingClientRect();
+      tooltip.style.left = `${rect.left + rect.width / 2}px`;
+      tooltip.style.top = `${rect.top - 8}px`;
+    });
+    node.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible');
+    });
+  });
+}
+
+function addDiagramZoom(container) {
+  container.querySelectorAll('.mermaid').forEach(el => {
+    const svg = el.querySelector('svg');
+    if (!svg) return;
+
+    let scale = 1;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'diagram-zoom-wrapper';
+    el.parentNode.insertBefore(wrapper, el);
+    wrapper.appendChild(el);
+
+    wrapper.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      scale = Math.min(3, Math.max(0.5, scale + (e.deltaY > 0 ? -0.1 : 0.1)));
+      svg.style.transform = `scale(${scale})`;
+      svg.style.transformOrigin = 'center top';
+    }, { passive: false });
+  });
 }
 
 function buildTOC() {

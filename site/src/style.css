@@ -748,6 +748,74 @@ article pre {
 }
 article pre code { background: none; padding: 0; }
 article pre code.hljs { background: transparent; padding: 0; }
+/* ---- State diagrams (Mermaid) ---- */
+article .mermaid {
+  margin: 1.5em 0;
+  text-align: center;
+  overflow-x: auto;
+}
+article .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+article .mermaid .edgeLabel {
+  background: transparent !important;
+  color: #1b4332 !important;
+  font-weight: 700;
+  font-size: 13px;
+}
+article .mermaid .edgeLabel rect,
+article .mermaid .edgeLabel .label rect {
+  fill: transparent !important;
+  stroke: none !important;
+  opacity: 0 !important;
+}
+article .mermaid .edgeLabel span,
+article .mermaid .edgeLabel p,
+article .mermaid .edgeLabel foreignObject,
+article .mermaid .edgeLabel foreignObject div,
+article .mermaid .edgeLabel .label {
+  color: #1b4332 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+[data-theme="dark"] article .mermaid .edgeLabel,
+[data-theme="dark"] article .mermaid .edgeLabel span,
+[data-theme="dark"] article .mermaid .edgeLabel p,
+[data-theme="dark"] article .mermaid .edgeLabel foreignObject div,
+[data-theme="dark"] article .mermaid .edgeLabel .label {
+  color: #52b788 !important;
+}
+.diagram-zoom-wrapper {
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+.diagram-tooltip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 320px;
+  padding: .6rem .9rem;
+  border-radius: 8px;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-size: .82rem;
+  line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(0,0,0,.4);
+  border: 1px solid #52b788;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(-100%);
+  transition: opacity .15s ease;
+}
+.diagram-tooltip.visible {
+  opacity: 1;
+}
+[data-theme="light"] .diagram-tooltip {
+  background: #fff;
+  color: #1a1a2e;
+  border-color: #2d6a4f;
+  box-shadow: 0 4px 20px rgba(0,0,0,.12);
+}
 
 /* ---- Vibrant rainbow syntax theme (inspired by One Dark Pro / Dracula) ---- */
 .hljs { color: #abb2bf; background: transparent; }

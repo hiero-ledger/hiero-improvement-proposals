@@ -70,64 +70,10 @@ function extractHip(data, content, extra = {}) {
 
 // ---- Parse merged HIPs from the HIP/ directory ----
 // ---- ASCII state diagrams to replace broken image references ----
-const STANDARDS_TRACK_DIAGRAM = `\`\`\`
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║         Standards Track HIPs (Core, Service, Mirror Node & Block Node)              ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
-
-                          ┌──────────┐
-                    ┌────▶│ Deferred │
-                    │     └──────────┘
-                    │                        ┌──────────┐
-                    │     ┌─────────────────▶│ Rejected │
-                    │     │                  └──────────┘
-                    │     │                       ▲
-┌──────┐    ┌───────┤    ┌┴───────┐    ┌─────────┐│   ┌─────────────┐    ┌──────────┐    ┌───────┐
-│ Idea │───▶│ Draft │───▶│ Review │───▶│Last Call │├──▶│ Hiero TSC   │───▶│ Approved │───▶│ Final │
-└──────┘    └───┬───┘    └───┬────┘    └────┬────┘│   │   Review    │    └─────┬────┘    └───┬───┘
-                │            │              │     │   └──────┬──────┘          │             │
-                │            │              │     │     No ──┘                 │             │
-                ▼            │              │     │                            │             ▼
-           ┌───────────┐◀───┘              │     │          ┌─────────────┐   │       ┌──────────┐
-           │ Withdrawn │◀──────────────────┘     │          │   Hedera    │◀──┘       │ Replaced │
-           └───────────┘                         │          │   Review    │            └──────────┘
-                                                 │          └──────┬─────┘
-                                                 │         Yes ──┐ │ ── No
-                                                 │               ▼ ▼
-                                                 │      ┌──────────┐ ┌──────────────┐
-                                                 │      │ Accepted │ │ Not Accepted │
-                                                 │      └──────────┘ └──────────────┘
-                                                 │
-                                                 └─── (if needs-hedera-review: Yes)
-\`\`\``;
-
-const IPA_DIAGRAM = `\`\`\`
-╔══════════════════════════════════════════════════════════════════════════╗
-║            Informational, Process & Application HIPs                   ║
-╚══════════════════════════════════════════════════════════════════════════╝
-
-                          ┌──────────┐
-                    ┌────▶│ Deferred │
-                    │     └──────────┘
-                    │                        ┌──────────┐
-                    │     ┌─────────────────▶│ Rejected │
-                    │     │                  └──────────┘
-                    │     │
-┌──────┐    ┌───────┤    ┌┴───────┐    ┌─────────┐    ┌────────┐
-│ Idea │───▶│ Draft │───▶│ Review │───▶│Last Call │───▶│ Active │
-└──────┘    └───┬───┘    └───┬────┘    └────┬────┘    └───┬────┘
-                │            │              │              │
-                │            │              │              ▼
-                ▼            │              │        ┌──────────┐
-           ┌───────────┐◀───┘              │        │ Replaced │
-           │ Withdrawn │◀──────────────────┘        └──────────┘
-           └───────────┘
-\`\`\``;
-
 function replaceHipImages(content) {
-  // Replace image references with ASCII diagrams
-  content = content.replace(/!\[HIP States\]\([^)]*hip-states-standards-track\.[^)]*\)/g, STANDARDS_TRACK_DIAGRAM);
-  content = content.replace(/!\[HIP States\]\([^)]*hip-states-ipa\.[^)]*\)/g, IPA_DIAGRAM);
+  // Replace image references with placeholders (actual mermaid divs injected post-markdown in main.js)
+  content = content.replace(/!\[HIP States\]\([^)]*hip-states-standards-track\.[^)]*\)/g, '<!--DIAGRAM:STANDARDS_TRACK-->');
+  content = content.replace(/!\[HIP States\]\([^)]*hip-states-ipa\.[^)]*\)/g, '<!--DIAGRAM:IPA-->');
   // Fix any remaining relative asset paths
   content = content.replace(/\.\.\/(assets\/)/g, '/$1');
   return content;
@@ -420,12 +366,16 @@ async function main() {
     fetchPRReviewComments(),
   ]);
 
-  fs.writeFileSync(path.join(OUT_DIR, 'hips.json'), JSON.stringify(hips, null, 2));
-  fs.writeFileSync(path.join(OUT_DIR, 'hip-bodies.json'), JSON.stringify(hipBodies));
-  fs.writeFileSync(path.join(OUT_DIR, 'discussions.json'), JSON.stringify(discussions));
-  fs.writeFileSync(path.join(OUT_DIR, 'pr-reviews.json'), JSON.stringify(prReviews));
+  // Write data files with build hash to bust CDN caches
+  const crypto = await import('crypto');
+  const buildHash = crypto.randomBytes(6).toString('hex');
+  fs.writeFileSync(path.join(OUT_DIR, `hips.${buildHash}.json`), JSON.stringify(hips, null, 2));
+  fs.writeFileSync(path.join(OUT_DIR, `hip-bodies.${buildHash}.json`), JSON.stringify(hipBodies));
+  fs.writeFileSync(path.join(OUT_DIR, `discussions.${buildHash}.json`), JSON.stringify(discussions));
+  fs.writeFileSync(path.join(OUT_DIR, `pr-reviews.${buildHash}.json`), JSON.stringify(prReviews));
+  fs.writeFileSync(path.join(OUT_DIR, 'manifest.json'), JSON.stringify({ buildHash }));
 
-  console.log(`Built data for ${hips.length} total HIPs`);
+  console.log(`Built data for ${hips.length} total HIPs (hash: ${buildHash})`);
   if (Object.keys(discussions).length) console.log(`  ${Object.keys(discussions).length} discussions cached`);
   if (Object.keys(prReviews).length) console.log(`  ${Object.keys(prReviews).length} PR review threads cached`);
 }
