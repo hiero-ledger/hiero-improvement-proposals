@@ -280,11 +280,21 @@ function bindEvents() {
   document.addEventListener('click', () => $$('.multi-select.open').forEach(ms => ms.classList.remove('open')));
   $$('.ms-dropdown').forEach(dd => dd.addEventListener('click', e => e.stopPropagation()));
 
+  let searchReturnHash = null;
   $('#search').addEventListener('input', e => {
     searchQuery = e.target.value.toLowerCase().trim();
-    // If on a detail/about/create page, navigate back to list view
-    if (location.hash && location.hash !== '#') {
+    const hash = location.hash;
+    const onDetailPage = hash && hash !== '#';
+
+    if (searchQuery && onDetailPage) {
+      // Remember where the user was so they can return by clearing search
+      searchReturnHash = hash;
       location.hash = '';
+    } else if (!searchQuery && searchReturnHash) {
+      // User cleared search — go back to the HIP they were on
+      const returnTo = searchReturnHash;
+      searchReturnHash = null;
+      location.hash = returnTo;
     } else {
       renderList();
     }
