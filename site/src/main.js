@@ -280,7 +280,15 @@ function bindEvents() {
   document.addEventListener('click', () => $$('.multi-select.open').forEach(ms => ms.classList.remove('open')));
   $$('.ms-dropdown').forEach(dd => dd.addEventListener('click', e => e.stopPropagation()));
 
-  $('#search').addEventListener('input', e => { searchQuery = e.target.value.toLowerCase().trim(); renderList(); });
+  $('#search').addEventListener('input', e => {
+    searchQuery = e.target.value.toLowerCase().trim();
+    // If on a detail/about/create page, navigate back to list view
+    if (location.hash && location.hash !== '#') {
+      location.hash = '';
+    } else {
+      renderList();
+    }
+  });
 
   // Toggle filters (deselectable)
   setupToggle('hiero-toggle', val => { filters.hiero = val; updateClearBtn(); renderList(); });
