@@ -174,10 +174,22 @@ const $$ = s => document.querySelectorAll(s);
  */
 const domParser = new DOMParser();
 function safeHTML(el, html) {
-  const doc = domParser.parseFromString(`<body>${html}</body>`, 'text/html');
+  const tag = el.tagName;
+  // Table elements need proper wrapping or DOMParser strips the rows
+  let wrapper;
+  if (tag === 'TBODY' || tag === 'THEAD' || tag === 'TFOOT') {
+    const doc = domParser.parseFromString(`<table><tbody>${html}</tbody></table>`, 'text/html');
+    wrapper = doc.querySelector('tbody');
+  } else if (tag === 'TR') {
+    const doc = domParser.parseFromString(`<table><tr>${html}</tr></table>`, 'text/html');
+    wrapper = doc.querySelector('tr');
+  } else {
+    const doc = domParser.parseFromString(`<body>${html}</body>`, 'text/html');
+    wrapper = doc.body;
+  }
   el.textContent = '';
-  while (doc.body.firstChild) {
-    el.appendChild(doc.body.firstChild);
+  while (wrapper.firstChild) {
+    el.appendChild(wrapper.firstChild);
   }
 }
 
