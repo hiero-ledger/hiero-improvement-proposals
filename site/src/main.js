@@ -936,8 +936,8 @@ async function loadPRData(owner, repo, prNum, url, hip, els) {
           html += renderGqlComment(threadComments[0]);
           if (threadComments.length > 1) {
             html += '<div class="thread-replies">';
-            for (let i = 1; i < threadComments.length; i++) {
-              html += renderGqlComment(threadComments[i]);
+            for (const reply of threadComments.slice(1)) {
+              html += renderGqlComment(reply);
             }
             html += '</div>';
           }
@@ -1057,13 +1057,30 @@ function parseSuggestions(raw) {
 
 function stripEmailFooter(raw) {
   // Remove GitHub email notification footers from comments posted via email reply
-  // Handles both direct text and blockquoted (> prefixed) versions
-  return raw
-    .replace(/\n*>?\s*[—-]{1,3}\s*\n(?:>?\s*)?Reply to this email directly[\s\S]*$/im, '')
-    .replace(/\n*[—-]{1,3}\s*\n\s*Reply to this email directly[\s\S]*$/im, '')
-    .replace(/\n*>?\s*Reply to this email directly[\s\S]*$/im, '')
-    .replace(/\n*>?\s*You are receiving this because[\s\S]*$/im, '')
-    .replace(/\n*>?\s*Message ID:\s*<[^>]+>[\s\S]*$/im, '');
+  // Uses indexOf for the primary cut to avoid regex backtracking on large inputs
+  const markers = [
+    'Reply to this email directly',
+    'You are receiving this because',
+    'Message ID:',
+  ];
+  let result = raw;
+  for (const marker of markers) {
+    const idx = result.indexOf(marker);
+    if (idx !== -1) {
+      // Walk back to start of line (or separator line above)
+      let cutAt = idx;
+      while (cutAt > 0 && result.charAt(cutAt - 1) !== '\n') cutAt--;
+      // Also trim a separator line (--- or —) immediately before
+      if (cutAt > 1) {
+        const prevLine = result.slice(result.lastIndexOf('\n', cutAt - 2) + 1, cutAt).trim().replace(/^>?\s*/, '');
+        if (/^[—-]{1,3}$/.test(prevLine)) {
+          cutAt = result.lastIndexOf('\n', cutAt - 2) + 1;
+        }
+      }
+      result = result.slice(0, cutAt).trimEnd();
+    }
+  }
+  return result;
 }
 
 /* =============================================
@@ -1192,25 +1209,26 @@ function applyRainbowIndent(container) {
         const all = [...block.querySelectorAll('.bracket-color')];
         const idx = all.indexOf(el);
         if (OPEN_BRACKETS.includes(br)) {
-          // Find matching close
+          // Find matching close bracket
           let dd = 0;
-          for (let i = idx; i < all.length; i++) {
-            const b = all[i].dataset.bracket;
-            if (OPEN_BRACKETS.includes(b) && Number(all[i].dataset.depth) === d) dd++;
+          for (const candidate of all.slice(idx)) {
+            const b = candidate.dataset.bracket;
+            if (OPEN_BRACKETS.includes(b) && Number(candidate.dataset.depth) === d) dd++;
             if (CLOSE_BRACKETS.includes(b) && BRACKET_PAIRS.get(b) === br) {
               dd--;
-              if (dd === 0) { el.classList.add('bracket-hover'); all[i].classList.add('bracket-hover'); break; }
+              if (dd === 0) { el.classList.add('bracket-hover'); candidate.classList.add('bracket-hover'); break; }
             }
           }
         } else {
-          // Find matching open
+          // Find matching open bracket
           let dd = 0;
-          for (let i = idx; i >= 0; i--) {
-            const b = all[i].dataset.bracket;
-            if (CLOSE_BRACKETS.includes(b) && Number(all[i].dataset.depth) === d) dd++;
+          const reversed = all.slice(0, idx + 1).reverse();
+          for (const candidate of reversed) {
+            const b = candidate.dataset.bracket;
+            if (CLOSE_BRACKETS.includes(b) && Number(candidate.dataset.depth) === d) dd++;
             if (OPEN_BRACKETS.includes(b) && BRACKET_PAIRS.get(br) === b) {
               dd--;
-              if (dd === 0) { el.classList.add('bracket-hover'); all[i].classList.add('bracket-hover'); break; }
+              if (dd === 0) { el.classList.add('bracket-hover'); candidate.classList.add('bracket-hover'); break; }
             }
           }
         }
@@ -1399,8 +1417,8 @@ function cmpVersion(a, b) {
   const pb = String(b).replace(/^v/i, '').split('.').map(Number);
   const len = Math.max(pa.length, pb.length);
   for (let i = 0; i < len; i++) {
-    const va = pa[i] || 0;
-    const vb = pb[i] || 0;
+    const va = pa.at(i) ?? 0;
+    const vb = pb.at(i) ?? 0;
     if (va !== vb) return va - vb;
   }
   return 0;
@@ -1466,20 +1484,6 @@ function showDiscordModal(intro) {
   requestAnimationFrame(() => overlay.classList.add('discord-modal-overlay--visible'));
 }
 
-function showToast(msg) {
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.textContent = msg;
-  document.body.appendChild(el);
-  requestAnimationFrame(() => el.classList.add('toast--visible'));
-  setTimeout(() => {
-    el.classList.remove('toast--visible');
-    setTimeout(() => el.remove(), 300);
-  }, 5000);
-}
-
 /* =============================================
    HIP CREATION WIZARD
    ============================================= */
@@ -1521,14 +1525,14 @@ function loadWizardDraft() {
   try {
     const raw = localStorage.getItem(WIZARD_STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch {}
+  } catch { /* ignore corrupt localStorage */ }
   return null;
 }
 
 function saveWizardDraft() {
   try {
     localStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify(wizardData));
-  } catch {}
+  } catch { /* ignore storage quota errors */ }
 }
 
 function clearWizardDraft() {
@@ -1644,12 +1648,14 @@ const WIZARD_FIELDS = new Set([
 function collectWizardFields() {
   const form = $('#wizard-form');
   if (!form) return;
+  const updates = {};
   form.querySelectorAll('[data-field]').forEach(el => {
     const field = el.dataset.field;
     if (WIZARD_FIELDS.has(field)) {
-      wizardData[field] = el.value;
+      updates[field] = el.value;
     }
   });
+  Object.assign(wizardData, updates);
   saveWizardDraft();
 }
 
