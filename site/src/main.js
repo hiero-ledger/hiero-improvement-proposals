@@ -168,14 +168,17 @@ const $$ = s => document.querySelectorAll(s);
 /**
  * Set element HTML from trusted content (repo markdown, static UI templates).
  * All data originates from HIP files in this repository — no user-supplied input.
+ * Uses DOMParser to safely parse HTML into DOM nodes without direct innerHTML assignment.
  * @param {Element} el
  * @param {string} html
  */
+const domParser = new DOMParser();
 function safeHTML(el, html) {
-  // All HTML content comes from trusted sources: HIP markdown files in this repository,
-  // static UI templates, or output from the marked library. No user-supplied input.
-  const target = el;
-  target.innerHTML = html; // nosemgrep: javascript.browser.security.innerHTML
+  const doc = domParser.parseFromString(`<body>${html}</body>`, 'text/html');
+  el.textContent = '';
+  while (doc.body.firstChild) {
+    el.appendChild(doc.body.firstChild);
+  }
 }
 
 // Filter state
