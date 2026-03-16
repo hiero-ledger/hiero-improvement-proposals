@@ -81,7 +81,7 @@ function replaceHipImages(content) {
 
 const files = fs.readdirSync(HIP_DIR).filter(f => f.endsWith('.md'));
 const hips = [];
-const hipBodies = {};
+const hipBodies = new Map();
 const mergedHipNumbers = new Set();
 
 for (const file of files) {
@@ -90,7 +90,7 @@ for (const file of files) {
   if (!parsed || !parsed.data.hip) continue;
   mergedHipNumbers.add(Number(parsed.data.hip));
   hips.push(extractHip(parsed.data, parsed.content));
-  hipBodies[parsed.data.hip] = replaceHipImages(parsed.content);
+  hipBodies.set(String(parsed.data.hip), replaceHipImages(parsed.content));
 }
 
 console.log(`Parsed ${hips.length} merged HIPs`);
@@ -152,7 +152,7 @@ async function fetchDraftHips() {
       };
 
       hips.push(extractHip(data, parsed.content, { prNumber: pr.number }));
-      hipBodies[hipNum] = replaceHipImages(parsed.content);
+      hipBodies.set(String(hipNum), replaceHipImages(parsed.content));
       fetched++;
       console.log(`  PR-${pr.number}: fetched HIP-${hipNum} "${data.title}"`);
     } catch (e) {
@@ -370,7 +370,7 @@ async function main() {
   const crypto = await import('crypto');
   const buildHash = crypto.randomBytes(6).toString('hex');
   fs.writeFileSync(path.join(OUT_DIR, `hips.${buildHash}.json`), JSON.stringify(hips, null, 2));
-  fs.writeFileSync(path.join(OUT_DIR, `hip-bodies.${buildHash}.json`), JSON.stringify(hipBodies));
+  fs.writeFileSync(path.join(OUT_DIR, `hip-bodies.${buildHash}.json`), JSON.stringify(Object.fromEntries(hipBodies)));
   fs.writeFileSync(path.join(OUT_DIR, `discussions.${buildHash}.json`), JSON.stringify(discussions));
   fs.writeFileSync(path.join(OUT_DIR, `pr-reviews.${buildHash}.json`), JSON.stringify(prReviews));
   fs.writeFileSync(path.join(OUT_DIR, 'manifest.json'), JSON.stringify({ buildHash }));
