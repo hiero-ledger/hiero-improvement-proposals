@@ -677,6 +677,16 @@ async function showDetail(num) {
   safeHTML($('#hip-content'), rendered);
   applyRainbowIndent($('#hip-content'));
 
+  // Intercept in-body anchor links (e.g. [see Motivation](#motivation)) so they
+  // scroll within the detail view instead of triggering handleRoute
+  $('#hip-content').addEventListener('click', e => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+  });
+
   // Render any Mermaid diagrams
   const mermaidEls = $('#hip-content').querySelectorAll('.mermaid');
   if (mermaidEls.length) {
@@ -779,6 +789,16 @@ function buildTOC() {
     html += `<li class="${lvl}"><a href="#${id}" data-toc-target="${id}">${h.textContent}</a></li>`;
   });
   safeHTML(tocList, html);
+
+  // Intercept TOC clicks to scroll without changing the hash,
+  // which would trigger handleRoute and navigate away from the detail view
+  tocList.addEventListener('click', e => {
+    const link = e.target.closest('a[data-toc-target]');
+    if (!link) return;
+    e.preventDefault();
+    const target = document.getElementById(link.dataset.tocTarget);
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
 }
 
 function setupScrollSpy() {
