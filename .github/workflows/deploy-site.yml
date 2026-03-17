@@ -59,7 +59,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    runs-on: hiero-improvement-proposals-linux-medium
     needs: build
     steps:
       - name: Harden the runner (Audit all outbound calls)
