@@ -9,6 +9,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  pull-requests: read
+  discussions: read
 
 concurrency:
   group: "pages"
