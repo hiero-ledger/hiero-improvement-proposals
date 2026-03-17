@@ -39,14 +39,13 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           REPO=${{ github.repository }}
           PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER/files")
-          MD_FILES=$(echo "$PR_DATA" | jq -r '.[] | select(.filename | test(".md$")) | .filename')
+          MD_FILES=$(echo "$PR_DATA" | jq -r '.[] | select(.filename | test(".md$")) | select(.status != "removed") | .filename')
 
           for FILE in $MD_FILES; do
             FULL_PATH="${{ github.workspace }}/$FILE"
             if [[ -f "$FULL_PATH" ]]; then
               node "${{ github.workspace }}/scripts/validateHIP.js" "$FULL_PATH"
             else
-              echo "No file found for $FILE"
-              exit 1
+              echo "Skipping $FILE (not found on disk)"
             fi
           done
