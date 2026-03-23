@@ -1,5 +1,161 @@
 [
   {
+    "title": "Historical Record File Bootstrap for Block Stream Cutover",
+    "number": 1427,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1427",
+    "headRefOid": "6a21ad757596863e14d369a1a648b23724db9ce9",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1427.md",
+            "changeType": "ADDED",
+            "additions": 590,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/jumpstart-format.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/overview.svg",
+            "changeType": "ADDED",
+            "additions": 90,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/pipeline.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/wrap-pipeline.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1427/wrapped-block.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Nana-EC"
+    }
+  },
+  {
+    "title": "Block and State Merkle Tree Hashing Scheme",
+    "number": 1424,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1424",
+    "headRefOid": "d79bd71090479c09b891ee1e1584aedfc1328697",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1424.md",
+            "changeType": "ADDED",
+            "additions": 594,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/Hashing - Block Root Tree.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/Hashing - Block Root.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/Hashing - Simplified Block Root.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/Merkle proof sketches.png",
+            "changeType": "ADDED",
+            "additions": 0,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Nana-EC"
+    }
+  },
+  {
+    "title": "Add HIP-1415 for configurable HBAR decimals",
+    "number": 1415,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1415",
+    "headRefOid": "1f0687c3750daafe42bc463e68f7814bccee4776",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1415.md",
+            "changeType": "ADDED",
+            "additions": 292,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "stoqnkpL"
+    }
+  },
+  {
+    "title": "HIP-1414: Introduce EVM transfer semantics to CryptoTransfer",
+    "number": 1414,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
+    "headRefOid": "c7b6c49ade3c37ad62369562aa7a65efee575885",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1414.md",
+            "changeType": "ADDED",
+            "additions": 286,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "lukasz-hashgraph"
+    }
+  },
+  {
     "title": "HIP for Enhanced Error Responses",
     "number": 1383,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1383",
@@ -311,31 +467,10 @@
     }
   },
   {
-    "title": "New HIP \"Add `isAssociated(address account)` to HTS Token Facade Contract\"",
-    "number": 1351,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1351",
-    "headRefOid": "db7574f022859b0c23bf07c98bcc1973e45644fc",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1351.md",
-            "changeType": "ADDED",
-            "additions": 157,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Reccetech"
-    }
-  },
-  {
     "title": "safeTransferFrom support for HTS Precompile and Facade Contract",
     "number": 1349,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1349",
-    "headRefOid": "815d47446c0b0e5a08048a5771a8978ac6890700",
+    "headRefOid": "098c93c5ad7a44807cf1c9d4b01a4d19633720f6",
     "files": {
       "edges": [
         {
@@ -356,12 +491,12 @@
     "title": "HIP-1342: Ignore Trailing Calldata for System Contracts",
     "number": 1342,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1342",
-    "headRefOid": "99f352e27976e6edd3773cea04a8679b8831bc53",
+    "headRefOid": "ad018a465430b701819e4e1581b0eada592740ce",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-hts-trailing-calldata.md",
+            "path": "HIP/hip-1342.md",
             "changeType": "ADDED",
             "additions": 177,
             "deletions": 0
@@ -377,14 +512,14 @@
     "title": " An `ExtendedAssetChanges` extra for large atomic swaps",
     "number": 1331,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1331",
-    "headRefOid": "ccc9bc34aa311fedae95baede0edabfceea5bab4",
+    "headRefOid": "309893784e9ded49401df634775315c521bd7861",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1331.md",
             "changeType": "ADDED",
-            "additions": 232,
+            "additions": 233,
             "deletions": 0
           }
         }
@@ -437,38 +572,17 @@
     }
   },
   {
-    "title": "HIP-1193 - Records to block streams cutover",
-    "number": 1193,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1193",
-    "headRefOid": "ae4b309b57589db350541412ae8967525064fc8e",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1193.md",
-            "changeType": "ADDED",
-            "additions": 267,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Mark-Swirlds"
-    }
-  },
-  {
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "5dfd71e5d801dc5a34b6e633855bf82177e22b48",
+    "headRefOid": "eb0fed2003eb6765dfd8cfc654233b04d56f7a95",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 543,
+            "additions": 554,
             "deletions": 0
           }
         },

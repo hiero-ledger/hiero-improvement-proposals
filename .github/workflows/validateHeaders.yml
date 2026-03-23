@@ -14,7 +14,7 @@ jobs:
     runs-on: hiero-improvement-proposals-linux-medium
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
@@ -39,14 +39,13 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           REPO=${{ github.repository }}
           PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER/files")
-          MD_FILES=$(echo "$PR_DATA" | jq -r '.[] | select(.filename | test(".md$")) | .filename')
+          MD_FILES=$(echo "$PR_DATA" | jq -r '.[] | select(.filename | test(".md$")) | select(.status != "removed") | .filename')
 
           for FILE in $MD_FILES; do
             FULL_PATH="${{ github.workspace }}/$FILE"
             if [[ -f "$FULL_PATH" ]]; then
               node "${{ github.workspace }}/scripts/validateHIP.js" "$FULL_PATH"
             else
-              echo "No file found for $FILE"
-              exit 1
+              echo "Skipping $FILE (not found on disk)"
             fi
           done
