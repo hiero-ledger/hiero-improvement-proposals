@@ -21,17 +21,17 @@
     }
   },
   {
-    "title": "Historical Record File Bootstrap for Block Stream Cutover",
+    "title": "Historical Record File Wrapping for Block Stream Cutover",
     "number": 1427,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1427",
-    "headRefOid": "6a21ad757596863e14d369a1a648b23724db9ce9",
+    "headRefOid": "7c39caaecc9400ce636db1cd92312d5e42e9aab1",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1427.md",
             "changeType": "ADDED",
-            "additions": 590,
+            "additions": 596,
             "deletions": 0
           }
         },
