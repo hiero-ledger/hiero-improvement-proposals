@@ -202,6 +202,13 @@ let sectionSorts = new Map();
    INIT
    ============================================= */
 async function init() {
+  // Support old /hip/hip-NNN paths — GitHub Pages serves 404.html (= index.html)
+  // for unknown paths, so the SPA loads and we route based on the pathname.
+  const pathMatch = window.location.pathname.match(/\/hip\/hip-(\d+)$/);
+  if (pathMatch && !window.location.hash) {
+    history.replaceState(null, '', window.location.pathname.replace(/\/hip\/hip-\d+$/, '') + '#hip-' + pathMatch[1]);
+  }
+
   initTheme();
 
   const base = import.meta.env.BASE_URL;
@@ -1915,7 +1922,7 @@ function renderSubmitStep(form) {
 
   const slug = wizardData.title ? wizardData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'my-proposal';
   const filename = `HIP/hip-${slug}.md`;
-  const ghUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/new/main?filename=${encodeURIComponent(filename)}&value=${encodeURIComponent(md)}`;
+  const ghUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/new/main?filename=${encodeURIComponent(filename)}`;
 
   safeHTML(form, `
     <h3>Review & Submit</h3>
@@ -1926,10 +1933,10 @@ function renderSubmitStep(form) {
       </div>
     ` : `<p class="wz-success">All required fields are complete. Your HIP is ready to submit!</p>`}
     <div class="wz-submit-options">
-      <a href="${esc(ghUrl)}" target="_blank" class="wz-submit-btn wz-submit-btn--primary ${!allValid ? 'wz-submit-btn--disabled' : ''}">
+      <button class="wz-submit-btn wz-submit-btn--primary ${!allValid ? 'wz-submit-btn--disabled' : ''}" id="wz-github">
         <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         Submit on GitHub
-      </a>
+      </button>
       <button class="wz-submit-btn wz-submit-btn--secondary" id="wz-download">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"/></svg>
         Download .md
@@ -1948,10 +1955,17 @@ function renderSubmitStep(form) {
     </div>
   `);
 
-  if (!allValid) {
-    const ghLink = form.querySelector('.wz-submit-btn--primary');
-    ghLink.addEventListener('click', e => e.preventDefault());
-  }
+  form.querySelector('#wz-github')?.addEventListener('click', () => {
+    if (!allValid) return;
+    navigator.clipboard.writeText(generateHipMarkdown()).then(() => {
+      window.open(ghUrl, '_blank');
+      // Show a brief notification that content was copied
+      const btn = form.querySelector('#wz-github');
+      const orig = btn.textContent;
+      btn.textContent = 'Copied to clipboard \u2014 paste into the editor on GitHub';
+      setTimeout(() => { btn.textContent = orig; }, 5000);
+    });
+  });
 
   form.querySelector('#wz-download')?.addEventListener('click', () => {
     const blob = new Blob([generateHipMarkdown()], { type: 'text/markdown' });
