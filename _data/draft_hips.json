@@ -24,22 +24,22 @@
     "title": "Historical Record File Wrapping for Block Stream Cutover",
     "number": 1427,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1427",
-    "headRefOid": "7c39caaecc9400ce636db1cd92312d5e42e9aab1",
+    "headRefOid": "bd9b34da2e141b1873f75a9fec38937088d83df2",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1427.md",
             "changeType": "ADDED",
-            "additions": 596,
+            "additions": 614,
             "deletions": 0
           }
         },
         {
           "node": {
-            "path": "assets/hip-1427/jumpstart-format.png",
+            "path": "assets/hip-1427/jumpstart-format.svg",
             "changeType": "ADDED",
-            "additions": 0,
+            "additions": 77,
             "deletions": 0
           }
         },
@@ -47,31 +47,31 @@
           "node": {
             "path": "assets/hip-1427/overview.svg",
             "changeType": "ADDED",
-            "additions": 90,
+            "additions": 115,
             "deletions": 0
           }
         },
         {
           "node": {
-            "path": "assets/hip-1427/pipeline.png",
+            "path": "assets/hip-1427/pipeline.svg",
             "changeType": "ADDED",
-            "additions": 0,
+            "additions": 116,
             "deletions": 0
           }
         },
         {
           "node": {
-            "path": "assets/hip-1427/wrap-pipeline.png",
+            "path": "assets/hip-1427/wrap-pipeline.svg",
             "changeType": "ADDED",
-            "additions": 0,
+            "additions": 101,
             "deletions": 0
           }
         },
         {
           "node": {
-            "path": "assets/hip-1427/wrapped-block.png",
+            "path": "assets/hip-1427/wrapped-block.svg",
             "changeType": "ADDED",
-            "additions": 0,
+            "additions": 88,
             "deletions": 0
           }
         }
