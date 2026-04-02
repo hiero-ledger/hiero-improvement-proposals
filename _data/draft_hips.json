@@ -85,44 +85,76 @@
     "title": "Block and State Merkle Tree Hashing Scheme",
     "number": 1424,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1424",
-    "headRefOid": "16da8512f8ecb874f5e3ba8414b2b283940a3deb",
+    "headRefOid": "f20e35b95031767186551d4c745c8e63613f3e0d",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1424.md",
             "changeType": "ADDED",
-            "additions": 615,
+            "additions": 685,
             "deletions": 0
           }
         },
         {
           "node": {
-            "path": "assets/hip-1424/Hashing - Block Root Tree.png",
+            "path": "assets/hip-1424/16-leaf-merkle-mountain-top.svg",
             "changeType": "ADDED",
-            "additions": 0,
+            "additions": 1,
             "deletions": 0
           }
         },
         {
           "node": {
-            "path": "assets/hip-1424/Hashing - Block Root.png",
+            "path": "assets/hip-1424/block-0-merkle-mountain-hashing.svg",
             "changeType": "ADDED",
-            "additions": 0,
+            "additions": 1,
             "deletions": 0
           }
         },
         {
           "node": {
-            "path": "assets/hip-1424/Hashing - Simplified Block Root.png",
+            "path": "assets/hip-1424/block-n-1-reserved-node-merkle-mountain-hashing.svg",
             "changeType": "ADDED",
-            "additions": 0,
+            "additions": 1,
             "deletions": 0
           }
         },
         {
           "node": {
-            "path": "assets/hip-1424/Merkle proof sketches.png",
+            "path": "assets/hip-1424/block-n-3-reserved-node-merkle-mountain-hashing.svg",
+            "changeType": "ADDED",
+            "additions": 1,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/block-n-merkle-mountain-hashing.svg",
+            "changeType": "ADDED",
+            "additions": 1,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/expanded-merkle-mountain-top.svg",
+            "changeType": "ADDED",
+            "additions": 1,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/simplified-merkle-mountain-top.svg",
+            "changeType": "ADDED",
+            "additions": 1,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1424/state-merkle-tree-hashing.png",
             "changeType": "ADDED",
             "additions": 0,
             "deletions": 0
