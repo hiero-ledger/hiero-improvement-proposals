@@ -85,14 +85,14 @@
     "title": "Block and State Merkle Tree Hashing Scheme",
     "number": 1424,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1424",
-    "headRefOid": "7489a6e00ff4880eb4bcc2a9f1c75b17f7ae3520",
+    "headRefOid": "16da8512f8ecb874f5e3ba8414b2b283940a3deb",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1424.md",
             "changeType": "ADDED",
-            "additions": 594,
+            "additions": 615,
             "deletions": 0
           }
         },
