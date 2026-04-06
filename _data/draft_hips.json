@@ -1,5 +1,26 @@
 [
   {
+    "title": "HIP-1446: Multiple other-parents",
+    "number": 1446,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1446",
+    "headRefOid": "edb185174d8c90314458ac6fc243197d461c66fc",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1446.md",
+            "changeType": "ADDED",
+            "additions": 210,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "lpetrovic05"
+    }
+  },
+  {
     "title": "HIP-1399: Post-Quantum Cryptography Readiness Assessment for Hiero",
     "number": 1437,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1437",
