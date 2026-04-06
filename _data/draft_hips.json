@@ -464,27 +464,6 @@
     }
   },
   {
-    "title": "HIP-1342: Ignore Trailing Calldata for System Contracts",
-    "number": 1342,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1342",
-    "headRefOid": "ad018a465430b701819e4e1581b0eada592740ce",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1342.md",
-            "changeType": "ADDED",
-            "additions": 177,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Neurone"
-    }
-  },
-  {
     "title": " An `ExtendedAssetChanges` extra for large atomic swaps",
     "number": 1331,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1331",
