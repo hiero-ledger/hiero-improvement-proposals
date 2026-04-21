@@ -272,27 +272,6 @@
     }
   },
   {
-    "title": " An `ExtendedAssetChanges` extra for large atomic swaps",
-    "number": 1331,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1331",
-    "headRefOid": "309893784e9ded49401df634775315c521bd7861",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1331.md",
-            "changeType": "ADDED",
-            "additions": 233,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "tinker-michaelj"
-    }
-  },
-  {
     "title": "feat: add entity hip",
     "number": 1272,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1272",
