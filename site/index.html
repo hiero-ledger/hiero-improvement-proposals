@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hiero Improvement Proposals</title>
+  <meta name="description" content="Browse, search, and filter all Hiero Improvement Proposals.">
+  <meta property="og:title" content="Hiero Improvement Proposals">
+  <meta property="og:description" content="Browse, search, and filter all Hiero Improvement Proposals.">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="./" class="site-logo">
+          <img src="/hiero_hips_light.png" alt="Hiero HIPs" class="logo-img logo-light">
+          <img src="/hiero_hips_dark.png" alt="Hiero HIPs" class="logo-img logo-dark">
+        </a>
+        <nav class="header-nav">
+          <a href="#" class="nav-link active" data-nav="hips">All HIPs</a>
+          <a href="#about" class="nav-link" data-nav="about">About</a>
+        </nav>
+      </div>
+      <div class="header-right">
+        <div class="search-box">
+          <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11L15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="text" id="search" placeholder="Search HIPs..." autocomplete="off" spellcheck="false">
+        </div>
+        <button id="theme-toggle" class="icon-btn" title="Toggle dark mode">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+        <a href="https://github.com/hiero-ledger/hiero-improvement-proposals" target="_blank" class="icon-btn" title="GitHub">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- ===== LIST VIEW ===== -->
+    <div id="list-view">
+      <div class="info-header">
+        <div class="info-header-text">
+          <h2>Hiero Improvement Proposals</h2>
+          <p>Design documents proposing new features, collecting community input, and documenting decisions for the Hiero codebase.</p>
+        </div>
+        <div class="info-links">
+          <a href="#hip-1" class="info-link">Read HIP-1</a>
+          <a href="#create" class="info-link">Create a HIP</a>
+          <a href="https://discord.com/channels/905194001349627914/1289954446712770600" target="_blank" class="info-link">Discord</a>
+        </div>
+      </div>
+
+      <!-- Pipeline -->
+      <div id="pipeline" class="pipeline"></div>
+
+      <!-- Filters -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <div class="filter-group">
+            <div class="multi-select" id="type-filter" data-placeholder="Type">
+              <button class="ms-trigger"><span class="ms-text">Type</span><svg width="10" height="10" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+              <div class="ms-dropdown"></div>
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="multi-select" id="status-filter" data-placeholder="Status">
+              <button class="ms-trigger"><span class="ms-text">Status</span><svg width="10" height="10" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+              <div class="ms-dropdown"></div>
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="toggle-filter" id="hiero-toggle">
+              <span class="toggle-label">Requires Hiero Approval</span>
+              <button class="toggle-btn" data-value="Yes">Yes</button>
+              <button class="toggle-btn" data-value="No">No</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="toggle-filter" id="hedera-toggle">
+              <span class="toggle-label">Requires Hedera Review</span>
+              <button class="toggle-btn" data-value="Yes">Yes</button>
+              <button class="toggle-btn" data-value="No">No</button>
+            </div>
+          </div>
+          <button id="clear-filters" class="clear-btn" style="display:none">Clear</button>
+        </div>
+        <div class="toolbar-right">
+          <span id="result-count" class="result-count"></span>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="list" title="List view">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="0" y="1" width="16" height="2" rx="1"/><rect x="0" y="7" width="16" height="2" rx="1"/><rect x="0" y="13" width="16" height="2" rx="1"/></svg>
+            </button>
+            <button class="view-btn" data-view="grid" title="Card view">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="0" y="0" width="7" height="7" rx="1.5"/><rect x="9" y="0" width="7" height="7" rx="1.5"/><rect x="0" y="9" width="7" height="7" rx="1.5"/><rect x="9" y="9" width="7" height="7" rx="1.5"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="status-sections"></div>
+      <div id="no-results" class="no-results" style="display:none">No HIPs match the current filters.</div>
+    </div>
+
+    <!-- ===== DETAIL VIEW ===== -->
+    <div id="detail-view" class="hidden">
+      <a href="#" id="back-link" class="back-link">&larr; All HIPs</a>
+      <div class="detail-layout">
+        <div class="detail-main">
+          <div class="detail-header">
+            <div class="detail-header-top">
+              <h1 id="hip-title"></h1>
+              <div class="detail-actions">
+                <a id="suggest-edit" href="#" target="_blank" class="action-btn" title="Suggest an edit">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 01-.927-.928l.929-3.25a1.75 1.75 0 01.445-.758l8.61-8.61zm1.414 1.06a.25.25 0 00-.354 0L3.463 11.098a.25.25 0 00-.064.108l-.563 1.97 1.971-.564a.25.25 0 00.108-.064l8.61-8.61a.25.25 0 000-.354L12.427 2.487z"/></svg>
+                  Edit
+                </a>
+                <a id="discuss-link" href="#" target="_blank" class="action-btn action-btn--primary">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 2.75a.25.25 0 01.25-.25h8.5a.25.25 0 01.25.25v5.5a.25.25 0 01-.25.25h-3.5a.75.75 0 00-.53.22L3.5 11.44V9.25a.75.75 0 00-.75-.75h-1a.25.25 0 01-.25-.25v-5.5zM1.75 1A1.75 1.75 0 000 2.75v5.5C0 9.216.784 10 1.75 10H2v1.543a1.457 1.457 0 002.487 1.03L7.061 10h3.189A1.75 1.75 0 0012 8.25v-5.5A1.75 1.75 0 0010.25 1h-8.5zM14.5 4.75a.25.25 0 00-.25-.25h-.5a.75.75 0 110-1.5h.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0114.25 12H14v1.543a1.457 1.457 0 01-2.487 1.03L9.22 12.28a.75.75 0 111.06-1.06l2.22 2.22v-2.19a.75.75 0 01.75-.75h1a.25.25 0 00.25-.25v-5.5z"/></svg>
+                  Discuss
+                </a>
+              </div>
+            </div>
+            <div id="pr-status" class="pr-status" style="display:none"></div>
+          </div>
+
+          <table class="meta-table" id="hip-meta-table"><tbody></tbody></table>
+
+          <!-- Reactions -->
+          <div id="reactions-bar" class="reactions-bar" style="display:none"></div>
+
+          <!-- Content -->
+          <article id="hip-content"></article>
+
+          <!-- Discussion comments -->
+          <div id="discussion-section" class="discussion-section" style="display:none">
+            <h2 class="discussion-heading">
+              Discussion
+              <span id="comment-count" class="comment-count"></span>
+            </h2>
+            <div id="comments-list" class="comments-list"></div>
+            <div id="comments-loading" class="comments-loading">Loading comments...</div>
+            <a id="join-discussion" href="#" target="_blank" class="join-btn">Join the discussion on GitHub</a>
+          </div>
+        </div>
+
+        <!-- Sidebar TOC -->
+        <aside class="detail-sidebar" id="detail-sidebar">
+          <div class="sidebar-toc">
+            <h3>On this page</h3>
+            <ul id="toc-list"></ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ===== CREATE HIP WIZARD ===== -->
+    <div id="create-view" class="hidden">
+      <a href="#" class="back-link" id="create-back">&larr; All HIPs</a>
+      <div class="wizard-container">
+        <div class="wizard-left">
+          <div class="wizard-progress">
+            <div class="wizard-steps" id="wizard-steps"></div>
+          </div>
+          <div class="wizard-form" id="wizard-form"></div>
+          <div class="wizard-nav">
+            <button id="wizard-prev" class="wizard-btn wizard-btn--secondary" disabled>Back</button>
+            <button id="wizard-next" class="wizard-btn wizard-btn--primary">Next</button>
+          </div>
+        </div>
+        <div class="wizard-right">
+          <div class="wizard-preview-header">
+            <span>Live Preview</span>
+            <button id="wizard-preview-toggle" class="wizard-preview-collapse" title="Toggle preview">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2v4H0V1a1 1 0 011-1h5v2H2zm12 0h-4V0h5a1 1 0 011 1v5h-2V2zM2 14h4v2H1a1 1 0 01-1-1v-5h2v4zm12 0v-4h2v5a1 1 0 01-1 1h-5v-2h4z"/></svg>
+            </button>
+          </div>
+          <div class="wizard-preview" id="wizard-preview">
+            <div class="detail-main" id="wizard-preview-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ABOUT VIEW ===== -->
+    <div id="about-view" class="hidden">
+      <a href="#" class="back-link" id="about-back">&larr; All HIPs</a>
+      <div class="about-content">
+        <img src="/hiero_hips_light.png" alt="Hiero" class="about-logo logo-light">
+        <img src="/hiero_hips_dark.png" alt="Hiero" class="about-logo logo-dark">
+        <div class="about-badges">
+          <a href="https://discord.com/channels/905194001349627914/1289954446712770600" target="_blank"><img src="https://img.shields.io/discord/373889138199494658" alt="Discord"></a>
+          <a href="https://github.com/hiero-ledger/hiero-improvement-proposals" target="_blank"><img alt="GitHub forks" src="https://img.shields.io/github/forks/hiero-ledger/hiero-improvement-proposals?color=bright&label=fork%20me"></a>
+        </div>
+        <h2>What is a HIP?</h2>
+        <p>HIP stands for <strong>Hiero Improvement Proposal</strong>. A HIP is intended to provide information or initiate engineering efforts to update functionality under Hiero governance. The HIP should be technically clear and concise, and as granular as possible.</p>
+        <p>HIPs are the primary mechanism for proposing new features, collecting community input, and documenting design decisions for the Hiero codebase.</p>
+        <h2>HIP Types</h2>
+        <ol>
+          <li><strong>Standards Track</strong> &mdash; New feature or implementation.
+            <ul><li><strong>Core:</strong> Protocol, algorithm, networking.</li><li><strong>Service:</strong> Service layer.</li><li><strong>Mirror:</strong> Record retrieval.</li><li><strong>Block Node:</strong> Pruned record retrieval.</li><li><strong>Application:</strong> Ecosystem software.</li></ul>
+          </li>
+          <li><strong>Informational</strong> &mdash; Design issue or guidelines.</li>
+          <li><strong>Process</strong> &mdash; Process change. Meta-HIPs are Process HIPs.</li>
+        </ol>
+        <h2>Process</h2>
+        <p>See <a href="#hip-1">HIP-1</a> for the current HIP process.</p>
+        <h2>Before Submitting</h2>
+        <ol>
+          <li>Evaluate your idea and how it benefits the Hiero community.</li>
+          <li>Check existing proposals for duplicates.</li>
+          <li>Discuss on <a href="https://discord.com/channels/905194001349627914/1289954446712770600" target="_blank">LFDT Discord</a> or <a href="https://discord.com/channels/373889138199494658/813488589773471774" target="_blank">Hedera Discord</a>.</li>
+          <li>Ensure it's generally applicable.</li>
+        </ol>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>Hiero Improvement Proposals</span>
+      <span class="sep">&middot;</span>
+      <a href="https://github.com/hiero-ledger/hiero-improvement-proposals" target="_blank">GitHub</a>
+      <span class="sep">&middot;</span>
+      <a href="https://discord.com/channels/905194001349627914/1289954446712770600" target="_blank">Discord</a>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
