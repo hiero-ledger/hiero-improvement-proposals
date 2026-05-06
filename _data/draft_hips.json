@@ -209,27 +209,6 @@
     }
   },
   {
-    "title": "Add HIP-1415 for configurable HBAR decimals",
-    "number": 1415,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1415",
-    "headRefOid": "1f0687c3750daafe42bc463e68f7814bccee4776",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1415.md",
-            "changeType": "ADDED",
-            "additions": 292,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "stoqnkpL"
-    }
-  },
-  {
     "title": "HIP-1414: Introduce EVM transfer semantics to CryptoTransfer",
     "number": 1414,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
