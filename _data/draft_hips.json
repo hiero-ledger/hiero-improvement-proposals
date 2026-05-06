@@ -3,7 +3,7 @@
     "title": "HIP-1448 Broadcast mechanism for gossip",
     "number": 1448,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1448",
-    "headRefOid": "9eead0c96b1542cb9c35cbd1235ac8fa099cf4ff",
+    "headRefOid": "df51b2e17de4e63aa8807f5c02bfbbf5fbf555a1",
     "files": {
       "edges": [
         {
@@ -24,14 +24,14 @@
     "title": "HIP-1446: Multiple other-parents",
     "number": 1446,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1446",
-    "headRefOid": "edb185174d8c90314458ac6fc243197d461c66fc",
+    "headRefOid": "cea2f11d5f82b9bfebd93ce1049c884dbce1f439",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1446.md",
             "changeType": "ADDED",
-            "additions": 210,
+            "additions": 211,
             "deletions": 0
           }
         }
