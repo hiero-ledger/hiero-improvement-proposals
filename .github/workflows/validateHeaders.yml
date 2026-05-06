@@ -14,17 +14,17 @@ jobs:
     runs-on: hiero-improvement-proposals-linux-medium
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
           egress-policy: audit
 
       - name: Check out repository code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       - name: Use Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: "12.x"
 
@@ -39,14 +39,13 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           REPO=${{ github.repository }}
           PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER/files")
-          MD_FILES=$(echo "$PR_DATA" | jq -r '.[] | select(.filename | test(".md$")) | .filename')
+          MD_FILES=$(echo "$PR_DATA" | jq -r '.[] | select(.filename | test(".md$")) | select(.status != "removed") | .filename')
 
           for FILE in $MD_FILES; do
             FULL_PATH="${{ github.workspace }}/$FILE"
             if [[ -f "$FULL_PATH" ]]; then
               node "${{ github.workspace }}/scripts/validateHIP.js" "$FULL_PATH"
             else
-              echo "No file found for $FILE"
-              exit 1
+              echo "Skipping $FILE (not found on disk)"
             fi
           done
