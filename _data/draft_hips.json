@@ -24,14 +24,14 @@
     "title": "HIP-1446: Multiple other-parents",
     "number": 1446,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1446",
-    "headRefOid": "cea2f11d5f82b9bfebd93ce1049c884dbce1f439",
+    "headRefOid": "b769927001d9620948329e5ca054812118797296",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1446.md",
             "changeType": "ADDED",
-            "additions": 211,
+            "additions": 222,
             "deletions": 0
           }
         }
