@@ -24,7 +24,7 @@ jobs:
     runs-on: hiero-improvement-proposals-linux-medium
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
           egress-policy: audit
 
@@ -72,7 +72,7 @@ jobs:
       - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD }}
-        uses: step-security/action-discord@e31fd4e664027caad89e85cc4e9166e193dd6d2d # v0.1.5
+        uses: step-security/action-discord@e90293dc70f4cb5ad8e6629672f306b2742d8b7f # v0.1.6
         with:
           args: |
             # ${{ steps.extract_abstract.outputs.filename_no_ext }} moved into ${{ github.event.inputs.status }} status
