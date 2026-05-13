@@ -3,14 +3,14 @@
     "title": "HIP-1448 Broadcast mechanism for gossip",
     "number": 1448,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1448",
-    "headRefOid": "74e1c88c308570dd68cf48bed96ac7b5f05cb330",
+    "headRefOid": "3470c3a8e99f079e325958dd6cba013dcd188f57",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1448.md",
             "changeType": "ADDED",
-            "additions": 256,
+            "additions": 257,
             "deletions": 0
           }
         }
