@@ -212,7 +212,7 @@
     "title": "HIP-1414: Introduce EVM transfer semantics to CryptoTransfer",
     "number": 1414,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1414",
-    "headRefOid": "c7b6c49ade3c37ad62369562aa7a65efee575885",
+    "headRefOid": "cd0208fa10a87c2c9ed6de9d88974b0f35153a16",
     "files": {
       "edges": [
         {
@@ -296,14 +296,14 @@
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "c0c4ea34c98ae1950e8ae0337606f1a2385cdd31",
+    "headRefOid": "56103a844b608507b2d1cbe64dddbfccaeba33f3",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 876,
+            "additions": 875,
             "deletions": 0
           }
         },
