@@ -70,12 +70,33 @@ function extractHip(data, content, extra = {}) {
 
 // ---- Parse merged HIPs from the HIP/ directory ----
 // ---- ASCII state diagrams to replace broken image references ----
-function replaceHipImages(content) {
+// For merged HIPs, assets are copied into public/assets/ so we rewrite ../assets/ → /assets/.
+// For draft HIPs, the assets live only on the PR branch, so we rewrite to raw.githubusercontent.com
+// pinned to the PR's commit SHA. GitHub serves commits from open PR forks via the upstream repo URL.
+function replaceHipImages(content, { rawBase, availableAssets } = {}) {
   // Replace image references with placeholders (actual mermaid divs injected post-markdown in main.js)
   content = content.replace(/!\[HIP States\]\([^)]*hip-states-standards-track\.[^)]*\)/g, '<!--DIAGRAM:STANDARDS_TRACK-->');
   content = content.replace(/!\[HIP States\]\([^)]*hip-states-ipa\.[^)]*\)/g, '<!--DIAGRAM:IPA-->');
-  // Fix any remaining relative asset paths
-  content = content.replace(/\.\.\/(assets\/)/g, '/$1');
+
+  // For draft HIPs we know exactly which asset files exist in the PR. Replace
+  // markdown image references to assets that are NOT in the PR with a friendly
+  // placeholder so the page doesn't show a broken-image icon. (Common cause:
+  // author wrote ![alt](../assets/hipN/foo.png) but forgot to commit foo.png.)
+  if (availableAssets) {
+    content = content.replace(
+      /!\[([^\]]*)\]\(\s*\.\.\/(assets\/[^)\s]+)(?:\s+["'][^"']*["'])?\s*\)/g,
+      (match, alt, assetPath) => {
+        const decoded = decodeURIComponent(assetPath);
+        if (availableAssets.has(decoded)) return match;
+        const label = alt || decoded.split('/').pop();
+        return `<div class="missing-diagram"><strong>Diagram missing from PR:</strong> <code>${decoded}</code><br><span>(${label})</span></div>`;
+      }
+    );
+  }
+
+  // Rewrite remaining relative asset paths. Draft HIPs use the PR-pinned raw URL; merged HIPs use /assets/.
+  const replacement = rawBase ? `${rawBase}/assets/` : '/assets/';
+  content = content.replace(/\.\.\/assets\//g, replacement);
   return content;
 }
 
@@ -152,7 +173,13 @@ async function fetchDraftHips() {
       };
 
       hips.push(extractHip(data, parsed.content, { prNumber: pr.number }));
-      hipBodies.set(String(hipNum), replaceHipImages(parsed.content));
+      const rawBase = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${pr.headRefOid}`;
+      const availableAssets = new Set(
+        (pr.files?.edges || [])
+          .map(e => e.node.path)
+          .filter(p => p.startsWith('assets/'))
+      );
+      hipBodies.set(String(hipNum), replaceHipImages(parsed.content, { rawBase, availableAssets }));
       fetched++;
       console.log(`  PR-${pr.number}: fetched HIP-${hipNum} "${data.title}"`);
     } catch (e) {
