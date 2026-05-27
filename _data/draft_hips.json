@@ -66,14 +66,14 @@
     "title": "Historical Record File Wrapping for Block Stream Cutover",
     "number": 1427,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1427",
-    "headRefOid": "70e4c2c53bf4d9005ff349f8df2ed436fdb0b955",
+    "headRefOid": "684e1ede3817a44694bc46f3af1b41ffd9ac7cdd",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1427.md",
             "changeType": "ADDED",
-            "additions": 670,
+            "additions": 672,
             "deletions": 0
           }
         },
@@ -127,14 +127,14 @@
     "title": "Block and State Merkle Tree Hashing Scheme",
     "number": 1424,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1424",
-    "headRefOid": "2e01b1a295fcb26a83b71a2bdc2d29185d855f46",
+    "headRefOid": "d1bf49d33473b9dbe4f6c018e460f802f293aa3c",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1424.md",
             "changeType": "ADDED",
-            "additions": 692,
+            "additions": 694,
             "deletions": 0
           }
         },
