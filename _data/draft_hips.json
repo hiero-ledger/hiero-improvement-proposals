@@ -1,5 +1,26 @@
 [
   {
+    "title": "HIP-1483: New debug and trace APIs on Mirror node side",
+    "number": 1483,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1483",
+    "headRefOid": "c17b25a4c3d407b46c7ff69f69f97e36e2a2cbb8",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-xxx.md",
+            "changeType": "ADDED",
+            "additions": 949,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "IvanKavaldzhiev"
+    }
+  },
+  {
     "title": "HIP-1448 Broadcast mechanism for gossip",
     "number": 1448,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1448",
@@ -66,14 +87,14 @@
     "title": "Historical Record File Wrapping for Block Stream Cutover",
     "number": 1427,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1427",
-    "headRefOid": "70e4c2c53bf4d9005ff349f8df2ed436fdb0b955",
+    "headRefOid": "684e1ede3817a44694bc46f3af1b41ffd9ac7cdd",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1427.md",
             "changeType": "ADDED",
-            "additions": 670,
+            "additions": 672,
             "deletions": 0
           }
         },
@@ -127,14 +148,14 @@
     "title": "Block and State Merkle Tree Hashing Scheme",
     "number": 1424,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1424",
-    "headRefOid": "2e01b1a295fcb26a83b71a2bdc2d29185d855f46",
+    "headRefOid": "d1bf49d33473b9dbe4f6c018e460f802f293aa3c",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1424.md",
             "changeType": "ADDED",
-            "additions": 692,
+            "additions": 694,
             "deletions": 0
           }
         },
@@ -296,14 +317,14 @@
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "4302db38f0161774a705572aec6f66ead4fa198a",
+    "headRefOid": "0fe0594fc2aa014b5946f643a6883184ad1d38ae",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 821,
+            "additions": 962,
             "deletions": 0
           }
         },
