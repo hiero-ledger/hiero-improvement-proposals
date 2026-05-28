@@ -1,19 +1,19 @@
 ---
-hip: XXX
+hip: 1483
 title: EVM Debug and Trace APIs
 author: Ivan Kavaldzhiev <ivan.kavaldzhiev@limechain.tech>
 working-group: Steven Sheehy <@steven-sheehy>
 requested-by: 
 type: Standards Track
 category: Mirror
-needs-hiero-approval: No
+needs-hiero-approval: Yes
 needs-hedera-review: Yes
 hedera-review-date: 
 hedera-acceptance-decision: 
-status: Draft
+status: Review
 last-call-date-time: 2026-03-17T07:00:00Z
 created: 2026-05-28
-discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/xxx
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/1484
 ---
 
 
