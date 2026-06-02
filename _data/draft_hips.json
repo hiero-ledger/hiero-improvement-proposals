@@ -1,16 +1,16 @@
 [
   {
-    "title": "HIP-1483: New debug and trace APIs on Mirror node side",
-    "number": 1483,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1483",
-    "headRefOid": "c17b25a4c3d407b46c7ff69f69f97e36e2a2cbb8",
+    "title": "New debug and trace APIs on Mirror node side",
+    "number": 1485,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1485",
+    "headRefOid": "af60b3caf35dd8860a920db0c129cec280e15d90",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-xxx.md",
+            "path": "HIP/hip-1485.md",
             "changeType": "ADDED",
-            "additions": 949,
+            "additions": 971,
             "deletions": 0
           }
         }
