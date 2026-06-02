@@ -1,5 +1,26 @@
 [
   {
+    "title": "HIP-1483: New debug and trace APIs on Mirror node side",
+    "number": 1483,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1483",
+    "headRefOid": "c17b25a4c3d407b46c7ff69f69f97e36e2a2cbb8",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-xxx.md",
+            "changeType": "ADDED",
+            "additions": 949,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "IvanKavaldzhiev"
+    }
+  },
+  {
     "title": "HIP-1448 Broadcast mechanism for gossip",
     "number": 1448,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1448",
@@ -296,14 +317,14 @@
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "0fe0594fc2aa014b5946f643a6883184ad1d38ae",
+    "headRefOid": "70c7c6a01f1049e6d836ba67881c8ab4195d17b8",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 962,
+            "additions": 880,
             "deletions": 0
           }
         },
