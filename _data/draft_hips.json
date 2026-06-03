@@ -21,48 +21,6 @@
     }
   },
   {
-    "title": "HIP-1448 Broadcast mechanism for gossip",
-    "number": 1448,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1448",
-    "headRefOid": "3470c3a8e99f079e325958dd6cba013dcd188f57",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1448.md",
-            "changeType": "ADDED",
-            "additions": 257,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "abies"
-    }
-  },
-  {
-    "title": "HIP-1446: Multiple other-parents",
-    "number": 1446,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1446",
-    "headRefOid": "b769927001d9620948329e5ca054812118797296",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1446.md",
-            "changeType": "ADDED",
-            "additions": 222,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "lpetrovic05"
-    }
-  },
-  {
     "title": "HIP-1399: Post-Quantum Cryptography Readiness Assessment for Hiero",
     "number": 1437,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1437",
