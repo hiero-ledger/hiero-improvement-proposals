@@ -3,14 +3,14 @@
     "title": "New debug and trace APIs on Mirror node side",
     "number": 1485,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1485",
-    "headRefOid": "af60b3caf35dd8860a920db0c129cec280e15d90",
+    "headRefOid": "2320538aaa90fcbba8cdea3d12a892e58bcba4be",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1485.md",
             "changeType": "ADDED",
-            "additions": 971,
+            "additions": 972,
             "deletions": 0
           }
         }
