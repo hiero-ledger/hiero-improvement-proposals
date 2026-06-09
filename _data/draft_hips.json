@@ -21,27 +21,6 @@
     }
   },
   {
-    "title": "HIP-1399: Post-Quantum Cryptography Readiness Assessment for Hiero",
-    "number": 1437,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1437",
-    "headRefOid": "6b7b2bea72b89839d26d72dd1ed5d5f5df0bfdb4",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1399.md",
-            "changeType": "ADDED",
-            "additions": 189,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Taas-ai"
-    }
-  },
-  {
     "title": "Historical Record File Wrapping for Block Stream Cutover",
     "number": 1427,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1427",
