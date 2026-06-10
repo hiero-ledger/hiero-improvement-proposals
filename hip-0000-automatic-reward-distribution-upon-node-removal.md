@@ -24,7 +24,7 @@ This proposal does not change staking reward calculations, eligibility requireme
 
 ## Motivation
 
-Recent node removals have shown that stakers can lose pending rewards if they do not take action before a node is removed from the network.
+Recent node removals have shown that stakers can lose pending rewards if they do not take action before a node is removed from the Hedera network.
 
 Many HBAR holders participate in staking passively and do not actively monitor Governing Council announcements or node lifecycle events. As a result, users may unintentionally forfeit rewards despite meeting all staking requirements.
 
