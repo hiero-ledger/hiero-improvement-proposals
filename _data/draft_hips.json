@@ -1,16 +1,16 @@
 [
   {
-    "title": "HIP-1483: New debug and trace APIs on Mirror node side",
-    "number": 1483,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1483",
-    "headRefOid": "c17b25a4c3d407b46c7ff69f69f97e36e2a2cbb8",
+    "title": "New debug and trace APIs on Mirror node side",
+    "number": 1485,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1485",
+    "headRefOid": "2320538aaa90fcbba8cdea3d12a892e58bcba4be",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-xxx.md",
+            "path": "HIP/hip-1485.md",
             "changeType": "ADDED",
-            "additions": 949,
+            "additions": 972,
             "deletions": 0
           }
         }
@@ -18,69 +18,6 @@
     },
     "author": {
       "login": "IvanKavaldzhiev"
-    }
-  },
-  {
-    "title": "HIP-1448 Broadcast mechanism for gossip",
-    "number": 1448,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1448",
-    "headRefOid": "3470c3a8e99f079e325958dd6cba013dcd188f57",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1448.md",
-            "changeType": "ADDED",
-            "additions": 257,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "abies"
-    }
-  },
-  {
-    "title": "HIP-1446: Multiple other-parents",
-    "number": 1446,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1446",
-    "headRefOid": "b769927001d9620948329e5ca054812118797296",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1446.md",
-            "changeType": "ADDED",
-            "additions": 222,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "lpetrovic05"
-    }
-  },
-  {
-    "title": "HIP-1399: Post-Quantum Cryptography Readiness Assessment for Hiero",
-    "number": 1437,
-    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1437",
-    "headRefOid": "6b7b2bea72b89839d26d72dd1ed5d5f5df0bfdb4",
-    "files": {
-      "edges": [
-        {
-          "node": {
-            "path": "HIP/hip-1399.md",
-            "changeType": "ADDED",
-            "additions": 189,
-            "deletions": 0
-          }
-        }
-      ]
-    },
-    "author": {
-      "login": "Taas-ai"
     }
   },
   {
@@ -248,6 +185,83 @@
     },
     "author": {
       "login": "lukasz-hashgraph"
+    }
+  },
+  {
+    "title": "HIP-1373: Dollar-denominated values",
+    "number": 1373,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1373",
+    "headRefOid": "66acb16deaabf2b2936365d277113316fd0c68ed",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1373.md",
+            "changeType": "ADDED",
+            "additions": 286,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1373/contrib/chart.umd.min.js",
+            "changeType": "ADDED",
+            "additions": 14,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1373/contrib/chartjs-adapter-date-fns.bundle.min.js",
+            "changeType": "ADDED",
+            "additions": 7,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1373/contrib/chartjs-plugin-annotation.min.js",
+            "changeType": "ADDED",
+            "additions": 7,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1373/contrib/chartjs-plugin-zoom.min.js",
+            "changeType": "ADDED",
+            "additions": 7,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1373/contrib/pako.min.js",
+            "changeType": "ADDED",
+            "additions": 2,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1373/index.css",
+            "changeType": "ADDED",
+            "additions": 576,
+            "deletions": 0
+          }
+        },
+        {
+          "node": {
+            "path": "assets/hip-1373/index.html",
+            "changeType": "ADDED",
+            "additions": 1031,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "Neurone"
     }
   },
   {
