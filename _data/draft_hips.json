@@ -1,5 +1,26 @@
 [
   {
+    "title": "Draft HIP: Consensus Node Deployment Package Specification",
+    "number": 1494,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1494",
+    "headRefOid": "0f9acc40b453cc705ac57e211d033380691cec58",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-consensus-node-deployment-package.md",
+            "changeType": "ADDED",
+            "additions": 1015,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "leninmehedy"
+    }
+  },
+  {
     "title": "New debug and trace APIs on Mirror node side",
     "number": 1485,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1485",
