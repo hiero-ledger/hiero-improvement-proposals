@@ -11,7 +11,7 @@ needs-hiero-approval: Yes
 needs-hedera-review: Yes
 status: Draft
 created: 2026-05-01
-updated: 2026-05-03
+updated: 2026-06-18
 requires: XXXX0
 release: TBD
 ---
@@ -527,7 +527,8 @@ directories**. Every managed binary and service file lives under the sandbox; sy
 ```text
 /opt/solo/weaver/sandbox/
 ├── bin/                              ← All managed host binaries
-│   ├── solo-provisioner              ← CLI binary and daemon (single binary, two modes)
+│   ├── solo-provisioner              ← provisioner CLI binary
+│   ├── solo-provisioner-daemon       ← daemon binary (separate from CLI)
 │   ├── kubelet                       ← Kubernetes node agent
 │   ├── kubeadm                       ← Cluster bootstrapping tool
 │   ├── kubectl                       ← Cluster CLI
@@ -535,14 +536,11 @@ directories**. Every managed binary and service file lives under the sandbox; sy
 │   └── ...                           ← Other solo-weaver-managed binaries
 │
 ├── usr/lib/systemd/system/           ← All managed systemd unit files
-│   ├── solo-provisioner.service
+│   ├── solo-provisioner-daemon.service
 │   ├── kubelet.service
 │   └── kubelet.service.d/10-kubeadm.conf
 │
 ├── etc/
-│   ├── weaver/
-│   │   ├── kubeconfig                ← Daemon K8s credential (scoped; separate from CLI kubeconfig)
-│   │   └── solo-provisioner.env      ← Daemon environment file (loaded by systemd EnvironmentFile=)
 │   ├── containers/
 │   │   └── registries.conf.d/        ← CRI-O registry mirrors and pull-through config
 │   └── cni/net.d/                    ← CNI (Cilium) network config
@@ -566,8 +564,8 @@ never edit files at these paths directly:
 /usr/local/bin/crio                     → /opt/solo/weaver/sandbox/bin/crio
 ... (one symlink per managed binary)
 
-/usr/lib/systemd/system/solo-provisioner.service
-    → /opt/solo/weaver/sandbox/usr/lib/systemd/system/solo-provisioner.service
+/usr/lib/systemd/system/solo-provisioner-daemon.service
+    → /opt/solo/weaver/sandbox/usr/lib/systemd/system/solo-provisioner-daemon.service
 /usr/lib/systemd/system/kubelet.service
     → /opt/solo/weaver/sandbox/usr/lib/systemd/system/kubelet.service
 ... (one symlink per managed unit file)
@@ -773,27 +771,31 @@ copy and no restructure (see HIP XXXX3). In the cluster-only profile, all CN sta
 /opt/solo/weaver/                         ← solo tooling base (hostPath)
   sandbox/                               ← managed binaries and system files (see below)
     bin/
-      solo-provisioner                   ← CLI binary and daemon (single binary, two modes)
+      solo-provisioner                   ← provisioner CLI binary
+      solo-provisioner-daemon            ← daemon binary (separate from CLI)
       kubelet, crio, kubeadm, ...        ← all solo-weaver-managed host binaries
     usr/lib/systemd/system/
-      solo-provisioner.service           ← daemon systemd unit file (started at install time)
+      solo-provisioner-daemon.service    ← daemon systemd unit file (started at install time)
       kubelet.service, ...               ← other solo-weaver-managed unit files
-    etc/weaver/
-      kubeconfig                         ← daemon K8s credential (scoped)
-      solo-provisioner.env               ← daemon environment file (systemd EnvironmentFile)
     var/run/crio/crio.sock               ← CRI-O socket (non-default path)
     var/lib/etcd/                        ← etcd data (survives cluster reinstall)
-  provisioner/
-    daemon.sock                          ← daemon health socket
-    self-upgrade.yaml                   ← self-upgrade in-progress state
-    events/<op-id>.jsonl                 ← daemon JSONL event log
+  config/
+    daemon-cn.kubeconfig                 ← daemon K8s credential for consensus node cluster (scoped)
+    daemon-bn.kubeconfig                 ← daemon K8s credential for block node cluster (scoped)
+  daemon/
+    daemon.sock                          ← daemon Unix socket (CLI ↔ daemon IPC)
+    self-upgrade.yaml                    ← self-upgrade in-progress state
+    events/consensus/upgrade/
+      consensus-upgrade-<timestamp>-<version>.jsonl  ← upgrade event log
+    events/consensus/migrate/
+      consensus-migrate-events.jsonl     ← migration soak event log
   uc/crs/                               ← UC CR persistence (crash safety)
   data/upgrade/backup/                   ← pre-upgrade state backups
 
 System symlinks (created at install; point into sandbox):
   /usr/local/bin/solo-provisioner        → /opt/solo/weaver/sandbox/bin/solo-provisioner
-  /usr/lib/systemd/system/solo-provisioner.service
-      → /opt/solo/weaver/sandbox/usr/lib/systemd/system/solo-provisioner.service
+  /usr/lib/systemd/system/solo-provisioner-daemon.service
+      → /opt/solo/weaver/sandbox/usr/lib/systemd/system/solo-provisioner-daemon.service
 
 hostPath mounts (all shared with host filesystem — no data copy required):
   /opt/hgcapp/services-hedera/HapiApp2.0/data/upgrade/current/
