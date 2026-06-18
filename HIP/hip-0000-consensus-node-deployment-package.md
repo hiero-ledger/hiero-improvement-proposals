@@ -1,0 +1,1015 @@
+---
+hip: XXXX0
+title: Consensus Node Deployment Package Specification
+author: Lenin Mehedy (@leninmehedy), Nathan Klick (@nathanklick)
+working-group: Bruno Marques (@brunodam), Artur Reznikov (@arturre)
+requested-by: Hashgraph
+discussions-to: TBD
+type: Standards Track
+category: Core
+needs-hiero-approval: Yes
+needs-hedera-review: Yes
+status: Draft
+created: 2026-05-07
+updated: 2026-06-18
+requires: HIP-198
+release: TBD
+---
+
+# HIP XXXX0 - Consensus Node Deployment Package Specification
+
+## Abstract
+
+This proposal defines the structure and schema of the Consensus Node Deployment Package (`build.zip`) — the
+single artifact used to deploy and upgrade Hedera consensus nodes. The same package format serves all
+operational contexts: network upgrades driven by the council freeze protocol, fresh node provisioning, and
+network bootstrapping. The package bundles consensus node software, configuration files, and a `manifests/`
+directory containing machine-readable specifications for container images, infrastructure software versions,
+state sources, and large remote files.
+
+HIP XXXX1 (deployment), HIP XXXX2 (upgrade), and HIP XXXX3 (migration) each reference this document as the
+authoritative package specification.
+
+> **Reading order:** This HIP specifies the package artifact in isolation. It references concepts from the
+> Kubernetes-native consensus node deployment model — such as `solo-operator`, the UC sidecar, the
+> `solo-provisioner-daemon`, and Kubernetes Custom Resources — without fully defining them. Readers
+> unfamiliar with the deployment model should read **HIP XXXX1 (Kubernetes-Native Consensus Node Deployment)**
+> first for the full context. A brief summary of the relevant model is provided in the Motivation section
+> below.
+
+## Motivation
+
+### New Kubernetes-native Deployment Model
+
+Hedera consensus nodes run as Kubernetes pods on single-node clusters managed by **`solo-operator`** — a
+purpose-built Kubernetes operator. Each node consists of a consensus node (CN) container and one or more
+sidecars, the most significant of which is the **Upgrade Controller (UC) sidecar** — a process that monitors
+the CN for freeze events and drives the upgrade protocol by creating Kubernetes Custom Resources (CRs).
+
+The deployment model defines two profiles:
+
+- **Mainnet profile** — the node runs on a dedicated bare-metal host. The `solo-provisioner-daemon` runs
+  as a systemd service outside the cluster and handles infrastructure upgrades (Kubernetes version, CRI-O,
+  host binaries) that cannot be performed from inside a pod. Node state is stored on `hostPath` volumes.
+- **Cluster-only profile** — the Kubernetes cluster is pre-provisioned and managed by an external
+  platform (GKE, EKS, AKS, or any managed Kubernetes service). There is no bare-metal host access and no
+  `solo-provisioner-daemon`. The UC sidecar absorbs the daemon's role at upgrade time. Node state is
+  stored on `PersistentVolumeClaim` volumes.
+
+See **HIP XXXX1** for the full deployment model.
+
+CN application configuration (log4j2.xml, throttles.json, application.properties, etc.) is delivered as
+Kubernetes CRs — one dedicated CR kind per file type. **`solo-operator`** reconciles each CR into a
+Kubernetes **ConfigMap** that the CN pod mounts as a file. This keeps all configuration state in etcd,
+auditable and declaratively managed.
+
+This HIP specifies the deployment package that these components consume. See **HIP XXXX1** for the full
+deployment model.
+
+### Dual-Format Requirement During Migration
+
+The network migration from Docker Compose to Kubernetes-native (defined in HIP XXXX3) proceeds
+**node by node across multiple networks** (previewnet → testnet → mainnet). During this period, a single
+upgrade package must be consumable by both legacy Docker Compose nodes and migrated Kubernetes-native nodes —
+because all nodes on a network receive the same package from the Hedera File System simultaneously.
+
+This is a hard constraint on the package format: it must bundle both JAR-based artifacts (consumed by the
+legacy UC daemon) and `manifests/` + `data/config/` content (consumed by the K8s-native daemon/UC sidecar),
+and each node must be able to apply only its relevant portion. The package format defined in this HIP is
+designed to satisfy this constraint. See HIP XXXX3 for the migration protocol and the retirement trigger
+for JAR-based artifact production.
+
+### Package Specification
+
+Hedera consensus nodes are deployed and upgraded using a signed software package — a zip archive produced by
+Hashgraph CI/CD, published at [https://builds.hedera.com/](https://builds.hedera.com/), and distributed to
+node operators. The same package format serves multiple lifecycle operations: executing a council-driven
+network upgrade, provisioning a fresh node, and bootstrapping a new network. Defining a single, authoritative
+specification for this package gives node operators, tooling authors, and council members a stable contract
+to build against.
+
+This HIP establishes:
+
+- A precise directory layout and naming convention for the deployment package.
+- A versioned schema for each manifest file in the `manifests/` directory.
+- Clear rules for which files are required, optional, or context-specific in each deployment scenario.
+- A signing model that distinguishes mainnet upgrade packages (council threshold signing required) from
+  cluster-only packages and fresh-install packages (Hashgraph CI/CD signing sufficient).
+
+HIP XXXX1 (deployment), HIP XXXX2 (upgrade), and HIP XXXX3 (migration) each reference this document as the
+authoritative package specification rather than defining their own conventions independently.
+
+## Rationale
+
+### Single Package, All Operations
+
+The same package format is used for network upgrades, fresh node provisioning, and network bootstrapping.
+The operation is determined by context (upgrade = triggered by freeze transaction, fresh install = manual by
+node operator) rather than by a field in the package itself. This reduces the number of artifact types that
+Hashgraph CI/CD must produce and that node operators must manage.
+
+### Dual-Format Support During Migration
+
+The dual-format constraint described in the Motivation is satisfied by bundling both content sets in a single
+archive:
+
+- **`data/apps/*.jar` and `data/lib/*.jar`** — consumed by the legacy UC daemon on Docker Compose nodes.
+- **`manifests/`** and **`data/config/`** — consumed by the K8s-native daemon/UC sidecar on migrated nodes.
+
+Each node applies only its relevant portion and ignores the rest. Once all nodes across previewnet, testnet,
+and mainnet have completed migration to the Kubernetes-native model, the package format transitions to
+manifest-only: JAR production is retired and subsequent packages contain only `manifests/` and `data/config/`
+content. The retirement trigger and timeline are defined in HIP XXXX3.
+
+### Vanilla Defaults, Overridable by Environment
+
+The `data/config/` directory carries canonical configuration defaults from the CN release, suitable for
+mainnet as-is. DevOps engineers override specific files for non-mainnet environments without changing the
+package structure or requiring a separate artifact.
+
+### `manifests/` Subdirectory for Machine-Readable Specs
+
+Separating machine-readable manifests into a dedicated `manifests/` subdirectory keeps them distinct from the
+CN configuration files in `data/config/`. This makes it straightforward for tooling to locate and validate
+manifests without scanning the full package.
+
+The manifest-based model also dramatically reduces package size. The current Docker Compose model bundles
+JAR files directly — producing archives hundreds of megabytes in size. The Kubernetes-native model carries
+only YAML manifests and configuration files; the container runtime pulls images from registries at upgrade
+time. Once all networks have migrated and JAR production is retired, deployment packages will shrink to a
+fraction of their current size, reducing storage costs and upgrade window download time.
+
+### Deterministic Image Verification
+
+The `consensus-node-components.yaml` manifest distinguishes between components that produce deterministic
+builds (same inputs → identical layer hashes across all registries) and those that do not. For deterministic
+components, a single set of layer hashes covers all registries. For non-deterministic components, per-registry
+layer hash overrides are specified. This allows each council member to verify image integrity regardless of which
+registry it pulls from.
+
+### ConsensusConfig via Dedicated CRs per File, InfraConfig via Host Filesystem
+
+ConsensusConfig files are delivered as dedicated Kubernetes CRs rather than copied directly to the host
+filesystem. This keeps all configuration state in etcd — auditable via `kubectl`, subject to type-specific
+validation, and producing an immutable audit trail per operation. The daemon/UC uses a hardcoded
+filename-to-CR-kind mapping; no dispatch field is needed in the package.
+
+InfraConfig (`infrastructure-versions.yaml`) drives host-level tooling outside the cluster and is processed
+directly by `solo-provisioner` — Kubernetes abstractions are not appropriate here.
+
+### `external-files.yaml` for Large Files
+
+Files too large for dedicated config CR delivery (recommended limit: 1 MB) are referenced in
+`external-files.yaml`. The `phase` structure separates the download timing (`prepare` — before the freeze window) from the install timing (`frozen` — after `now_frozen.mf`, CN stopped). See
+window) from the install timing (`freeze` — during the freeze window when the CN is stopped), giving tooling
+precise control over when network and I/O load occurs.
+
+### Signing Model Tied to Network Risk
+
+Mainnet upgrade packages require council threshold signing because they affect the live network and require
+council consensus. Fresh install packages and non-mainnet packages carry only Hashgraph CI/CD signing, since
+the risk profile is lower and the council need not be involved in every node-operator-initiated provisioning event.
+
+## User Stories
+
+> As a **Hashgraph CI/CD engineer**, I want to produce a single signed zip artifact that covers network
+> upgrades, fresh node provisioning, and network bootstrapping — and serves both Docker Compose and
+> Kubernetes-native nodes during migration — so that I maintain one build pipeline for the entire network
+> lifecycle.
+
+> As a **node operator**, I want to apply the same package format regardless of whether I am performing an
+> upgrade, provisioning a new node, or my node is still on Docker Compose while others have migrated, so
+> that I don't need to manage different artifact types or workflows.
+
+> As a **`solo-provisioner-daemon` developer**, I want a versioned, schema-validated `manifests/` directory with
+> machine-readable specs for images, infra versions, and state sources, so that I can validate package
+> integrity and process each manifest independently without parsing the full archive.
+
+> As a **`solo-operator` developer**, I want CN configuration files delivered as dedicated Kubernetes CRs
+> so that configuration state is stored in etcd, auditable via `kubectl`, and subject to type-specific
+> validation — with a complete immutable audit trail per upgrade operation.
+
+> As a **council member**, I want the image manifest to include cryptographic layer hashes for every
+> container image, so that I can verify image integrity before any upgrade is applied to the live network.
+
+> As a **cluster-only profile operator**, I want to optionally include genesis configuration in the package
+> so that I can bootstrap a fresh network from a single artifact without sourcing genesis data separately.
+
+## Specification
+
+### Package Overview
+
+The deployment package is a zip archive named using the pattern `build-v<semver>.zip` (e.g.,
+`build-v0.75.0.zip`). It is produced by Hashgraph CI/CD and signed before distribution.
+
+The same package is used across all operational contexts:
+
+| Context                 | Triggered by               | Notes                                                                          |
+|-------------------------|----------------------------|--------------------------------------------------------------------------------|
+| Network upgrade         | Council freeze transaction | `manifests/consensus-node-components.yaml` consumed by UC sidecar and operator |
+| Fresh node provisioning | Node operator (manual)     | Same package; `data/config/` pre-populated with vanilla defaults               |
+| Network bootstrapping   | Node operator (manual)     | `data/config/genesis-network.json` present for cluster-only       |
+
+---
+
+### Package Directory Structure
+
+```
+build-v0.75.0.zip
+├── manifests/
+│   ├── consensus-node-components.yaml   # CN and sidecar container image versions and layer hashes
+│   ├── infrastructure-versions.yaml     # Infra software versions for solo-provisioner (CRI-O, kubelet, etc.)
+│   ├── state-sources.yaml               # Optional: state snapshot sources for fast-sync (fresh node provisioning only)
+│   └── external-files.yaml              # Optional: large remote files to download and stage
+├── data/
+│   ├── apps/
+│   │   └── *.jar                        # Consensus node JAR files (strictly versioned per CN release)
+│   ├── lib/
+│   │   └── *.jar                        # Dependency JAR files
+│   └── config/                          # ConsensusConfig files; daemon/UC creates config CRs at execute time
+│       ├── application.properties       # Network-specific config; contains ledgerId and other network values
+│       ├── application-override.properties  # Optional: environment-specific overrides
+│       ├── api-permission.properties    # Optional
+│       ├── bootstrap.properties         # Optional
+│       ├── node.properties              # Optional
+│       ├── feeSchedules.json            # Optional
+│       ├── simpleFeesSchedules.json     # Optional
+│       ├── throttles.json               # Optional
+│       └── genesis-network.json         # Optional: present for cluster-only genesis only
+├── jobs/                                # Optional: phase-scoped K8s Job descriptors (upgrade or install)
+│   ├── validate-config.yaml            # Example: runs during upgrade prepare phase
+│   └── health-checker.yaml             # Example: runs during install post-install phase
+│   # Note: filenames carry no implied ordering — use phase.sequence inside each descriptor
+├── block-nodes/
+│   └── config/
+│       └── block-nodes-<NODE_ID>.json   # Per-node block-node config; deployed to
+│                                        #   /opt/hgcapp/services-hedera/HapiApp2.0/data/config/
+│                                        #   as block-nodes-<NODE_ID>.json based on the target NODE_ID
+├── during-freeze.sh                     # Legacy: lifecycle hook consumed by Docker Compose UC daemon only
+├── immediate.sh                         # Legacy: lifecycle hook consumed by Docker Compose UC daemon only
+├── log4j2.xml                           # Consumed by both: Docker Compose UC daemon (directly) and
+│                                        #   K8s-native daemon/UC (creates dedicated CR → ConfigMap)
+├── settings.txt                         # Consumed by both: Docker Compose UC daemon (directly) and
+│                                        #   K8s-native daemon/UC (creates dedicated CR → ConfigMap)
+└── VERSION                              # CN version string
+```
+
+`during-freeze.sh` and `immediate.sh` are consumed exclusively by the Docker Compose UC daemon and are
+preserved for backward compatibility during the migration period (see HIP XXXX3). They are ignored by the
+Kubernetes-native tooling.
+
+`log4j2.xml` and `settings.txt` reside only at the package root. Both the Docker Compose UC daemon and the
+Kubernetes-native daemon/UC read them from this location — the K8s-native tooling has explicit logic to find
+these files at the root rather than under `data/config/`. The K8s-native daemon/UC creates a dedicated
+Kubernetes CR for each, whose reconciler updates the ConfigMap mounted into the CN pod.
+
+`block-nodes/config/block-nodes-<NODE_ID>.json` carries per-node block-node configuration. The daemon selects
+the file matching the target node's `NODE_ID` and copies it to
+`/opt/hgcapp/services-hedera/HapiApp2.0/data/config/block-nodes.json` on the node during provisioning
+or upgrade. Files for other node IDs present in the same package are ignored on each node.
+
+---
+
+### Signing Model
+
+Package signing varies by network environment and operation type:
+
+| Scenario                                | Signing required                                  |
+|-----------------------------------------|---------------------------------------------------|
+| Mainnet network upgrade                 | Hashgraph CI/CD **and** council threshold signing |
+| Mainnet `state-sources.yaml`            | Hashgraph CI/CD **and** council threshold signing |
+| Cluster-only                                | Hashgraph CI/CD only                            |
+| Fresh node provisioning / bootstrapping | Hashgraph CI/CD only                              |
+
+For mainnet network upgrades, the package is uploaded to the Hedera File Service (HFS) via the freeze
+transaction protocol after council signing. Fresh install and bootstrapping packages are distributed directly
+to node operators and do not require council involvement.
+
+---
+
+### ConsensusConfig vs InfraConfig
+
+The package carries two categories of configuration, distinguished by their delivery mechanism and target:
+
+| Category        | Location in package                                                      | Delivery mechanism                                                                      | Target                            |
+|-----------------|--------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|-----------------------------------|
+| ConsensusConfig | `data/config/` (most files); package root (`log4j2.xml`, `settings.txt`) | Daemon/UC creates a dedicated CR per known file                                         | ConfigMap consumed by the CN pod  |
+| InfraConfig     | `manifests/infrastructure-versions.yaml`                                 | `solo-provisioner` validates against its embedded catalog and installs catalog defaults | Host-level infrastructure tooling |
+
+ConsensusConfig files carry the CN's runtime configuration. They are populated with vanilla defaults from the
+CN release pipeline and may be overridden by DevOps or platform engineers for specific network environments.
+
+**CR dispatch is file-driven, not manifest-driven.** The daemon/UC scans `data/config/` after extracting the
+package and creates a dedicated Kubernetes CR for each recognised filename. Two files are exceptions:
+`log4j2.xml` and `settings.txt` reside at the **package root** (not under `data/config/`), and the
+K8s-native daemon/UC has explicit logic to locate them there. The Docker Compose UC daemon also reads these
+two files directly from the package root. All other ConsensusConfig files live exclusively under `data/config/`.
+
+The filename-to-CR-kind mapping is hardcoded in the daemon/UC. The `solo-operator` reconciler for each CR
+kind owns all domain-specific logic: ConfigMap name derivation, key mapping, and semantic content validation.
+Files in `data/config/` that are not recognised by the daemon are logged and skipped. No manifest entry is
+needed to declare which ConsensusConfig files are present or which CR kind to create.
+
+Each ConsensusConfig file must not exceed **1 MB** to stay within the Kubernetes etcd object size limit
+(~1.5 MB). Files larger than this limit must use `external-files.yaml` instead.
+
+---
+
+### `manifests/consensus-node-components.yaml` — Container Image Specification
+
+Defines the container images for the consensus node and all sidecars. For components that produce
+deterministic builds (identical layer hashes across all registries for the same inputs), a single set of
+`layerHashes` is declared at the component level. For non-deterministic components, `layerHashes` are
+declared per registry entry as overrides.
+
+**All sections are optional.** If a component entry is omitted entirely, the operator leaves that component
+unchanged — its current image and configuration are preserved as-is. This allows a package to target only
+the components that actually changed in a given release (e.g., a `consensusNode`-only upgrade with all
+sidecar sections omitted).
+
+Each sidecar entry also includes an `enabled` field. Setting `enabled: false` instructs the operator to
+actively remove that sidecar container from the `ConsensusCapsule` StatefulSet — the container is
+terminated and not restarted. This is distinct from omitting the section: omitting means "no change";
+`enabled: false` means "remove." `consensusNode` does not have an `enabled` field — if present it is always
+deployed; if omitted its current version is preserved.
+
+```yaml
+schemaVersion: 1 # an integer field indicating the version of the manifest schema; allows for future schema evolution and backward compatibility handling
+
+images:
+  consensusNode:
+    version: "0.75.0"
+    deterministic:
+      supported: true               # All registries produce identical layer hashes for this version
+      layerHashes: # Shared across all registries
+        linux/arm64:
+          - "sha256:def456..."
+          - "sha256:abc123..."
+        linux/amd64:
+          - "sha256:789ghi..."
+          - "sha256:012jkl..."
+    registries:
+      - image: "ghcr.io/hashgraph/hedera-services/consensus-node:0.75.0-abcdef"
+      - image: "ghcr.io/other-org/hedera-services/consensus-node:0.75.0-abcdef"
+  
+  recordStreamUploader: # Record stream uploader sidecar (cheetah); supports deterministic builds
+    enabled: true                   # Set to false to remove this sidecar from the pod during upgrade
+    version: "0.43.0"
+    deterministic:
+      supported: true
+      layerHashes:
+        linux/arm64:
+          - "sha256:..."
+        linux/amd64:
+          - "sha256:..."
+    registries:
+      - image: "ghcr.io/hashgraph/solo-cheetah:0.43.0-abcdef"
+  
+  eventStreamUploader: # Event stream uploader sidecar (cheetah); supports deterministic builds
+    enabled: true
+    version: "0.43.0"
+    deterministic:
+      supported: true
+      layerHashes:
+        linux/arm64:
+          - "sha256:..."
+        linux/amd64:
+          - "sha256:..."
+    registries:
+      - image: "ghcr.io/hashgraph/solo-cheetah:0.43.0-abcdef"
+  
+  blockStreamUploader: # Block stream uploader sidecar (cheetah); supports deterministic builds
+    enabled: true
+    version: "0.43.0"
+    deterministic:
+      supported: true
+      layerHashes:
+        linux/arm64:
+          - "sha256:..."
+        linux/amd64:
+          - "sha256:..."
+    registries:
+      - image: "ghcr.io/hashgraph/solo-cheetah:0.43.0-abcdef"
+  
+  uc: # Upgrade Controller sidecar; supports deterministic builds
+    enabled: true
+    version: "1.5.0"
+    deterministic:
+      supported: true
+      layerHashes:
+        linux/arm64:
+          - "sha256:..."
+        linux/amd64:
+          - "sha256:..."
+    registries:
+      - image: "ghcr.io/hashgraph/solo-uc:1.5.0-abcdef"
+  
+  backupUploader: # State file uploader; does NOT support deterministic builds
+    enabled: true
+    version: "0.33.0"
+    deterministic:
+      supported: false              # Layer hashes differ per registry; specify overrides per registry
+    registries:
+      - image: "ghcr.io/hashgraph/hedera-services/backup-uploader:0.33.0-abcdef"
+        layerHashes: # Per-registry override required for non-deterministic components
+          linux/arm64:
+            - "sha256:def456..."
+          linux/amd64:
+            - "sha256:def456..."
+      - image: "ghcr.io/other-org/hedera-services/backup-uploader:0.33.0-abcdef"
+        layerHashes:
+          linux/arm64:
+            - "sha256:zzz999..."
+          linux/amd64:
+            - "sha256:yyy888..."
+```
+
+---
+
+### `manifests/infrastructure-versions.yaml` — Infrastructure Software Specification
+
+Declares the infrastructure software combination expected for this package. `provisioner.cli.version` and
+`provisioner.daemon.version` identify the CLI and daemon release versions respectively — the two can differ,
+enabling independent upgrade cadences (a daemon bugfix does not require a CLI upgrade and vice versa). Each entry
+includes an `algorithm` and `checksum` (matching the `artifact.yaml` schema used for all other managed binaries) that
+the daemon verifies after downloading the binary. The `host` and `cluster` sections list the expected versions for
+host-level binaries (CRI-O, kubelet, etc.) and cluster-level Helm charts and components respectively.
+
+`solo-provisioner` ships with a built-in catalog of tested, opinionated version combinations — it does not
+support arbitrary version mixes, since not all combinations are validated to work correctly together. When
+processing this file, `solo-provisioner` verifies that the declared `host` and `cluster` versions are
+consistent with its supported combination for the given `provisioner.cli.version`, and installs or upgrades
+components accordingly using its own workflows.
+
+Specifying versions outside the supported combination is not recommended and may not work. An advanced
+escape hatch for expert users is under consideration but not yet finalised and is intentionally out of
+scope for this HIP.
+
+```yaml
+schemaVersion: 1
+provisioner:
+  cli:
+    version: "0.42.0"
+    algorithm: "sha256"
+    checksum: "abc123..."
+  daemon:
+    version: "0.33.0"
+    algorithm: "sha256"
+    checksum: "def456..."
+host:
+  - name: cri-o
+    version: "1.33.4"
+  - name: kubelet
+    version: "1.33.4"
+  - name: kubeadm
+    version: "1.33.4"
+  - name: kubectl
+    version: "1.33.4"
+  - name: helm
+    version: "3.18.6"
+  - name: cilium-cli
+    version: "0.18.7"
+cluster:
+  - name: cilium
+    version: "1.18.1"
+  - name: alloy
+    version: "1.4.0"
+  - name: metallb
+    version: "0.15.2"
+  - name: metrics-server
+    version: "3.13.0"
+  - name: node-exporter
+    version: "4.5.19"
+  - name: prometheus-operator-crds
+    version: "24.0.1"
+  - name: teleport-cluster-agent
+    version: "18.6.4"
+  - name: external-secrets
+    version: "0.20.2"
+```
+
+---
+
+### `manifests/state-sources.yaml` — State Snapshot Sources
+
+**Context**: this file is used whenever a node needs to acquire state from the network rather than using its
+own local `data/saved/` directory. The two primary scenarios are:
+
+- **Fresh node provisioning** — mainnet node replacement where no local state exists yet.
+- **Disaster recovery** — a node whose local state is lost, corrupted, or too far behind to reconnect
+  normally can use this file to download a recent Merkle snapshot from a peer's backup bucket and restart
+  the CN from a known-good round, rather than replaying the full event stream from genesis.
+
+It is **not used** during standard network upgrades (the CN pod is upgraded in place with its existing
+Merkle state), during Docker-to-Kubernetes migration (the K8s pod mounts the Docker CN's `data/saved/`
+via hostPath — no download needed), or for cluster-only bootstrapping (new networks start
+from genesis using `genesis-network.json` instead).
+
+Provides a set of cloud storage buckets and paths from which a provisioning node can download a recent
+saved-state snapshot for fast-sync, rather than replaying the full event stream from genesis. Multiple
+buckets (GCS, S3, etc.) across different regions are listed for redundancy and geographic locality.
+
+For each bucket, an `index` map points to per-node index files that contain the latest available round
+number. The `paths` map points to the base path under which that node's state snapshots are stored. The
+downloader reads the index files across all listed nodes, identifies the latest round, and downloads the
+corresponding state from the matching `paths` entry.
+
+For mainnet packages, this file is subject to the same council threshold signing requirement as the package
+itself.
+
+State snapshot buckets are **publicly readable** by default — no credentials are required for mainnet.
+This is a deliberate design decision: bare-metal mainnet nodes have no cloud IAM identity, so requiring
+credentials would make provisioning and disaster recovery dependent on out-of-band credential setup.
+Public read access removes that dependency and allows `solo-provisioner` to download state on any machine
+with network connectivity.
+
+For environments with private buckets (e.g. private cluster-only environments), `solo-provisioner` resolves
+credentials **per provider** — different bucket types (GCS, S3, etc.) may each require their own
+credentials. Credentials are configured out-of-band in a dedicated credentials config file, separate
+from the manifest:
+
+```yaml
+# /opt/solo/weaver/daemon/credentials/state-sources-credentials.yaml
+gcs:
+  type: service-account-key
+  keyFile: /opt/solo/weaver/daemon/credentials/gcs-key.json
+
+s3:
+  type: access-key
+  accessKeyIdFile: /opt/solo/weaver/daemon/credentials/aws-access-key-id.txt
+  secretAccessKeyFile: /opt/solo/weaver/daemon/credentials/aws-secret-access-key.txt
+```
+
+The file is keyed by provider type, matching the URI scheme used in `state-sources.yaml`. This allows
+a single manifest listing both GCS and S3 buckets to carry credentials for each independently.
+
+`solo-provisioner` resolves credentials for each provider using this chain — checked in order, first
+match wins:
+
+1. **Ambient cloud identity** — Workload Identity (GKE) or IRSA (EKS); zero config when running on a
+   supported cloud provider.
+2. **Provider-specific environment variables** — `GOOGLE_APPLICATION_CREDENTIALS` for GCS,
+   `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` for S3, etc.; the standard variables each cloud SDK
+   checks automatically.
+3. **Credentials config file** — at the well-known path
+   `/opt/solo/weaver/daemon/credentials/state-sources-credentials.yaml`; supports multiple
+   providers simultaneously; suitable for daemon-mode operation where CLI flags are not available.
+4. **`--credentials-config` flag** — an explicit path to the credentials config file; takes precedence
+   over the well-known path.
+
+The manifest itself never carries credentials.
+
+Bucket URIs use native cloud storage schemes (`gcs://`, `s3://`) rather than HTTPS REST URLs. This is
+consistent with how cloud SDKs and CLI tools address buckets natively, removes the need for a separate
+`type` field (the scheme encodes the provider), and enables direct string comparison when tooling resolves
+the correct SDK client.
+
+```yaml
+schemaVersion: 1
+stateSources:
+  - bucket: "gcs://mainnet-state-backups"
+    location: "us-central-1"        # Standard cloud region identifier
+    index: # Per-node index files; each contains the latest available round info
+      "council-node-1": "/current-node/council-node-1.txt"
+      "council-node-2": "/current-node/council-node-2.txt"
+      "council-node-3": "/current-node/council-node-3.txt"
+    paths: # Base paths for state snapshots uploaded by each node
+      "council-node-1": "/council-node-1"
+      "council-node-2": "/council-node-2"
+      "council-node-3": "/council-node-3"
+
+  - bucket: "s3://mainnet-state-backups-ap"
+    location: "ap-southeast-1"
+    index:
+      "council-node-11": "/current-node/council-node-11.txt"
+      "council-node-12": "/current-node/council-node-12.txt"
+    paths:
+      "council-node-11": "/council-node-11"
+      "council-node-12": "/council-node-12"
+```
+
+The index file currently contains just the round number, but it may also contain additional metadata in the future, such
+as:
+
+```text
+ROUND:                  246840327
+HASH:                   adf00f6cedb3...
+CONSENSUS_TIMESTAMP:    2026-05-08T03:30:00.002700Z
+SOFTWARE_VERSION:       SemanticVersion[major=0, minor=75, patch=0, pre=, build=0]
+NODE_ID:                3
+```
+
+The downloader reads all index files, determines the latest round available across all listed nodes, then
+downloads the state from the corresponding `paths` entry. For example, if index file
+`/current-node/council-node-2.txt` on the GCS bucket reports round `12345`, the downloader fetches state
+from `gcs://mainnet-state-backups/council-node-2/12345`.
+
+---
+
+### `manifests/external-files.yaml` — Large Remote File Manifest
+
+For files too large to deliver via a dedicated config CR (recommended limit: 1 MB). Files are downloaded
+and staged by the Upgrade Controller (UC) sidecar or the `solo-provisioner-daemon` according to the
+`phase` spec.
+
+**Failure policy per entry:**
+
+- **Required entries** (default, `optional` absent or `false`): any failure — insufficient disk space,
+  network error, HTTP 4xx/5xx, or checksum mismatch — **halts the upgrade immediately**. The file is never
+  installed, and the downloader emits a `FileDownloadFailed` or `FileHashMismatch` event with the entry URL
+  and reason. This is the safe default: a declared file that cannot be delivered leaves the host in a
+  partial state that is worse than a clean failure.
+- **Optional entries** (`optional: true`): on any failure the downloader logs a warning and continues
+  processing remaining entries. The upgrade proceeds without that file. Use this only for genuinely
+  non-critical supplementary assets.
+
+For all entries, the downloader must verify that sufficient disk space exists at both the temporary download
+path and the final destination **before** starting the download. If space is insufficient, the failure policy
+above applies based on whether the entry is optional.
+
+The `destination` field must use a recognised directory marker prefix — arbitrary filesystem paths are not
+permitted. Supported markers (resolved paths are illustrative and subject to change):
+
+| Marker                 | Example resolved path                    |
+|------------------------|------------------------------------------|
+| `HAPIAPP_DIR`          | `/opt/hgcapp/services-hedera/HapiApp2.0` |
+| `SOLO_PROVISIONER_DIR` | `/opt/solo/weaver`                       |
+
+The actual resolved paths are configured in the daemon and may change across releases. This restriction
+prevents packages from placing files in arbitrary host locations, limiting the blast radius of a compromised
+or malformed package.
+
+```yaml
+schemaVersion: 1
+files:
+  - url: "s3://hedera-artifacts/some-key.bin"
+    algorithm: "sha256"                              # Hash algorithm used for integrity verification
+    checksum: "abc123..."                            # Expected hash of the downloaded file
+    contentType: "application/octet-stream"          # MIME type
+    destination: "HAPIAPP_DIR/data/keys/some-key.bin"
+    optional: false                                  # Default: omit or set false to halt on any failure
+    phase:
+      download: prepare    # Download before the freeze window (CN still ACTIVE)
+      install: frozen      # Stage to destination during the freeze window (CN stopped)
+  
+  - url: "s3://hedera-artifacts/optional-debug-data.bin"
+    algorithm: "sha256"
+    checksum: "def456..."
+    contentType: "application/octet-stream"
+    destination: "SOLO_PROVISIONER_DIR/debug/optional-debug-data.bin"
+    optional: true                                   # Skip on failure; upgrade proceeds without this file
+    phase:
+      download: prepare
+      install: frozen
+```
+
+`phase.download` values:
+
+- `prepare` — downloaded before the freeze window begins, while the CN is still active. Preferred for large
+  files to avoid download latency inside the freeze window.
+- `freeze` — downloaded during the freeze window, after the CN has stopped. Suitable for smaller files where
+  pre-download is unnecessary, but not recommended for large files as it extends the freeze window duration.
+
+`phase.install` values:
+
+- `frozen` — staged to the final destination during the freeze window, after the CN has stopped (`now_frozen.mf` received).
+
+---
+
+### `jobs/` — Phase-scoped K8s Job Descriptors
+
+The optional `jobs/` folder contains K8s Job descriptors. Each descriptor is a self-contained YAML file that declares when a Job should be executed (phase and context), how failures are handled, and the full inline K8s Job manifest. The daemon or UC launches and monitors these jobs at the declared phase before proceeding with the rest of the upgrade or install flow.
+
+The `jobs/` folder is ignored by the Docker Compose UC daemon — it is consumed exclusively by the K8s-native daemon and UC.
+
+**Descriptor schema:**
+
+```yaml
+schemaVersion: 1              # Integer; schema version for forward compatibility
+context: upgrade              # upgrade | install
+                              #   upgrade — executed during upgrade phases only; skipped during install
+                              #   install — executed during install phases only; skipped during upgrade
+                              # If a job is needed in both contexts, author two separate descriptor files
+phase:
+  name: prepare               # Phase within the declared context:
+                              #   upgrade: prepare | frozen | … (mirrors network upgrade state machine)
+                              #   install: pre-install | post-install
+  sequence: 10                # Ascending integer; execution order within the phase
+failurePolicy: Abort          # Abort — halt upgrade/install on non-zero exit
+                              # Ignore — log warning and continue
+namespace: solo               # Optional; defaults to CN namespace; must pre-exist — not created by triggerer
+content:                      # Inline K8s Job manifest
+  apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: validate-config     # Triggerer may suffix for uniqueness
+  spec:
+    # … standard K8s Job spec …
+```
+
+**Phase vocabulary:**
+
+| Context | `phase.name` | When |
+|---|---|---|
+| `upgrade` | `prepare` | After `execute_immediate.mf` detected; CN still active |
+| `upgrade` | `frozen` | After `now_frozen.mf` detected; CN stopped |
+| `upgrade` | `post-upgrade` | After the CN pod restarts with the new image and all containers report `Ready`; triggered by the new UC instance |
+| `install` | `pre-install` | Cluster and operator up; CN not yet deployed |
+| `install` | `post-install` | CN pod deployed and all containers report `Ready` |
+
+**Triggerer assignment:**
+
+Which process (daemon or UC) launches a job is determined at implementation time by phase. It is not declared in the descriptor. In deployments without a daemon (cluster-only profile), the UC handles all phases.
+
+The triggerer injects the following labels onto the Job before applying — these are not authored in the package:
+
+```yaml
+hedera.com/operation-id: <generated deterministically at apply time>
+hedera.com/job-file: validate-config      # matches descriptor filename stem (no ordering implied by filename)
+```
+
+**Execution rules:**
+
+- Jobs within a phase run **sequentially** in ascending `phase.sequence` order.
+- `failurePolicy: Abort` — the upgrade or install halts immediately on non-zero pod exit code.
+- `failurePolicy: Ignore` — the failure is logged and the flow continues.
+- Completion is determined by pod exit code only. Jobs do not pass results back to the triggerer.
+
+**Idempotency:**
+
+Before launching a job, the triggerer queries:
+
+```
+kubectl get jobs -l hedera.com/operation-id=<id>,hedera.com/job-file=<stem>
+```
+
+| State | Action |
+|---|---|
+| Not found | Create and watch |
+| Found + succeeded | Skip |
+| Found + running | Re-attach and watch |
+| Found + failed | Delete and re-launch |
+
+> **Note:** Job-only for now. Deployment (long-running workload) support is deferred until a concrete use case is identified.
+
+---
+
+### `data/config/genesis-network.json` — Network Genesis Data
+
+Present only in packages intended for cluster-only profile network bootstrapping. **Never included
+in mainnet packages.** Mainnet node replacement uses `state-sources.yaml` for fast-sync instead.
+
+**Endpoint field rules (`gossipEndpoint` / `serviceEndpoint`):**
+
+Each endpoint object in the proto `ServiceEndpoint` message supports three fields:
+
+| Field | Type | Notes |
+|---|---|---|
+| `ipAddressV4` | base64-encoded bytes | 32-bit IPv4 address in big-endian byte order, base64-encoded (e.g. `127.0.0.1` → `"fwAAAQ=="`) |
+| `port` | integer (int32) | TCP port number |
+| `domainName` | string | Fully-qualified domain name; MUST NOT be set when `ipAddressV4` is set — they are mutually exclusive |
+
+> **Mainnet / production always uses `ipAddressV4`.** Domain names are not used in mainnet or production deployments. The `domainName` variant exists for non-production environments where DNS-based addressing is preferred.
+
+**Example (cluster-only / non-mainnet, using `ipAddressV4`):**
+
+```json
+{
+  "nodeMetadata": [
+    {
+      "node": {
+        "nodeId": "0",
+        "accountId": {
+          "realmNum": "0",
+          "shardNum": "0",
+          "accountNum": "3"
+        },
+        "description": "consensus-node-0",
+        "gossipEndpoint": [
+          {
+            "ipAddressV4": "fwAAAQ==",
+            "port": 50111
+          }
+        ],
+        "serviceEndpoint": [
+          {
+            "ipAddressV4": "fwAAAQ==",
+            "port": 50211
+          }
+        ],
+        "gossipCaCertificate": "<PEM signing cert → DER → base64>",
+        "grpcCertificateHash": "<SHA-384 of DER-encoded gRPC TLS cert, hex-encoded>",
+        "weight": "1",
+        "deleted": false,
+        "adminKey": "<ED25519 public key bytes, base64-encoded — optional>"
+      },
+      "rosterEntry": {
+        "nodeId": "0",
+        "gossipEndpoint": [
+          {
+            "ipAddressV4": "fwAAAQ==",
+            "port": 50111
+          }
+        ],
+        "gossipCaCertificate": "<PEM signing cert → DER → base64>",
+        "weight": "1"
+      }
+    }
+  ]
+}
+```
+
+**Alternative endpoint using `domainName` (non-production only):**
+
+```json
+"gossipEndpoint": [
+  {
+    "domainName": "consensus-node-0.example.com",
+    "port": 50111
+  }
+]
+```
+
+> **Proto3 JSON note:** `nodeId` and `weight` are `uint64`/`int64` proto fields and are serialized as **quoted strings** in proto3 JSON (e.g. `"0"`, `"1"`). `port` is `int32` and is serialized as a bare integer.
+
+---
+
+### Relationship to Other HIPs
+
+| HIP   | Depends on XXXX0 for                                                                                      |
+|-------|-----------------------------------------------------------------------------------------------------------|
+| XXXX1 | Dedicated config CR kinds per file; `data/config/` directory convention; `consensus-node-components.yaml` |
+| XXXX2 | `consensus-node-components.yaml` schema; `external-files.yaml`; config CR creation flow                   |
+| XXXX3 | Dual-format `build.zip` structure (JAR-based + manifest-based) that enables node-by-node migration        |
+
+## Backwards Compatibility
+
+This HIP introduces a new package format with no prior published version to be compatible with. Future schema
+evolution is governed by the following rules:
+
+- **Additive changes** (new optional fields, new supplementary files): permitted within the same
+  `schemaVersion`. All tooling (operator, daemon, UC) **must** use lenient parsing — unknown fields are
+  silently ignored. This allows a newer package to be processed by an older component without failure, as
+  long as the new field is optional and its absence does not break existing behaviour.
+- **Breaking changes** (removed fields, renamed fields, changed field semantics, new required fields):
+  require a `schemaVersion` bump. Tooling that encounters an unknown `schemaVersion` must refuse processing
+  and emit a `ManifestInvalid` event rather than silently misinterpreting the content.
+
+The same rules apply to `version` fields on supplementary manifests.
+
+### Schema Evolution Rollout Pattern
+
+Lenient parsing alone is not sufficient when a new field carries real semantics — tooling must already
+understand the field before a manifest can use it. Introducing new fields therefore requires a two-upgrade
+rollout:
+
+**Upgrade N — component rollout:**
+Deploy new versions of the operator, daemon, and UC that understand the new field(s). The manifest for this
+upgrade does **not** yet use the new fields. Lenient parsing ensures components that have not yet upgraded
+ignore any unrecognised fields without failing.
+
+**Upgrade N+1 — field activation:**
+Once all nodes are confirmed to be running the new component versions, a subsequent manifest can safely
+populate the new fields.
+
+This is distinct from the rejected two-phase upgrade pattern — each upgrade still executes in a single
+freeze window. The two steps are two separate, sequential upgrade events.
+
+## Security Implications
+
+- **Package integrity:** All packages carry a Hashgraph CI/CD signature. Tooling must verify the signature
+  before processing any manifest. Mainnet upgrade packages additionally require council threshold signing.
+- **Image verification:** For deterministic components, the operator verifies layer hashes declared at the
+  component level against the pulled image before use. For non-deterministic components, per-registry
+  `layerHashes` overrides are verified. A hash mismatch must cause the upgrade to abort.
+- **Config CR size:** ConsensusConfig files must not exceed 1 MB to stay within the Kubernetes etcd object
+  size limit (~1.5 MB). Larger payloads must use `external-files.yaml`.
+- **Config CR immutability:** Config CRs are never deleted after creation — they serve as an immutable audit
+  trail of every configuration change applied to the node.
+- **External file integrity:** Files declared in `external-files.yaml` must have their hash verified against
+  the declared value after download and before use. A hash mismatch must cause the operation to abort.
+- **Schema version enforcement:** Tooling must reject manifests with an unknown `schemaVersion` to prevent
+  silent misinterpretation of breaking changes. Within a known version, unknown fields must be ignored
+  (lenient parsing) to preserve forward compatibility across rolling deployments.
+- **Disk space pre-check:** Before downloading any entry in `external-files.yaml`, the downloader must verify
+  sufficient disk space at both the temporary download path and the final destination to prevent partial
+  downloads corrupting the host filesystem.
+
+## How to Teach This
+
+Node operators interacting with the package as end users do not need to author manifests — packages are
+produced by Hashgraph CI/CD. Operators should understand:
+
+1. **What the package contains:** the directory structure and the role of each file.
+2. **How the same package is used in different contexts:** upgrade vs. fresh provisioning vs. bootstrapping —
+   the package is identical; the operation is determined by how it is applied.
+3. **How to verify a package:** check the Hashgraph CI/CD signature (and council signature for mainnet
+   upgrades) before applying.
+4. **What `data/config/` contains:** vanilla defaults from the CN release. DevOps may override specific
+   files for non-mainnet environments before the package is distributed.
+
+For implementors building tooling (daemon, UC, operator reconcilers), the Specification section provides
+complete annotated examples for each manifest file. The `deterministic` flag in
+`consensus-node-components.yaml` and the `phase` structure in `external-files.yaml` are the two concepts
+most likely to require explanation in onboarding documentation.
+
+## Reference Implementation
+
+Packages conforming to this specification are built by Hashgraph CI/CD and published at
+[https://builds.hedera.com/](https://builds.hedera.com/).
+
+The full implementation spans the following components and is required to reach `Final` status:
+
+- `hashgraph/solo-operator` — dedicated config CR kinds and reconcilers per ConsensusConfig file type;
+  `NetworkUpgrade*` CR execution flow; image verification against `consensus-node-components.yaml`.
+- `hashgraph/solo-weaver` — `solo-provisioner-daemon`; package inspection, hash verification,
+  ConsensusConfig CR creation; `infrastructure-versions.yaml` processing.
+- Hashgraph CI/CD pipeline — package assembly, signing, and HFS upload for mainnet upgrades; packages
+  published at [https://builds.hedera.com/](https://builds.hedera.com/).
+
+## Rejected Ideas
+
+### Separate Upgrade and Fresh-Install Manifests
+
+An earlier design used separate primary manifests (`upgrade.yaml` for network upgrades, `init.yaml` for
+fresh node provisioning) to make the intended operation explicit. This was replaced by the current
+context-driven approach after it became clear that the package content is identical for both operations —
+the distinction is in how and when the package is applied, not in what it contains. A single package format
+reduces the number of artifact types the build pipeline must produce and simplifies node operator tooling.
+
+### `ledgerId` and `operationId` in Primary Manifest
+
+Earlier designs embedded `ledgerId` and `operationId` as explicit fields in a primary manifest. `ledgerId`
+is now read directly from `data/config/application.properties`, which already carries network-specific
+configuration. `operationId` is generated deterministically by tooling at apply time rather than being
+council-authored in the package — removing a manual step that was a potential source of error.
+
+### `minimumInfraVersions` Safety Gate
+
+An earlier design included a `minimumInfraVersions` section in the primary manifest that blocked upgrades
+until all infra components met declared minimum versions. This is superseded by
+`infrastructure-versions.yaml`, which pins specific `provisioner.cli.version` and `provisioner.daemon.version` values.
+The provisioner's
+embedded catalog determines which component versions are installed; the `host:`/`cluster:` entries are
+an audit record, auto-generated from catalog defaults, providing the same council-review guarantee
+without a separate gate field in the manifest.
+
+### Two-Phase Upgrade (Separate Infra and CN Upgrade Windows)
+
+An earlier upgrade model proposed splitting infra and CN upgrades into two separate freeze windows. This was
+rejected because it increased operational complexity and required the council to coordinate two freeze events
+per release. The current model performs infra and CN upgrades in a single freeze window, with
+`infrastructure-versions.yaml` ensuring the correct infra baseline is in place.
+
+### Generic `ConfigurationFile` CR with Manifest-Declared `cr` Dispatch Field
+
+An earlier design used a single generic `ConfigurationFile` CR for all ConsensusConfig files, with an
+optional `cr` field in the manifest entry to dispatch to a custom CR kind when semantic validation was
+needed. The manifest also declared `targetConfigMap` and `targetKey` per entry. This was rejected in favour
+of dedicated CR kinds per file type, with the filename-to-CR mapping hardcoded in the daemon/UC. The
+dedicated CR approach allows type-specific semantic validation in the operator's reconciler, cleaner RBAC
+boundaries per config type, and simpler manifest content — no `cr`, `targetConfigMap`, or `targetKey` fields
+needed.
+
+### Embedding Large File References in Primary Manifests
+
+A `largeFiles` section was initially included directly in the primary manifest. This was moved to a
+standalone `external-files.yaml` so that the primary manifests stay compact and the large-file download
+contract is independently versioned and inspectable.
+
+## Open Issues
+
+### Package Build Tooling
+
+Hashgraph CI/CD already produces and publishes `build-v<semver>.zip` packages at
+[https://builds.hedera.com/](https://builds.hedera.com/). However, the existing tooling predates this HIP
+and does not fully conform to the schemas and conventions defined here. The tooling will need to be updated
+to adopt this standard, including:
+
+- Emitting the `manifests/` directory with all manifest files conforming to the schemas specified here.
+- Structuring ConsensusConfig files under `data/config/` as defined in this HIP.
+- Generating and embedding per-file content hashes for all bundled files.
+- Validating all manifests against the schemas defined here before signing.
+
+The scope and timeline of this migration are to be resolved in a follow-on issue or HIP.
+
+### Rolling Upgrade Support
+
+The current package format is designed around the globally synchronised freeze-and-restart upgrade model
+defined in HIP XXXX2. Rolling upgrade capability — where nodes upgrade sequentially without a network-wide
+freeze — is identified as a future improvement in HIP XXXX2 and left for a dedicated follow-on HIP. Any
+changes required to the package format to support that model will be addressed at that time.
+
+## References
+
+- [https://builds.hedera.com/](https://builds.hedera.com/) — Hedera consensus node package distribution
+- [HIP-198](https://hips.hedera.com/hip/hip-198) — Hedera Ledger ID definition
+- [HIP XXXX1 - Kubernetes-Native Consensus Node Deployment](hip-xxxx1%20-%20network-deployment.md)
+- [HIP XXXX2 - Globally Synchronized Network Upgrade Process](hip-xxxx2%20-%20network-upgrade.md)
+- [HIP XXXX3 - Consensus Node Migration to Kubernetes-Native Deployment](hip-xxxx3%20-%20network-migration.md)
+- `hashgraph/solo-operator` `CreateGenesisNetworkStep` — `genesis-network.json` format reference
+
+## Copyright/license
+
+This document is licensed under the Apache License, Version 2.0 —
+see [LICENSE](../LICENSE) or <https://www.apache.org/licenses/LICENSE-2.0>.
