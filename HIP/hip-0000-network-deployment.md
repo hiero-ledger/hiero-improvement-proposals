@@ -140,117 +140,86 @@ node management.
 
 ## Rationale
 
-### Why a Single-Node Kubernetes Cluster Per Host?
+### One cluster per host — no federated control plane
 
-Each council member controls exactly one node, and there is no operational reason to federate control planes. A
-single-node cluster gives each council member:
+Each council member controls exactly one node, and there is no operational reason to share a control plane across
+members. Keeping the cluster strictly per-host means:
 
-- **Full operator ownership**: The operator (and its RBAC) is entirely under the control of the council member.
-- **No cross-node cluster risk**: A fault in one node's cluster cannot affect any other node's cluster.
-- **Simpler networking**: No multi-node CNI configuration; Cilium runs in single-node mode.
+- **Full ownership**: each member's RBAC, operator, and cluster state are entirely under their own control.
+- **Fault isolation**: a cluster failure on one host cannot affect any other host's cluster.
+- **Simpler networking**: no multi-node CNI configuration; the CNI plugin runs in single-node mode.
 
-### Why CRI-O Instead of containerd?
+### CRI-O as the container runtime, not containerd
 
-Podman and Docker are not supported Kubernetes runtimes. CRI-O is developed in lockstep with the CNCF
-and is the de facto container runtime with direct support from the Kubernetes team.
+The new cluster must run alongside the existing Docker Engine during migration. containerd uses hardcoded
+filesystem paths that conflict with the version Docker Engine already installs — running both is not feasible
+without patching containerd itself. CRI-O has no such constraint and was designed to coexist with other runtimes.
 
-containerd is a viable option but would directly conflict with the version installed by Docker Engine.
-containerd uses hardcoded paths in its code, making it impossible to easily install another version
-alongside the one installed with Docker Engine. CRI-O has no such constraint.
+Beyond the coexistence requirement, CRI-O is the runtime developed in lockstep with the Kubernetes project and is
+typically certified for new Kubernetes features before containerd. It is already the runtime used for every block
+node deployed today, so adopting it here requires no new operational expertise.
 
-CRI-O has an identical stability level compared to containerd, but is also typically certified by the
-Kubernetes team to work with new and upcoming features before containerd has been fully vetted. CRI-O
-has better integration with Kubernetes in some aspects and an easier to manage configuration and
-deployment model.
+### etcd state survives cluster reinstalls
 
-We are already running CRI-O on every block node deployed by `solo-provisioner` today. Switching to
-containerd would be a major change with no material benefit.
+Infrastructure upgrades may require tearing down and reinstalling the Kubernetes cluster itself. If etcd data
+lived inside the cluster (e.g., a PVC), it would be lost in that process. Storing etcd on the host filesystem
+means all CR state — operator config, upgrade audit records, node identity — is immediately available to the
+freshly-installed cluster with no restore step.
 
-### Why etcd on hostPath?
+### Infrastructure upgrades must run outside the cluster
 
-Storing etcd data on a `hostPath` volume (rather than an in-cluster PVC) allows the Kubernetes cluster itself to
-be torn down and reinstalled as part of an infrastructure upgrade, without losing any CR state. All CRDs, operator
-state, and upgrade audit records are immediately available to the newly-installed cluster without any restore step.
+Some upgrade operations — replacing the container runtime, upgrading the cluster components, reinstalling the CNI
+— require stopping the cluster itself. A process running inside that cluster cannot perform these operations; it
+would be terminated along with the cluster it is trying to modify. A host-level service managed by systemd is the
+natural fit: it has the required privileges, survives cluster restarts, and can replace its own binary as part of
+a self-upgrade handoff.
 
-### Why a Host Daemon for Infrastructure Upgrades?
+### Proxies are off-host on mainnet
 
-Operations that require changing the Kubernetes cluster itself (e.g., upgrading kubeadm, reinstalling the CNI,
-upgrading the CRI-O runtime) cannot be performed from within a pod running on that cluster. A host-level daemon with
-`systemd` management is the natural fit: it has root access, can tear down and reinitialise the cluster, and can
-update its own binary as part of a self-upgrade protocol.
+A mainnet bare-metal machine must dedicate its full resources to the consensus node. Co-locating proxy processes
+introduces resource contention that could degrade consensus performance. Mainnet proxies are therefore expected on
+separate infrastructure, managed independently by each node operator.
 
-### Why Are Proxies Optional on Mainnet?
+Mandating operator-managed proxies on mainnet would impose migration risk with no consensus benefit.
+`HAProxyCapsule` and `EnvoyProxy` CRDs are available for operators who want them, but are primarily targeted at
+development and testing profiles where a unified single-cluster setup simplifies tooling.
 
-On mainnet, each council member's bare-metal machine must dedicate its full CPU, memory, and I/O capacity to the
-consensus node. Co-locating proxy processes on the same machine would introduce resource contention that could
-degrade consensus performance. Mainnet proxies are therefore expected to run on separate infrastructure — a
-separate machine or VM — managed independently by the node operator using whatever tooling they already have in
-place (HAProxy, Envoy, or otherwise).
+### The CN upgrade marker protocol is unchanged
 
-Mandating a migration to `solo-operator`-managed proxies on mainnet would impose an unnecessary coordination burden
-and risk for a migration that delivers no direct consensus benefit. The `HAProxyCapsule` and `EnvoyProxy` CRDs ship
-with solo-operator and are available to mainnet node operators who wish to adopt them, but are primarily intended for
-the
-development and testing deployment profile where a unified single-cluster setup dramatically simplifies tooling.
+The consensus node signals upgrade phases by writing well-known marker files (`execute_immediate.mf`,
+`freeze_scheduled.mf`, etc.). This protocol is battle-hardened and changing it would require modifying the
+consensus node itself — a much higher-risk change. Instead, a sidecar co-located in the CN pod observes these
+marker files and translates them into Kubernetes CRs, giving the control plane a clean declarative interface
+without touching the CN's internal protocol.
 
-### Why Keep the Marker File Protocol?
+### All CN configuration flows through the operator
 
-The `hiero-consensus-node` upgrade protocol (writing `execute_immediate.mf`, `freeze_scheduled.mf`, etc.) is a
-well-tested, battle-hardened mechanism. Changing it would require modifying the consensus node itself, which is a
-much higher-risk change. Instead, the UC sidecar acts as a translator: it observes the existing marker files and
-emits the corresponding Kubernetes CRs, giving the Kubernetes-native control plane a clean interface without
-requiring protocol changes in the CN.
+Allowing configuration to reach the CN through multiple paths (upgrade packages, host files, direct mounts) would
+create drift: different nodes could silently diverge, and there would be no single authoritative view of what
+configuration a node is running. Routing every config file through a dedicated Kubernetes CR enforces a single
+delivery path regardless of deployment topology, makes every change visible via `kubectl`, and ties configuration
+state to etcd — where it persists across pod restarts and is reconcilable on demand.
 
-### Why Is the Operator the Single Source of Truth for CN Configuration?
+Configuration files are delivered in the upgrade package, scanned by the provisioning tooling, and turned into CRs.
+The operator validates and reconciles each CR into the appropriate ConfigMap; the CN reads from that ConfigMap via
+volume mount. The filename-to-CR mapping is fixed in the tooling; no dispatch field is needed in the package.
+Files must be under **1 MB** (etcd object limit headroom); larger assets use `manifests/external-files.yaml` and
+are downloaded directly to the host.
 
-All CN configuration files — `log4j2.xml`, `settings.txt`, and any future types — are managed exclusively by
-`solo-operator` via dedicated Kubernetes CRs (`NodeSettings`, `Log4j2Config`, `ApplicationProperties`, etc.). The
-daemon/UC creates these CRs; the operator validates and reconciles them into the appropriate ConfigMap volumes that
-the CN reads. The CN never receives configuration from outside this path. This design ensures:
+Adding a new config file type requires no package schema change — the package includes the new file alongside an
+updated `manifests/infrastructure-versions.yaml` declaring the minimum tooling version that handles it. The
+tooling upgrades itself before processing the new file, ensuring handler and file are always co-deployed.
 
-- **Consistency across topologies**: Whether running with `provisionerDaemonEnabled: true` (Mainnet) or `false`
-  (cluster-only), the CN always gets its configuration from the same operator-managed ConfigMaps — there is no
-  topology-specific config delivery path to maintain.
-- **Single source of truth**: Configuration state lives in etcd (persisted on hostPath), not scattered across
-  upgrade packages or host filesystems. Drift is detectable and reconcilable.
-- **Auditability**: Every config change is a CR update, versioned in etcd, visible via `kubectl`.
-
-**ConsensusConfig files** (`application.properties`, `throttles.json`, `feeSchedules.json`,
-`api-permission.properties`, etc.): delivered under `data/config/`; `log4j2.xml` and `settings.txt` are
-delivered at the **package root** (K8s-native tooling has explicit logic to find them there). The daemon
-scans `data/config/` and the package root for these two, and for each recognised filename creates the corresponding
-dedicated Kubernetes CR → operator's CR reconciler performs domain-specific validation and updates the
-ConfigMap → CN picks up via volume mount. The filename-to-CR-kind mapping is hardcoded in the daemon/UC; no
-dispatch field is required in the package manifests. Files must be under **1 MB**.
-
-**Large files** (too large for CR delivery): referenced in `manifests/external-files.yaml` and downloaded by
-the UC sidecar or daemon before or during the freeze window as specified by the `phase` field.
-
-> The full package directory structure and manifest schemas (`consensus-node-components.yaml`,
-> `infrastructure-versions.yaml`, `state-sources.yaml`, `external-files.yaml`) are specified in
+> The full package directory structure and manifest schemas are specified in
 > **HIP XXXX0 — Consensus Node Deployment Package Specification**.
 
-**Adding a new ConsensusConfig file type** — because config file dispatch is driven by filename, introducing a
-new ConsensusConfig file type requires no change to the package manifest schema. The package simply includes the
-new file alongside an updated `infrastructure-versions.yaml` that declares the minimum infra version required to
-handle it. During the execute phase, the daemon upgrades infra first (daemon/UC and operator, which now recognise
-the new filename and CR kind), and only then proceeds to ConsensusConfig CR creation — so the new file type and
-its handler are guaranteed to be co-deployed in the same freeze window. The `infrastructure-versions.yaml`
-minimum-version gate prevents any node from processing the new file if its infra is below the required version.
+### Infrastructure and CN upgrades execute in a single freeze window
 
-### Single-Window Upgrade: Infra and CN Together
-
-Every upgrade — whether it includes infrastructure changes, CN changes, or both — is executed within a
-**single freeze window**. The freeze protocol is unchanged: every window goes through the same
-`PREPARE_UPGRADE → FREEZE_UPGRADE → FREEZE_COMPLETE` sequence.
-
-During the execute phase, the daemon performs in order: InfraConfig file placement, infra upgrade (if needed),
-ConsensusConfig CR creation, wait for operator reconciliation, then signals `PendingNodeUpgrade`. The
-`manifests/infrastructure-versions.yaml` file in the package specifies the required infra component versions.
-The daemon reads this file as a safety gate — if the installed operator or daemon is below the declared
-minimum, the UC blocks the upgrade and the node operator must manually upgrade the infra stack first.
-Once all steps complete, the daemon signals `PendingNodeUpgrade` by setting a status condition on the
-`NetworkUpgradeExecute` CR — see **HIP XXXX2** for the full daemon-to-operator handoff protocol.
+Separating infra and CN upgrades into different freeze windows would double the coordination burden on the council
+and double the disruption to network operations. A single freeze window covers both: the host-level tooling runs
+first (infra upgrade if needed, config file placement), then signals the operator to proceed with the CN pod
+restart. The `manifests/infrastructure-versions.yaml` version gate prevents a node from processing a package its
+tooling is too old to handle. See **HIP XXXX2** for the full upgrade state machine and handoff protocol.
 
 ---
 
@@ -385,7 +354,7 @@ using `HelmCapsule` CRs, which auto-inject network topology from the `Orbit` and
 │  │                                                                 │    │
 │  │  ┌──────────────────────────────────┐                           │    │
 │  │  │  ConsensusCapsule Pod (node-0)   │  ... (node-1, node-2)     │    │
-│  │  │  consensus-node │ UC │ Alloy     │                           │    │
+│  │  │  consensus-node │ UC │ telemetry │                           │    │
 │  │  │  uploaders                       │                           │    │
 │  │  └──────────────────────────────────┘                           │    │
 │  │                                                                 │    │
@@ -427,8 +396,6 @@ using `HelmCapsule` CRs, which auto-inject network topology from the `Orbit` and
 > support config hot-reload, so their configuration can be updated without a pod restart. All other
 > configuration and image changes — including telemetry sidecar config — are applied during planned upgrade
 > windows where a pod restart is expected.
-
----
 
 ### Deployment Profiles
 
