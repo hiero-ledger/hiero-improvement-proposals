@@ -635,6 +635,12 @@ application images (`ghcr.io/hashgraph/*`) are pulled directly unless the proxy 
 
 ### Custom Resource Definitions
 
+> **Schema stability note**: This section defines the *semantic contract* each CR must satisfy — what it
+> represents, what the operator must do when it is created or updated, and what invariants must hold. Field
+> names and schema details are implementation specifics maintained in the `hashgraph/solo-operator` repository
+> and will evolve independently of this HIP. Implementations must satisfy the contracts described here; the
+> exact schema is authoritative in the operator source.
+
 `solo-operator` ships CRDs in two categories. **Core CRDs** are always deployed and express the complete desired
 state of a node. **Optional CRDs** are deployed only when the deployment profile requires them.
 
@@ -651,172 +657,94 @@ state of a node. **Optional CRDs** are deployed only when the deployment profile
 | Optional | `HAProxyCapsule`            | Namespace |
 | Optional | `EnvoyProxy`                | Namespace |
 
-The `NetworkGenesis` and `NetworkUpgrade*` CRDs are purpose-built dedicated resources following the same design
-pattern: created by external actors (solo-provisioner CLI or UC sidecar), reconciled by the operator, never
-created by the operator itself.
+`NetworkGenesis` and `NetworkUpgrade*` CRDs follow a common pattern: they are always created by external actors
+(the provisioning CLI or the UC sidecar), reconciled by the operator, and never created by the operator itself.
 
 #### Orbit (cluster-scoped)
 
-`Orbit` is the root resource representing a logical Hedera network. It holds network-wide configuration that is
-shared by all consensus nodes in the deployment. Each node manages its own Orbit CR independently — there is no
-cross-node CR sync; council coordination happens through the upgrade package and HFS protocol, not through CR
-replication. Orbit is cluster-scoped; see Open Issues for a discussion of namespace-scoped alternatives.
+`Orbit` is the root resource representing a logical Hedera network on a single host. It must carry:
 
-> **Namespace lifecycle is outside Orbit's scope.** Although Orbit is cluster-scoped, it does not create or
-> delete the namespaces in which `ConsensusCapsule` and other CRs live. Namespaces are pre-created before Orbit
-> is applied (by `solo-provisioner`, Helm, or manually) and are decommissioned by the node operator using
-> whatever tooling they prefer (`solo-provisioner`, Terraform, `kubectl`, etc.). This keeps Orbit focused on
-> network configuration and avoids the operator silently owning infrastructure primitives that the node operator
-> may manage independently.
+- **Deployment mode indicator** — whether a host-level daemon is present (`provisionerDaemonEnabled`). The
+  operator and UC sidecar use this to select the correct upgrade execution path (hostPath volumes +
+  daemon-assisted vs. PVC volumes + UC-direct).
+- **Network-wide CN configuration** — the key-value pairs that become `settings.txt`,
+  `application.properties`, `api-permission.properties`, and `genesis.properties` for all nodes in this
+  deployment. These are managed as ConsensusConfig CRs by the operator.
+- **Genesis configuration** — the initial network roster, including addresses for nodes not managed by this
+  operator instance, and genesis throttle/fee schedules.
+- **Telemetry sidecar defaults** — shared configuration applied to the telemetry sidecar across all capsules.
 
-```yaml
-apiVersion: operator.solo.hedera.com/v1alpha1
-kind: Orbit
-metadata:
-  name: mainnet
-spec:
-  consensus:
-    provisionerDaemonEnabled: true       # true = hostPath volumes + daemon-assisted upgrades (Mainnet); false = PVC volumes + UC-direct upgrades (cluster-only)
-    networkSettings: # settings.txt — key/value pairs (ConsensusConfig: ConfigMap)
-      maxTransactionCountPerSecond: "10000"
-      ...
-    applicationConfiguration: # application.properties — key/value pairs (ConsensusConfig: ConfigMap)
-      hedera.recordStream.logPeriod: "2"
-      ...
-    permissionConfiguration: # api-permission.properties — key/value pairs (ConsensusConfig: ConfigMap)
-      ...
-    genesisProperties: # genesis.properties — key/value pairs (ConsensusConfig: ConfigMap)
-      ...
-    genesis:
-      # externalAddresses lists nodes NOT managed by this solo-operator instance.
-      # Operator-managed nodes are discovered automatically from ConsensusCapsule specs.
-      # The full address book (public information, stored as a ConfigMap) is assembled
-      # by the NetworkGenesis CR reconciler at genesis time.
-      externalAddresses: [ ]
-      throttlesJson: |           # genesis-throttles.json content
-        ...
-  telemetry:
-    alloy:
-      config: |                  # Grafana Alloy config (applied to all nodes)
-        ...
-```
+`Orbit` is cluster-scoped. It does not create or manage namespaces — those are pre-created before `Orbit` is
+applied and decommissioned independently by the node operator. Each council member's host has exactly one
+`Orbit` CR; there is no cross-host CR sync. Council coordination happens through the upgrade package and the
+HFS freeze protocol, not through CR replication.
 
 #### ConsensusCapsule (namespace-scoped)
 
-`ConsensusCapsule` (short name: `cc`) describes a single consensus node pod. The operator creates and manages a
-`StatefulSet` to match this spec:
+`ConsensusCapsule` (short name: `cc`) describes a single consensus node instance. The operator must reconcile
+this CR into a `StatefulSet` whose pod contains the following containers:
 
-```yaml
-apiVersion: operator.solo.hedera.com/v1alpha1
-kind: ConsensusCapsule
-metadata:
-  name: node-0
-  namespace: hedera
-spec:
-  orbit: mainnet
-  nodeId: 0
-  accountId: "0.0.3"
-  log4j2Config: |              # log4j2.xml content
-    ...
-  podProperties:
-    containers:
-      consensusNode:
-        softwareVersion:
-          repository: ghcr.io/hashgraph
-          imageName: consensus-node
-          imageTag: v0.68.6
-          manifestHash: sha256:abc123...
-        javaHeapMin: 8g
-        javaHeapMax: 26g
-        javaOpts: "-XX:+UseZGC ..."
-      uc:
-        softwareVersion:
-          repository: ghcr.io/hashgraph
-          imageName: uc
-          imageTag: v1.2.3           # can be updated independently via upgrade manifest
-          manifestHash: sha256:def456...
-        markerPath: /opt/hgcapp/services-hedera/HapiApp2.0/data/upgrade/current
-        eventsPath: /opt/solo/weaver/uc/events
-        crPersistPath: /opt/solo/weaver/uc/crs
-        pollInterval: 60s
-      alloy:
-        enabled: true
-      blocksUploader:
-        enabled: true
-        s3:
-          bucketName: mainnet-blocks
-          bucketPath: node0/
-      recordsUploader:
-        enabled: true
-      eventsUploader:
-        enabled: true
-      backupUploader:
-        enabled: false               # enable if PostgreSQL state backup is required
-  # When Orbit.Spec.Consensus.ProvisionerDaemonEnabled is true (Mainnet profile), the operator
-  # uses hostPath volume mounts for all CN state directories — no PVCs are created.
-  # (See Volume Architecture section.) The persistentVolumeClaims field is omitted for Mainnet specs.
-```
-
-The `StatefulSet` the operator creates from this CR contains the following containers in a single pod:
-
-| Container          | Image source                   | Purpose                                             |
-|--------------------|--------------------------------|-----------------------------------------------------|
-| `consensus-node`   | Council registry               | Hedera consensus node (HederaNode.jar in OCI image) |
-| `uc`               | solo-operator release          | Upgrade Controller sidecar                          |
+| Container          | Image source                   | Purpose                                              |
+|--------------------|--------------------------------|------------------------------------------------------|
+| `consensus-node`   | Council registry               | Hedera consensus node (HederaNode.jar in OCI image)  |
+| `uc`               | solo-operator release          | Upgrade Controller sidecar                           |
 | `alloy`            | Grafana Alloy (current)        | Telemetry sidecar: exports logs and metrics via OTLP |
-| `blocks-uploader`  | Cheetah release                | Block stream upload to S3/GCS                       |
-| `records-uploader` | Cheetah release                | Record stream upload to S3/GCS                      |
-| `events-uploader`  | Cheetah release                | Event stream upload to S3/GCS                       |
+| `blocks-uploader`  | Cheetah release                | Block stream upload to S3/GCS                        |
+| `records-uploader` | Cheetah release                | Record stream upload to S3/GCS                       |
+| `events-uploader`  | Cheetah release                | Event stream upload to S3/GCS                        |
 | `backup-uploader`  | Custom backup uploader release | State file backup upload to S3/GCS                  |
+
+The CR must carry:
+
+- **Node identity** — node ID, account ID, consensus weight, and network addresses (gossip, gRPC).
+- **Container image references** — OCI image coordinates with manifest digest for each container. The operator
+  must validate manifest and layer hashes before applying any upgrade.
+- **Node credentials** — references to Kubernetes Secrets holding TLS certificate pairs and signing keys. The
+  operator must never embed credential material directly in the CR spec.
+- **CN configuration** — logging configuration content (log4j2.xml) and any node-specific property overrides.
+- **Sidecar enablement** — which optional sidecars (telemetry, uploaders, backup) are active for this node.
+- **Volume mode** — derived from the parent `Orbit`'s deployment mode indicator; the operator selects
+  `hostPath` (Mainnet) or `PersistentVolumeClaim` (cluster-only) volumes accordingly.
+- **Offline flag** — when set, the operator must scale the pod to zero without deleting the CR or its volumes.
+
+The operator must not start the CN pod until all ConsensusConfig ConfigMaps have been reconciled. It must never
+add new volume mount points at runtime — only ConfigMap data changes are permitted during upgrades.
 
 #### HelmCapsule (namespace-scoped)
 
 `HelmCapsule` manages Helm chart deployments inside the cluster. Its primary use is in the dev/test profile,
-where auxiliary services such as mirror node, block node, relay, and explorer are deployed into the same cluster
-as the consensus nodes. It auto-injects network topology values (node endpoints, ports, genesis config) from
-the referenced `Orbit` and `ConsensusCapsule` CRs when a `component` type is set.
-
-On mainnet, auxiliary services are deployed on separate machines and `HelmCapsule` is not used.
+where auxiliary services (mirror node, block node, relay, explorer) are deployed into the same cluster as the
+consensus nodes. The operator auto-injects network topology values from the referenced `Orbit` and
+`ConsensusCapsule` CRs. On mainnet, auxiliary services run on separate machines and `HelmCapsule` is not used.
 
 #### NetworkGenesis CR (namespace-scoped)
 
-`NetworkGenesis` is a dedicated CR for network genesis operations. It is created by `solo-provisioner` to
-initiate the genesis sequence and reconciled by the operator — never created by the operator itself.
-
-The `NetworkGenesis` reconciler assembles the full network roster by reading all `ConsensusCapsule` specs and
-their referenced Secrets (TLS certs, signing certs, ports). The resulting address book is public information
-and is stored as a ConfigMap (not a Secret). Nodes not managed by this operator instance are specified via
-`Orbit.Spec.Genesis.ExternalAddresses`.
+`NetworkGenesis` initiates the genesis sequence. It is created by the provisioning CLI and reconciled by the
+operator, which assembles the full network roster from all `ConsensusCapsule` specs and their referenced Secrets.
+The resulting address book is public information and must be stored as a ConfigMap (not a Secret). Nodes not
+managed by this operator instance are declared in the `Orbit` spec.
 
 #### NetworkUpgrade CRs (namespace-scoped)
 
-The four `NetworkUpgrade*` CRDs represent the lifecycle phases of a network upgrade event. They are always
-created by the UC sidecar (never by the operator directly) and are described in full in HIP XXXX2:
+The four `NetworkUpgrade*` CRs represent the lifecycle phases of a network upgrade. They are always created by
+the UC sidecar and reconciled by the operator. The full upgrade state machine and handoff protocol are specified
+in HIP XXXX2. In summary:
 
-- `NetworkUpgradePrepare` — image validation and ConsensusConfig config file staging
-- `NetworkUpgradeFreeze` — registry health re-check at freeze time
+- `NetworkUpgradePrepare` — image validation and ConsensusConfig staging before the freeze window
+- `NetworkUpgradeFreeze` — registry health re-check at freeze time; carries the scheduled freeze timestamp
 - `NetworkUpgradeExecute` — pod scale-down, daemon handoff, pod scale-up with new images
 - `NetworkUpgradeFreezeAbort` — abort signal when the upgrade is cancelled before the freeze completes
+
+Each CR must carry a unique operation ID that ties it to a specific upgrade event. The operator must use this ID
+for idempotency — re-applying a CR with the same operation ID must not re-execute the upgrade steps.
 
 #### HAProxyCapsule and EnvoyProxy (namespace-scoped)
 
 `solo-operator` ships `HAProxyCapsule` and `EnvoyProxy` CRDs for operators who choose to manage their proxy tier
-through Kubernetes. When adopted, HAProxy distributes gRPC consensus traffic and Envoy handles HTTP/gRPC routing,
-both managed by the operator independently of the CN pod.
-
-**These CRDs are optional on mainnet.** On mainnet, node operators are expected to continue using their existing
-proxy infrastructure (which typically runs outside Kubernetes on a separate machine or VM). The decision of how to
-deploy and manage proxies — including whether to migrate to the `solo-operator` model — is left entirely to each
-council member.
-
-The proxy CRDs primarily serve two use cases:
-
-1. **Development and testing**: where a fully unified single-cluster setup is desirable for simplicity.
-2. **Custom deployment models** (e.g., cluster-only deployments and similar): where proxies are co-located in the same
-   Kubernetes cluster as the CN and the standard upgrade protocol needs to coordinate proxy version changes
-   alongside node upgrades.
-
-Mainnet operators who choose to adopt these CRDs may do so, but it is not required.
+through Kubernetes. **These CRDs are optional on mainnet** — node operators are expected to continue using their
+existing proxy infrastructure. The proxy CRDs are primarily targeted at dev/test profiles and cluster-only
+deployments where a unified single-cluster setup is desirable. Mainnet operators may adopt them at their
+discretion.
 
 ---
 
