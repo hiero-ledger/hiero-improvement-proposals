@@ -1,5 +1,26 @@
 [
   {
+    "title": "Add HIP: Periodic Holding Fee for Hedera Token Service Fungible Tokens",
+    "number": 1500,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1500",
+    "headRefOid": "39212ff4facf878ab148cd0eb1cb15b53e00c297",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-periodic-holding-fee.md",
+            "changeType": "ADDED",
+            "additions": 654,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "AdrianKBL"
+    }
+  },
+  {
     "title": "HIP DRAFT: Consensus Node Migration to Kubernetes-Native Deployment",
     "number": 1497,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1497",
