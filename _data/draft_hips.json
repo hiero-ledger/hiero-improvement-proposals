@@ -24,12 +24,12 @@
     "title": "HIP DRAFT: Consensus Node Migration to Kubernetes-Native Deployment",
     "number": 1497,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1497",
-    "headRefOid": "b3160e34d74c6a5472ea77999d07bca681197c2a",
+    "headRefOid": "49bc51e52a8b6a2e994e39ce0b8047fc658a3e48",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-network-migration.md",
+            "path": "HIP/hip-1497.md",
             "changeType": "ADDED",
             "additions": 999,
             "deletions": 0
@@ -45,12 +45,12 @@
     "title": "HIP DRAFT: Globally Synchronized Network Upgrade Process",
     "number": 1496,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1496",
-    "headRefOid": "5c9b90666980567e1ea3ab429e43d7cc55cabe68",
+    "headRefOid": "b0b1ba2db3800375e77b28487e24726e83ca692a",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-network-upgrade.md",
+            "path": "HIP/hip-1496.md",
             "changeType": "ADDED",
             "additions": 2441,
             "deletions": 0
@@ -66,12 +66,12 @@
     "title": "HIP DRAFT: Kubernetes-Native Consensus Node Deployment",
     "number": 1495,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1495",
-    "headRefOid": "a27312d6e5c55a80d4eba33034fc5e975c91e4f0",
+    "headRefOid": "a4f976bc55a21fee360a2dc7e7ecc60f5d5eb5fe",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-network-deployment.md",
+            "path": "HIP/hip-1495.md",
             "changeType": "ADDED",
             "additions": 1282,
             "deletions": 0
@@ -87,12 +87,12 @@
     "title": "HIP DRAFT: Consensus Node Deployment Package Specification",
     "number": 1494,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1494",
-    "headRefOid": "722f7f85e9d648702456330b0d2645d455682666",
+    "headRefOid": "c3740ba3bd755aba7508eda61c264415ac00eca3",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-consensus-node-deployment-package.md",
+            "path": "HIP/hip-1494.md",
             "changeType": "ADDED",
             "additions": 1015,
             "deletions": 0
