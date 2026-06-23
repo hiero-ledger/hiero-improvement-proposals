@@ -1,5 +1,5 @@
 ---
-hip: XXXX0
+hip: 1494
 title: Consensus Node Deployment Package Specification
 author: Lenin Mehedy (@leninmehedy), Nathan Klick (@nathanklick)
 working-group: Bruno Marques (@brunodam), Artur Reznikov (@arturre)
