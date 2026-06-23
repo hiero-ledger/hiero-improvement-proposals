@@ -869,9 +869,13 @@ solo-operator
 │
 ├── ConsensusCapsuleReconciler
 │   ├── Creates/updates a StatefulSet matching the CR spec
-│   ├── Manages per-capsule ConfigMaps:
-│   │   ├── <capsule>-hapi-app-cm     — log4j2.xml + settings.txt
-│   │   ├── <capsule>-data-config-cm  — application.properties + api-permission.properties
+│   ├── Mounts per-file ConsensusConfig ConfigMaps (one ConfigMap per file,
+│   │   each owned by its dedicated config CR — see ConsensusConfig section):
+│   │   ├── <name>-log4j2-cm                  — log4j2.xml        (Log4j2Config)
+│   │   ├── <name>-settings-cm                — settings.txt      (NodeSettings)
+│   │   ├── <name>-application-properties-cm  — application.properties (ApplicationProperties)
+│   │   └── … one ConfigMap per recognised file (all optional except the three above)
+│   ├── Manages the per-capsule ConfigMaps it still owns:
 │   │   ├── <capsule>-alloy-config    — telemetry sidecar config
 │   │   └── <capsule>-block-nodes-cm  — block node endpoints (optional)
 │   ├── Manages PVCs, ServiceAccount, RoleBinding, Service
@@ -1014,28 +1018,50 @@ across reboots.
 
 #### ConsensusConfig — CN Application Configuration
 
-ConsensusConfig files configure the running consensus node process. They are delivered in `data/config/` inside
-the upgrade package and reach the CN via Kubernetes ConfigMaps:
+ConsensusConfig files configure the running consensus node process. Each file is owned by a **dedicated CR
+kind** whose reconciler manages **its own single-key ConfigMap** — one ConfigMap per file, never a shared
+combined ConfigMap.
 
-| Files                                                                                                                               | Profile          |
-|-------------------------------------------------------------------------------------------------------------------------------------|------------------|
-| `application.properties`, `api-permission.properties`, `bootstrap.properties`, `node.properties`, `application-override.properties` | All profiles     |
-| `throttles.json`, `feeSchedules.json`, `simpleFeesSchedules.json`                                                                   | All profiles     |
-| `log4j2.xml`, `settings.txt` *(package root, not `data/config/`)*                                                                   | All profiles     |
-| `genesis-network.json` *(optional)*                                                                                                 | Non-mainnet only |
+**ConfigMap name is reconciler-derived, never set by hand.** The operator names only the **CR**
+(`metadata.name`) and references it from the capsule (`ConsensusCapsule.spec.<x>ConfigRef`). The reconciler
+derives the ConfigMap name as **`<cr.metadata.name>` + a fixed per-kind suffix** (e.g. `-log4j2-cm`,
+`-settings-cm`). So a `Log4j2Config` named `node0` produces the ConfigMap `node0-log4j2-cm`. The CR name is the
+operator-chosen prefix; the suffix encodes the file type and is constant per kind (so names are deterministic
+and never collide across kinds). The `<x>ConfigRef` linkage is explicit, so **any naming is valid** — the node
+operator picks the convention they prefer. **Recommended (non-binding):** name per-node CRs after the node
+(`node0`, `node1`, …) for node-specific config, or use a single shared name (`network`, `common`, …) referenced
+by multiple capsules for shared config.
+
+| File *(in `data/config/` unless noted)*            | CR kind                         | ConfigMap (single key)              | Presence                            |
+|----------------------------------------------------|---------------------------------|-------------------------------------|-------------------------------------|
+| `log4j2.xml` *(package root)*                      | `Log4j2Config`                  | `<cr-name>-log4j2-cm`               | required                            |
+| `settings.txt` *(package root)*                    | `NodeSettings`                  | `<cr-name>-settings-cm`             | required                            |
+| `application.properties`                           | `ApplicationProperties`         | `<cr-name>-application-properties-cm` | required (holds `ledgerId`)       |
+| `application-override.properties`                  | `ApplicationOverrideProperties` | `<cr-name>-application-override-properties-cm` | optional                 |
+| `api-permission.properties`                        | `ApiPermissionProperties`       | `<cr-name>-api-permission-properties-cm` | optional                     |
+| `bootstrap.properties`                             | `BootstrapProperties`           | `<cr-name>-bootstrap-properties-cm` | optional                            |
+| `node.properties`                                  | `NodeProperties`                | `<cr-name>-node-properties-cm`      | optional                            |
+| `throttles.json`                                   | `ThrottlesConfig`               | `<cr-name>-throttles-cm`            | optional                            |
+| `feeSchedules.json`                                | `FeeSchedules`                  | `<cr-name>-fee-schedules-cm`        | optional                            |
+| `simpleFeesSchedules.json`                         | `SimpleFeesSchedules`           | `<cr-name>-simple-fee-schedules-cm` | optional                            |
+| `genesis-network.json`                             | handled by `NetworkGenesis`     | `genesis-config` (existing)         | optional, **cluster-only genesis**  |
 
 ConsensusConfig files are **never embedded in `Orbit` or `ConsensusCapsule` CR specs**. The same mechanism
 applies at both initial provisioning and upgrade time: the provisioner/daemon/UC scans `data/config/` in the
-deployment package and creates a dedicated Kubernetes CR for each recognised filename. `log4j2.xml` and
-`settings.txt` are the exception: they reside at the **package root** (not under `data/config/`), and the
-K8s-native daemon/UC has explicit logic to find them there. Each CR's reconciler
-owns all domain-specific logic: key mapping and semantic content validation. The
-operator creates and updates the necessary ConfigMaps before the CN pod is started — no new mount points are
-ever added; only the ConfigMap data changes. ConfigMap naming is an operator-internal detail.
+deployment package and creates the dedicated CR for each recognised filename. `log4j2.xml` and `settings.txt`
+are the exception: they reside at the **package root** (not under `data/config/`), and the K8s-native daemon/UC
+has explicit logic to find them there. `genesis-network.json` is **not** a dedicated ConsensusConfig CR — it is
+routed into `NetworkGenesis` (which already owns `genesis-network.json` via the `genesis-config` ConfigMap),
+cluster-only genesis only. Each CR's reconciler owns all domain-specific logic: **single-writer** ConfigMap
+management, key mapping, and semantic content validation.
 
-The filename-to-CR-kind mapping is hardcoded in the daemon/UC. No dispatch field is needed in the package.
-All ConsensusConfig files are optional. If a file is absent, the CN uses defaults baked into its container
-image or the values from the most recently applied CR.
+The set of recognised files is fixed (the filename-to-CR-kind mapping is hardcoded in the daemon/UC; no dispatch
+field is needed in the package), so the operator declares the **full set** of per-file volume mounts with
+`configMap.optional: true`. The mount layout is therefore stable — only the ConfigMaps' presence/data changes,
+never the pod's mount points. All ConsensusConfig files except `log4j2.xml`, `settings.txt`, and
+`application.properties` are optional; an absent optional file simply yields no ConfigMap and no populated mount,
+and the CN uses the defaults baked into its container image. Deleting an optional config CR is safe: its
+ConfigMap is garbage-collected and, on the next pod restart, the file is no longer present — the CN still starts.
 
 > **Size limit**: Because each ConsensusConfig file's content is embedded in a dedicated CR stored in etcd,
 > individual files **must not exceed 1 MB**. Kubernetes enforces a hard 1.5 MB etcd object limit; staying
