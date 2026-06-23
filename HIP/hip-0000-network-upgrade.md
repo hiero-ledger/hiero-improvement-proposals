@@ -1,5 +1,5 @@
 ---
-hip: XXXX2
+hip: 1496
 title: Globally Synchronized Network Upgrade Process
 author: Lenin Mehedy (@leninmehedy), Nathan Klick (@nathanklick)
 working-group: Bruno Marques (@brunodam), Artur Reznikov (@arturre)
