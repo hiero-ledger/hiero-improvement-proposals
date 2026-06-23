@@ -1,16 +1,121 @@
 [
   {
+    "title": "Add HIP: Periodic Holding Fee for Hedera Token Service Fungible Tokens",
+    "number": 1500,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1500",
+    "headRefOid": "39212ff4facf878ab148cd0eb1cb15b53e00c297",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-periodic-holding-fee.md",
+            "changeType": "ADDED",
+            "additions": 654,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "AdrianKBL"
+    }
+  },
+  {
+    "title": "HIP DRAFT: Consensus Node Migration to Kubernetes-Native Deployment",
+    "number": 1497,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1497",
+    "headRefOid": "b3160e34d74c6a5472ea77999d07bca681197c2a",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-network-migration.md",
+            "changeType": "ADDED",
+            "additions": 999,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "leninmehedy"
+    }
+  },
+  {
+    "title": "HIP DRAFT: Globally Synchronized Network Upgrade Process",
+    "number": 1496,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1496",
+    "headRefOid": "5c9b90666980567e1ea3ab429e43d7cc55cabe68",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-network-upgrade.md",
+            "changeType": "ADDED",
+            "additions": 2441,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "leninmehedy"
+    }
+  },
+  {
+    "title": "HIP DRAFT: Kubernetes-Native Consensus Node Deployment",
+    "number": 1495,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1495",
+    "headRefOid": "a27312d6e5c55a80d4eba33034fc5e975c91e4f0",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-network-deployment.md",
+            "changeType": "ADDED",
+            "additions": 1282,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "leninmehedy"
+    }
+  },
+  {
+    "title": "HIP DRAFT: Consensus Node Deployment Package Specification",
+    "number": 1494,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1494",
+    "headRefOid": "722f7f85e9d648702456330b0d2645d455682666",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-consensus-node-deployment-package.md",
+            "changeType": "ADDED",
+            "additions": 1015,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "leninmehedy"
+    }
+  },
+  {
     "title": "New debug and trace APIs on Mirror node side",
     "number": 1485,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1485",
-    "headRefOid": "2320538aaa90fcbba8cdea3d12a892e58bcba4be",
+    "headRefOid": "42d78fd630c0e5d9cf096e5ea66d081c52e44961",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1485.md",
             "changeType": "ADDED",
-            "additions": 972,
+            "additions": 1053,
             "deletions": 0
           }
         }
