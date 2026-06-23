@@ -1,5 +1,5 @@
 ---
-hip: XXXX3
+hip: 1497
 title: Consensus Node Migration to Kubernetes-Native Deployment
 author: Lenin Mehedy (@leninmehedy), Nathan Klick (@nathanklick)
 working-group: Bruno Marques (@brunodam), Artur Reznikov (@arturre)
