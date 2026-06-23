@@ -1,5 +1,5 @@
 ---
-hip: XXXX1
+hip: 1495
 title: Kubernetes-Native Consensus Node Deployment
 author: Lenin Mehedy (@leninmehedy), Nathan Klick (@nathanklick)
 working-group: Bruno Marques (@brunodam), Artur Reznikov (@arturre)
