@@ -415,7 +415,7 @@
     "title": "HIP-1208: Consensus Service Precompiled Contract for Smart Contract Service",
     "number": 1208,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1208",
-    "headRefOid": "0496f03ebae898d2c647ff80c42b2afd5aadba00",
+    "headRefOid": "0450584cf10737afa6eab4dbc53d8395cc35c085",
     "files": {
       "edges": [
         {
@@ -436,14 +436,14 @@
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "70c7c6a01f1049e6d836ba67881c8ab4195d17b8",
+    "headRefOid": "384c4f607766631dcd0cd4953ff2ceee464a309e",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 880,
+            "additions": 881,
             "deletions": 0
           }
         },
