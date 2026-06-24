@@ -52,7 +52,10 @@ jobs:
 
           # Directory path to check for HIP files
           HIP_DIRECTORY='HIP'
-          HIP_FILES=$(echo "$MODIFIED_FILES" | grep "^$HIP_DIRECTORY/.*\.md")
+          # `|| true` so a no-match grep (PRs that touch no HIP files) yields an
+          # empty result instead of exiting non-zero and aborting the step under
+          # `set -eo pipefail`; the empty case is handled gracefully below.
+          HIP_FILES=$(echo "$MODIFIED_FILES" | grep "^$HIP_DIRECTORY/.*\.md" || true)
           echo "Filtered HIP files: $HIP_FILES"
           echo "::set-output name=hip-files::$HIP_FILES"
 
@@ -104,13 +107,21 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           HIP_FILE=$(echo "${{ steps.check-new.outputs.hip-files }}" | head -n 1)
 
-          if [ -n "$HIP_FILE" ]; then
-            NEW_HIP_FILE="HIP/hip-$PR_NUMBER.md"
-            mv "$HIP_FILE" "$NEW_HIP_FILE"
-          else
+          if [ -z "$HIP_FILE" ]; then
             echo "No HIP file found to rename. Skipping rename."
             exit 0
           fi
+
+          NEW_HIP_FILE="HIP/hip-$PR_NUMBER.md"
+
+          # Skip the rename when the file is already correctly named; otherwise
+          # `mv <same> <same>` exits non-zero and aborts the remaining steps.
+          if [ "$HIP_FILE" = "$NEW_HIP_FILE" ]; then
+            echo "HIP file already has expected name ($NEW_HIP_FILE). Skipping rename."
+            exit 0
+          fi
+
+          mv "$HIP_FILE" "$NEW_HIP_FILE"
 
       - name: Commit Changes
         if: steps.check-new.outputs.new-hip == 'true'
