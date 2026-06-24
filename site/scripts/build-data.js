@@ -68,6 +68,24 @@ function extractHip(data, content, extra = {}) {
   };
 }
 
+function parsePositiveInteger(value) {
+  if (value === null || value === undefined) return null;
+
+  const normalized = String(value).trim().replace(/^['"]|['"]$/g, '');
+  if (!/^\d+$/.test(normalized)) return null;
+
+  const parsed = Number(normalized);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function draftHipNumber(frontmatterHip, prNumber, filePath) {
+  const frontmatterNumber = parsePositiveInteger(frontmatterHip);
+  if (frontmatterNumber) return frontmatterNumber;
+
+  const fileNumber = parsePositiveInteger(filePath.match(/^HIP\/hip-(\d+)(?:-[^/]*)?\.md$/i)?.[1]);
+  return fileNumber || prNumber;
+}
+
 // ---- Parse merged HIPs from the HIP/ directory ----
 // ---- ASCII state diagrams to replace broken image references ----
 // For merged HIPs, assets are copied into public/assets/ so we rewrite ../assets/ → /assets/.
@@ -161,8 +179,9 @@ async function fetchDraftHips() {
         continue;
       }
 
-      // Use the PR number as the HIP number if frontmatter doesn't have one
-      const hipNum = parsed.data.hip || pr.number;
+      // Draft PRs often retain placeholder frontmatter such as "hip: xxxx" or
+      // "hip: <to be assigned>". Ignore those and use the assigned draft number.
+      const hipNum = draftHipNumber(parsed.data.hip, pr.number, filePath);
 
       // Force status to Draft if not already set or if it differs
       const data = {
