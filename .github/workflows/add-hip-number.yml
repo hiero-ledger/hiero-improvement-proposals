@@ -52,7 +52,10 @@ jobs:
 
           # Directory path to check for HIP files
           HIP_DIRECTORY='HIP'
-          HIP_FILES=$(echo "$MODIFIED_FILES" | grep "^$HIP_DIRECTORY/.*\.md")
+          # `|| true` so a no-match grep (PRs that touch no HIP files) yields an
+          # empty result instead of exiting non-zero and aborting the step under
+          # `set -eo pipefail`; the empty case is handled gracefully below.
+          HIP_FILES=$(echo "$MODIFIED_FILES" | grep "^$HIP_DIRECTORY/.*\.md" || true)
           echo "Filtered HIP files: $HIP_FILES"
           echo "::set-output name=hip-files::$HIP_FILES"
 
