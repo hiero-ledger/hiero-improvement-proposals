@@ -21,10 +21,10 @@
     }
   },
   {
-    "title": "HIP DRAFT: Consensus Node Migration to Kubernetes-Native Deployment",
+    "title": "HIP 1497: Consensus Node Migration to Kubernetes-Native Deployment",
     "number": 1497,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1497",
-    "headRefOid": "49bc51e52a8b6a2e994e39ce0b8047fc658a3e48",
+    "headRefOid": "b89ca178f6e9696d7d5ac1f77cbcb0ffcfb04140",
     "files": {
       "edges": [
         {
@@ -42,17 +42,17 @@
     }
   },
   {
-    "title": "HIP DRAFT: Globally Synchronized Network Upgrade Process",
+    "title": "HIP 1496: Globally Synchronized Network Upgrade Process",
     "number": 1496,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1496",
-    "headRefOid": "b0b1ba2db3800375e77b28487e24726e83ca692a",
+    "headRefOid": "7345f8cb5aeae6b9ca598e55c5d1a2b0df156179",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1496.md",
             "changeType": "ADDED",
-            "additions": 2441,
+            "additions": 2474,
             "deletions": 0
           }
         }
@@ -63,17 +63,17 @@
     }
   },
   {
-    "title": "HIP DRAFT: Kubernetes-Native Consensus Node Deployment",
+    "title": "HIP 1495: Kubernetes-Native Consensus Node Deployment",
     "number": 1495,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1495",
-    "headRefOid": "a4f976bc55a21fee360a2dc7e7ecc60f5d5eb5fe",
+    "headRefOid": "4e9fce3a1daa9542935a5f3ea030236a80ea150d",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1495.md",
             "changeType": "ADDED",
-            "additions": 1282,
+            "additions": 1284,
             "deletions": 0
           }
         }
@@ -84,17 +84,17 @@
     }
   },
   {
-    "title": "HIP DRAFT: Consensus Node Deployment Package Specification",
+    "title": "HIP 1494: Consensus Node Deployment Package Specification",
     "number": 1494,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1494",
-    "headRefOid": "c3740ba3bd755aba7508eda61c264415ac00eca3",
+    "headRefOid": "cf573fca544b59760710014128976ed650d61e0c",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1494.md",
             "changeType": "ADDED",
-            "additions": 1015,
+            "additions": 1016,
             "deletions": 0
           }
         }
