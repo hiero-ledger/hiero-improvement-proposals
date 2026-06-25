@@ -24,7 +24,7 @@
     "title": "HIP 1497: Consensus Node Migration to Kubernetes-Native Deployment",
     "number": 1497,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1497",
-    "headRefOid": "b89ca178f6e9696d7d5ac1f77cbcb0ffcfb04140",
+    "headRefOid": "32c271147660ff3d848fde5faff8c53aeb63420e",
     "files": {
       "edges": [
         {
@@ -45,7 +45,7 @@
     "title": "HIP 1496: Globally Synchronized Network Upgrade Process",
     "number": 1496,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1496",
-    "headRefOid": "7345f8cb5aeae6b9ca598e55c5d1a2b0df156179",
+    "headRefOid": "45436dd5f403a5c03f29d09314a36ce5b856fbee",
     "files": {
       "edges": [
         {
@@ -66,7 +66,7 @@
     "title": "HIP 1495: Kubernetes-Native Consensus Node Deployment",
     "number": 1495,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1495",
-    "headRefOid": "4e9fce3a1daa9542935a5f3ea030236a80ea150d",
+    "headRefOid": "457a47f8da129d0b1cd51392b3d80d1748149be0",
     "files": {
       "edges": [
         {
@@ -87,7 +87,7 @@
     "title": "HIP 1494: Consensus Node Deployment Package Specification",
     "number": 1494,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1494",
-    "headRefOid": "cf573fca544b59760710014128976ed650d61e0c",
+    "headRefOid": "1968ab493ca36bd322c04dc8f7436007d9e4c597",
     "files": {
       "edges": [
         {
