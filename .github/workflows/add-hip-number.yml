@@ -25,7 +25,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           fetch-depth: 0
@@ -52,7 +52,7 @@ jobs:
 
           # Directory path to check for HIP files
           HIP_DIRECTORY='HIP'
-          HIP_FILES=$(echo "$MODIFIED_FILES" | grep "^$HIP_DIRECTORY/.*\.md")
+          HIP_FILES=$(echo "$MODIFIED_FILES" | grep "^$HIP_DIRECTORY/.*\.md" || true)
           echo "Filtered HIP files: $HIP_FILES"
           echo "::set-output name=hip-files::$HIP_FILES"
 
@@ -104,13 +104,21 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           HIP_FILE=$(echo "${{ steps.check-new.outputs.hip-files }}" | head -n 1)
 
-          if [ -n "$HIP_FILE" ]; then
-            NEW_HIP_FILE="HIP/hip-$PR_NUMBER.md"
-            mv "$HIP_FILE" "$NEW_HIP_FILE"
-          else
+          if [ -z "$HIP_FILE" ]; then
             echo "No HIP file found to rename. Skipping rename."
             exit 0
           fi
+
+          NEW_HIP_FILE="HIP/hip-$PR_NUMBER.md"
+
+          # Skip the rename when the file is already correctly named; otherwise
+          # `mv <same> <same>` exits non-zero and aborts the remaining steps.
+          if [ "$HIP_FILE" = "$NEW_HIP_FILE" ]; then
+            echo "HIP file already has expected name ($NEW_HIP_FILE). Skipping rename."
+            exit 0
+          fi
+
+          mv "$HIP_FILE" "$NEW_HIP_FILE"
 
       - name: Commit Changes
         if: steps.check-new.outputs.new-hip == 'true'

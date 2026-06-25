@@ -21,15 +21,15 @@
     }
   },
   {
-    "title": "HIP DRAFT: Consensus Node Migration to Kubernetes-Native Deployment",
+    "title": "HIP 1497: Consensus Node Migration to Kubernetes-Native Deployment",
     "number": 1497,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1497",
-    "headRefOid": "b3160e34d74c6a5472ea77999d07bca681197c2a",
+    "headRefOid": "32c271147660ff3d848fde5faff8c53aeb63420e",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-network-migration.md",
+            "path": "HIP/hip-1497.md",
             "changeType": "ADDED",
             "additions": 999,
             "deletions": 0
@@ -42,17 +42,17 @@
     }
   },
   {
-    "title": "HIP DRAFT: Globally Synchronized Network Upgrade Process",
+    "title": "HIP 1496: Globally Synchronized Network Upgrade Process",
     "number": 1496,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1496",
-    "headRefOid": "5c9b90666980567e1ea3ab429e43d7cc55cabe68",
+    "headRefOid": "45436dd5f403a5c03f29d09314a36ce5b856fbee",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-network-upgrade.md",
+            "path": "HIP/hip-1496.md",
             "changeType": "ADDED",
-            "additions": 2441,
+            "additions": 2474,
             "deletions": 0
           }
         }
@@ -63,17 +63,17 @@
     }
   },
   {
-    "title": "HIP DRAFT: Kubernetes-Native Consensus Node Deployment",
+    "title": "HIP 1495: Kubernetes-Native Consensus Node Deployment",
     "number": 1495,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1495",
-    "headRefOid": "e611e94dfa88fe4875eab9e4d78ed481ad58ce4d",
+    "headRefOid": "457a47f8da129d0b1cd51392b3d80d1748149be0",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-network-deployment.md",
+            "path": "HIP/hip-1495.md",
             "changeType": "ADDED",
-            "additions": 1256,
+            "additions": 1284,
             "deletions": 0
           }
         }
@@ -84,17 +84,17 @@
     }
   },
   {
-    "title": "HIP DRAFT: Consensus Node Deployment Package Specification",
+    "title": "HIP 1494: Consensus Node Deployment Package Specification",
     "number": 1494,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1494",
-    "headRefOid": "722f7f85e9d648702456330b0d2645d455682666",
+    "headRefOid": "1968ab493ca36bd322c04dc8f7436007d9e4c597",
     "files": {
       "edges": [
         {
           "node": {
-            "path": "HIP/hip-0000-consensus-node-deployment-package.md",
+            "path": "HIP/hip-1494.md",
             "changeType": "ADDED",
-            "additions": 1015,
+            "additions": 1016,
             "deletions": 0
           }
         }
@@ -415,7 +415,7 @@
     "title": "HIP-1208: Consensus Service Precompiled Contract for Smart Contract Service",
     "number": 1208,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1208",
-    "headRefOid": "0496f03ebae898d2c647ff80c42b2afd5aadba00",
+    "headRefOid": "0450584cf10737afa6eab4dbc53d8395cc35c085",
     "files": {
       "edges": [
         {
@@ -436,14 +436,14 @@
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "70c7c6a01f1049e6d836ba67881c8ab4195d17b8",
+    "headRefOid": "384c4f607766631dcd0cd4953ff2ceee464a309e",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 880,
+            "additions": 881,
             "deletions": 0
           }
         },
