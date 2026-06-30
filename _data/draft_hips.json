@@ -1,5 +1,26 @@
 [
   {
+    "title": "HIP: Reduce the Smart Contract Service Gas Price",
+    "number": 1508,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1508",
+    "headRefOid": "0cea3ea2f465781b6f63e5137b2d40a586f5eccb",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1508.md",
+            "changeType": "ADDED",
+            "additions": 237,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mshakeg"
+    }
+  },
+  {
     "title": "Add HIP: Periodic Holding Fee for Hedera Token Service Fungible Tokens",
     "number": 1500,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1500",
