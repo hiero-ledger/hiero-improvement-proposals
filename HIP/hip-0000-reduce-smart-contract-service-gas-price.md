@@ -4,7 +4,7 @@ title: Reduce the Smart Contract Service Gas Price
 author: Mohammed Shaikjee (@mshakeg)
 working-group: John O'Connor (@jpo424), Benjamin White, Peter Campbell
 requested-by: SaucerSwap
-discussions-to: <link to HIP discussion thread>
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1508
 type: Standards Track
 category: Core, Service
 needs-hiero-approval: Yes
