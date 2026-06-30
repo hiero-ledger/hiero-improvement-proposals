@@ -9,10 +9,7 @@ defaults:
     shell: bash
 
 permissions:
-  contents: write
-  issues: read
-  pull-requests: write
-  checks: write
+  contents: read
 
 jobs:
   assign-hip-number:
@@ -82,11 +79,12 @@ jobs:
 
       - name: Assign HIP Number
         if: steps.check-new.outputs.new-hip == 'true'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HIP_FILES: ${{ steps.check-new.outputs.hip-files }}
         run: |
-          # Extract the current PR number
-          PR_NUMBER=${{ github.event.pull_request.number }}
           HIP_HEADER="hip: $PR_NUMBER"
-          HIP_FILE=$(echo "${{ steps.check-new.outputs.hip-files }}" | head -n 1)
+          HIP_FILE=$(echo "$HIP_FILES" | head -n 1)
 
           echo "Assigning HIP number to file: $HIP_FILE"
 
@@ -99,10 +97,11 @@ jobs:
 
       - name: Rename HIP File
         if: steps.check-new.outputs.new-hip == 'true'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HIP_FILES: ${{ steps.check-new.outputs.hip-files }}
         run: |
-          # Extract PR number
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          HIP_FILE=$(echo "${{ steps.check-new.outputs.hip-files }}" | head -n 1)
+          HIP_FILE=$(echo "$HIP_FILES" | head -n 1)
 
           if [ -z "$HIP_FILE" ]; then
             echo "No HIP file found to rename. Skipping rename."
@@ -122,11 +121,13 @@ jobs:
 
       - name: Commit Changes
         if: steps.check-new.outputs.new-hip == 'true'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
 
-          PR_NUMBER=${{ github.event.pull_request.number }}
           git add HIP/
 
           # Check if there are changes to commit
@@ -140,7 +141,7 @@ jobs:
             exit 0
           }
 
-          git push origin HEAD:${{ github.head_ref }} || {
+          git push origin "HEAD:$HEAD_REF" || {
             echo "Push failed. This is expected for PRs from forks without write access."
             echo "The PR author will need to manually update their branch."
             exit 0

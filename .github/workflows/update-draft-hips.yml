@@ -13,8 +13,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' }} # Only run on main branch
     runs-on: hiero-improvement-proposals-linux-medium
     permissions:
-      contents: write
-      pull-requests: read
+      contents: read
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
