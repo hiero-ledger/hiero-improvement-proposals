@@ -135,12 +135,72 @@ for (const file of files) {
 console.log(`Parsed ${hips.length} merged HIPs`);
 
 // ---- Fetch draft HIPs from open PRs ----
+// Draft HIPs exist only as open PRs (not yet merged). We fetch that list live at
+// build time via the GitHub GraphQL API, so nothing has to be committed to the
+// repo. Falls back to a committed _data/draft_hips.json when no GITHUB_TOKEN is
+// available (e.g. local dev), preserving the previous behavior.
 const draftHipsPath = path.join(DATA_DIR, 'draft_hips.json');
 
-async function fetchDraftHips() {
-  if (!fs.existsSync(draftHipsPath)) return;
+async function getDraftPRs() {
+  const token = process.env.GITHUB_TOKEN;
 
-  const draftPRs = JSON.parse(fs.readFileSync(draftHipsPath, 'utf-8'));
+  if (token) {
+    const query = `query {
+      repository(owner: "${REPO_OWNER}", name: "${REPO_NAME}") {
+        pullRequests(first: 100, states: [OPEN], orderBy: { field: CREATED_AT, direction: DESC }) {
+          nodes {
+            title
+            number
+            url
+            headRefOid
+            files(first: 100) { edges { node { path changeType additions deletions } } }
+            author { login }
+          }
+        }
+      }
+    }`;
+
+    try {
+      const res = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'hips-build',
+        },
+        body: JSON.stringify({ query }),
+      });
+      const json = await res.json();
+      if (json.errors) {
+        console.warn(`  Draft-HIP PR fetch: ${json.errors[0]?.message || 'GraphQL error'} — falling back to committed data`);
+      } else {
+        const nodes = json.data?.repository?.pullRequests?.nodes || [];
+        // Keep only PRs that ADD a new HIP/hip-*.md file — the same filter the
+        // old update-draft-hips.yml workflow used to produce _data/draft_hips.json.
+        const drafts = nodes.filter(pr =>
+          (pr.files?.edges || []).some(e =>
+            e.node.changeType === 'ADDED' &&
+            /^HIP\/hip-[A-Za-z0-9-]+\.md$/.test(e.node.path)
+          )
+        );
+        console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
+        return drafts;
+      }
+    } catch (e) {
+      console.warn(`  Draft-HIP PR fetch failed (${e.message}) — falling back to committed data`);
+    }
+  } else {
+    console.log('No GITHUB_TOKEN set — using committed _data/draft_hips.json if present');
+  }
+
+  if (fs.existsSync(draftHipsPath)) {
+    return JSON.parse(fs.readFileSync(draftHipsPath, 'utf-8'));
+  }
+  return [];
+}
+
+async function fetchDraftHips() {
+  const draftPRs = await getDraftPRs();
   let fetched = 0;
   let skipped = 0;
 
