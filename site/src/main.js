@@ -342,8 +342,16 @@ function bindEvents() {
   // Nav
   $$('.nav-link').forEach(link => {
     link.addEventListener('click', e => {
+
+      if (!link.dataset.nav) return;
+
       e.preventDefault();
-      location.hash = link.dataset.nav === 'about' ? '#about' : '';
+
+      if (link.dataset.nav === 'about') {
+        location.hash = '#about';
+      } else {
+        location.hash = '';
+      }
     });
   });
 
