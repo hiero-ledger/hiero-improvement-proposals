@@ -134,12 +134,15 @@ graph TD
 
 let allHips = [];
 let hipBodies = new Map();
+let hipSources = new Map();
 let discussionsData = new Map();
 let prReviewsData = new Map();
 let viewMode = 'list'; // 'list' | 'grid'
 
 const REPO_OWNER = 'hiero-ledger';
 const REPO_NAME = 'hiero-improvement-proposals';
+const GITHUB_AUTH_START_URL = import.meta.env.VITE_GITHUB_AUTH_START_URL || '';
+const GITHUB_AUTH_TIMEOUT_MS = 2 * 60 * 1000;
 
 const STATUS_ORDER = [
   'Last Call', 'Draft', 'Review', 'Approved', 'Accepted',
@@ -214,14 +217,16 @@ async function init() {
   const base = import.meta.env.BASE_URL;
   const manifest = await fetch(`${base}data/manifest.json?v=${Date.now()}`).then(r => r.json()).catch(() => ({}));
   const h = manifest.buildHash || 'latest';
-  const [hipsRes, bodiesRes, discRes, prRevRes] = await Promise.all([
+  const [hipsRes, bodiesRes, sourcesRes, discRes, prRevRes] = await Promise.all([
     fetch(`${base}data/hips.${h}.json`),
     fetch(`${base}data/hip-bodies.${h}.json`),
+    fetch(`${base}data/hip-sources.${h}.json`).catch(() => ({ json: () => ({}) })),
     fetch(`${base}data/discussions.${h}.json`).catch(() => ({ json: () => ({}) })),
     fetch(`${base}data/pr-reviews.${h}.json`).catch(() => ({ json: () => ({}) })),
   ]);
   allHips = await hipsRes.json();
   hipBodies = new Map(Object.entries(await bodiesRes.json()));
+  hipSources = new Map(Object.entries(await sourcesRes.json().catch(() => ({ }))));
   discussionsData = new Map(Object.entries(await discRes.json().catch(() => ({}))));
   prReviewsData = new Map(Object.entries(await prRevRes.json().catch(() => ({}))));
 
@@ -638,16 +643,23 @@ async function showDetail(num) {
   window.scrollTo(0, 0);
 
   // Title
-  const isDraft = hip.status === 'Draft';
-  const prNum = hip.prNumber || hip.hip;
+  const source = getHipSource(hip);
+  const isPrBacked = source.kind === 'pull_request';
+  const prNum = source.prNumber || hip.prNumber || hip.hip;
   const prFilesUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${prNum}/files`;
-  const mainEditUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/main/HIP/hip-${hip.hip}.md`;
-  const mainFileUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/HIP/hip-${hip.hip}.md`;
+  const mainFileUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/${encodePath(source.path || `HIP/hip-${hip.hip}.md`)}`;
   safeHTML($('#hip-title'), `<span class="hip-number">HIP-${hip.hip}:</span> ${esc(hip.title)}`);
 
-  // Action buttons — drafts link to PR files, merged HIPs link to file on main
-  $('#suggest-edit').href = isDraft ? prFilesUrl : mainEditUrl;
-  const discussUrl = hip['discussions-to'] || (isDraft ? prFilesUrl : mainFileUrl);
+  const editBtn = $('#suggest-edit');
+  editBtn.href = isPrBacked ? prFilesUrl : mainFileUrl;
+  editBtn.removeAttribute('target');
+  safeHTML(editBtn, `${editIconSvg()}${isPrBacked ? ' Edit PR' : ' Edit'}`);
+  editBtn.onclick = e => {
+    e.preventDefault();
+    openEditModal(hip);
+  };
+
+  const discussUrl = hip['discussions-to'] || (isPrBacked ? prFilesUrl : mainFileUrl);
   $('#discuss-link').href = discussUrl;
   $('#join-discussion').href = discussUrl;
 
@@ -669,6 +681,7 @@ async function showDetail(num) {
     hip.replaces ? ['Replaces', hipLinks(hip.replaces)] : null,
     hip['superseded-by'] ? ['Superseded By', hipLinks(hip['superseded-by'])] : null,
     hip.release ? ['Release', fmtRelease(hip.release, hip.category)] : null,
+    ['Source', sourceMetaHtml(source, hip)],
   ].filter(Boolean);
 
   safeHTML($('#hip-meta-table tbody'), rows.map(([l, v]) =>
@@ -823,6 +836,627 @@ function setupScrollSpy() {
   }, { rootMargin: '-80px 0px -70% 0px' });
 
   $('#hip-content').querySelectorAll('h2, h3, h4').forEach(h => observer.observe(h));
+}
+
+/* =============================================
+   EDIT FLOW
+   ============================================= */
+function getHipSource(hip) {
+  const source = hipSources.get(String(hip.hip)) || {};
+  const path = source.path || hip.sourcePath || `HIP/hip-${hip.hip}.md`;
+  return {
+    kind: source.kind || hip.sourceKind || (hip.prNumber ? 'pull_request' : 'main'),
+    owner: source.owner || REPO_OWNER,
+    repo: source.repo || REPO_NAME,
+    branch: source.branch || 'main',
+    path,
+    prNumber: source.prNumber || hip.prNumber || null,
+    prUrl: source.prUrl || (hip.prNumber ? `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${hip.prNumber}` : ''),
+    headSha: source.headSha || '',
+    headOwner: source.headOwner || '',
+    headRepo: source.headRepo || '',
+    headBranch: source.headBranch || '',
+    baseOwner: source.baseOwner || REPO_OWNER,
+    baseRepo: source.baseRepo || REPO_NAME,
+    baseBranch: source.baseBranch || 'main',
+    maintainerCanModify: Boolean(source.maintainerCanModify),
+    raw: source.raw || '',
+  };
+}
+
+function sourceMetaHtml(source, hip) {
+  if (source.kind === 'pull_request') {
+    const prUrl = source.prUrl || `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${source.prNumber || hip.hip}`;
+    const branch = source.headBranch ? ` <span class="source-branch">${esc(source.headOwner || REPO_OWNER)}/${esc(source.headRepo || REPO_NAME)}:${esc(source.headBranch)}</span>` : '';
+    return `<a href="${esc(prUrl)}" target="_blank">PR #${esc(source.prNumber || hip.hip)}</a>${branch} <span class="source-chip">PR source</span>`;
+  }
+  const fileUrl = `https://github.com/${source.owner}/${source.repo}/blob/${source.branch}/${encodePath(source.path)}`;
+  return `<a href="${esc(fileUrl)}" target="_blank">${esc(source.path)}</a> <span class="source-chip">main</span>`;
+}
+
+function editIconSvg() {
+  return '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 01-.927-.928l.929-3.25a1.75 1.75 0 01.445-.758l8.61-8.61zm1.414 1.06a.25.25 0 00-.354 0L3.463 11.098a.25.25 0 00-.064.108l-.563 1.97 1.971-.564a.25.25 0 00.108-.064l8.61-8.61a.25.25 0 000-.354L12.427 2.487z"/></svg>';
+}
+
+function openEditModal(hip) {
+  document.querySelector('.edit-modal-overlay')?.remove();
+
+  const source = getHipSource(hip);
+  const initialRaw = source.raw || sourceRawFallback(hip);
+  const directUrl = directEditorUrl(source);
+  const sourceLabel = source.kind === 'pull_request'
+    ? prSourceLabel(source, hip)
+    : `${source.path} on main`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'edit-modal-overlay';
+  safeHTML(overlay, `
+    <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <div class="edit-modal-header">
+        <div>
+          <h2 id="edit-modal-title">Edit HIP-${esc(hip.hip)}</h2>
+          <p id="edit-source-label">${esc(sourceLabel)}</p>
+        </div>
+        <button class="edit-modal-close" type="button" aria-label="Close editor">&times;</button>
+      </div>
+
+      <div class="edit-modal-toolbar">
+        <div class="wz-toolbar" id="edit-md-toolbar"></div>
+        <div class="edit-modal-actions">
+          <button type="button" class="edit-action-btn" id="edit-copy">Copy Markdown</button>
+          <button type="button" class="edit-action-btn" id="edit-download">Download</button>
+          <a class="edit-action-btn" id="edit-direct" href="${esc(directUrl)}" target="_blank">Open on GitHub</a>
+        </div>
+      </div>
+
+      <div class="edit-modal-body">
+        <div class="edit-pane edit-pane--source">
+          <div class="edit-pane-title">
+            <span>Markdown</span>
+            <span id="edit-stats"></span>
+          </div>
+          <textarea id="edit-source" spellcheck="false">${esc(initialRaw)}</textarea>
+        </div>
+        <div class="edit-pane edit-pane--preview">
+          <div class="edit-pane-title">Preview</div>
+          <article id="edit-preview"></article>
+        </div>
+      </div>
+
+      <div class="edit-submit">
+        <div class="edit-submit-copy">
+          <strong>Submit through GitHub</strong>
+          <span>Your edit is committed to a branch in your fork, then opened as a pull request.</span>
+        </div>
+        <button type="button" class="edit-submit-btn" id="edit-submit-pr">Connect GitHub &amp; Submit PR</button>
+      </div>
+      <div id="edit-status" class="edit-status">
+        GitHub connection is only used for this browser session.
+      </div>
+    </div>
+  `);
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(() => overlay.classList.add('edit-modal-overlay--visible'));
+
+  const close = () => {
+    overlay.classList.remove('edit-modal-overlay--visible');
+    document.body.style.overflow = '';
+    setTimeout(() => overlay.remove(), 160);
+  };
+  overlay.querySelector('.edit-modal-close').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+  const textarea = overlay.querySelector('#edit-source');
+  const preview = overlay.querySelector('#edit-preview');
+  const stats = overlay.querySelector('#edit-stats');
+  const status = overlay.querySelector('#edit-status');
+  const direct = overlay.querySelector('#edit-direct');
+  setupMarkdownToolbar(overlay.querySelector('#edit-md-toolbar'), textarea);
+
+  const updateStats = () => {
+    const lines = textarea.value.split('\n').length;
+    stats.textContent = `${lines} lines`;
+  };
+  const refreshPreview = () => {
+    renderEditPreview(textarea.value, preview);
+    updateStats();
+  };
+  let previewTimer = null;
+  textarea.addEventListener('input', () => {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(refreshPreview, 180);
+  });
+  refreshPreview();
+
+  if (source.kind === 'pull_request') {
+    resolveEditTarget(source).then(details => {
+      source.details = details;
+      const url = directEditorUrl(source, details);
+      direct.href = url;
+      direct.textContent = details.headBranch ? 'Open PR Branch' : 'Open PR Files';
+      overlay.querySelector('#edit-source-label').textContent = prSourceLabel(source, hip, details);
+    });
+  }
+
+  overlay.querySelector('#edit-copy').addEventListener('click', async e => {
+    await copyToClipboard(textarea.value);
+    flashButton(e.currentTarget, 'Copied');
+  });
+
+  overlay.querySelector('#edit-download').addEventListener('click', () => {
+    const blob = new Blob([textarea.value], { type: 'text/markdown' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = source.path.split('/').pop() || `hip-${hip.hip}.md`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  overlay.querySelector('#edit-submit-pr').addEventListener('click', async () => {
+    const token = await getGitHubToken(status);
+    if (!token) return;
+    await submitEditPr({ hip, source, raw: textarea.value, token, status });
+  });
+}
+
+function prSourceLabel(source, hip, details = null) {
+  const headOwner = details?.headOwner || source.headOwner;
+  const headRepo = details?.headRepo || source.headRepo;
+  const headBranch = details?.headBranch || source.headBranch;
+  if (headOwner && headRepo && headBranch) {
+    return `PR #${source.prNumber || hip.hip} (${headOwner}/${headRepo}:${headBranch})`;
+  }
+  return `PR #${source.prNumber || hip.hip}`;
+}
+
+function sourceRawFallback(hip) {
+  const today = new Date().toISOString().slice(0, 10);
+  return `---\nhip: ${hip.hip}\ntitle: ${hip.title || ''}\nauthor: ${hip.author || ''}\ntype: ${hip.type || ''}\ncategory: ${hip.category || ''}\nstatus: ${hip.status || ''}\ncreated: ${hip.created || today}\nupdated: ${hip.updated || today}\n---\n\n${hipBodies.get(String(hip.hip)) || ''}`;
+}
+
+function renderEditPreview(raw, target) {
+  const bodyMatch = raw.match(/^---[\s\S]*?---\r?\n\r?\n?([\s\S]*)$/);
+  const body = bodyMatch ? bodyMatch[1] : raw;
+  let rendered = marked.parse(body || '');
+  rendered = rendered.replace(/<!--DIAGRAM:STANDARDS_TRACK-->/g, DIAGRAM_STANDARDS_TRACK);
+  rendered = rendered.replace(/<!--DIAGRAM:IPA-->/g, DIAGRAM_IPA);
+  safeHTML(target, rendered || '<p style="color:var(--fg-muted)">Nothing to preview yet.</p>');
+  applyRainbowIndent(target);
+}
+
+function directEditorUrl(source, details = null) {
+  const path = encodePath(source.path || '');
+  if (source.kind === 'pull_request') {
+    if (details?.headOwner && details?.headRepo && details?.headBranch) {
+      return `https://github.com/${details.headOwner}/${details.headRepo}/edit/${encodeURIComponent(details.headBranch)}/${path}`;
+    }
+    return source.prUrl || `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${source.prNumber || ''}/files`;
+  }
+  return `https://github.com/${source.owner}/${source.repo}/edit/${encodeURIComponent(source.branch || 'main')}/${path}`;
+}
+
+async function resolveEditTarget(source) {
+  if (source.kind !== 'pull_request') {
+    return {
+      baseOwner: REPO_OWNER,
+      baseRepo: REPO_NAME,
+      baseBranch: 'main',
+      headSha: '',
+    };
+  }
+
+  const fromBuildData = {
+    baseOwner: source.headOwner || source.baseOwner || REPO_OWNER,
+    baseRepo: source.headRepo || source.baseRepo || REPO_NAME,
+    baseBranch: source.headBranch || source.baseBranch || 'main',
+    headOwner: source.headOwner || '',
+    headRepo: source.headRepo || '',
+    headBranch: source.headBranch || '',
+    headSha: source.headSha,
+    upstreamBaseOwner: source.baseOwner || REPO_OWNER,
+    upstreamBaseRepo: source.baseRepo || REPO_NAME,
+    upstreamBaseBranch: source.baseBranch || 'main',
+  };
+
+  const pr = await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${source.prNumber}`);
+  if (!pr) {
+    return fromBuildData;
+  }
+
+  return {
+    baseOwner: pr.head?.repo?.owner?.login || REPO_OWNER,
+    baseRepo: pr.head?.repo?.name || REPO_NAME,
+    baseBranch: pr.head?.ref || pr.base?.ref || 'main',
+    headOwner: pr.head?.repo?.owner?.login || '',
+    headRepo: pr.head?.repo?.name || '',
+    headBranch: pr.head?.ref || '',
+    headSha: pr.head?.sha || source.headSha,
+    upstreamBaseOwner: pr.base?.repo?.owner?.login || REPO_OWNER,
+    upstreamBaseRepo: pr.base?.repo?.name || REPO_NAME,
+    upstreamBaseBranch: pr.base?.ref || 'main',
+  };
+}
+
+async function submitEditPr({ hip, source, raw, token, status }) {
+  try {
+    setEditStatusText(status, 'Authenticating with GitHub...', 'busy');
+    const user = await githubRequest('/user', { token });
+    const login = user.login;
+    const repoName = REPO_NAME;
+
+    setEditStatusText(status, `Ensuring fork ${login}/${repoName} exists...`, 'busy');
+    await ensureFork(token, login, repoName);
+
+    const target = await resolveEditTarget(source);
+    const baseSha = target.headSha || await getRefSha(token, REPO_OWNER, REPO_NAME, 'main');
+    const branch = `edit-hip-${hip.hip}-${Date.now().toString(36)}`;
+
+    setEditStatusText(status, `Creating branch ${branch}...`, 'busy');
+    await githubRequest(`/repos/${login}/${repoName}/git/refs`, {
+      token,
+      method: 'POST',
+      body: { ref: `refs/heads/${branch}`, sha: baseSha },
+    });
+
+    const path = source.path || `HIP/hip-${hip.hip}.md`;
+    const encodedPath = encodePath(path);
+    const message = [
+      `Suggest edit to HIP-${hip.hip}`,
+      '',
+      `Signed-off-by: ${login} <${login}@users.noreply.github.com>`,
+    ].join('\n');
+
+    setEditStatusText(status, `Committing ${path}...`, 'busy');
+    let existing = null;
+    try {
+      existing = await githubRequest(`/repos/${login}/${repoName}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}`, { token });
+    } catch (e) {
+      if (e.status !== 404) throw e;
+    }
+
+    const contentBody = {
+      message,
+      content: base64Encode(raw),
+      branch,
+      ...(existing?.sha ? { sha: existing.sha } : {}),
+    };
+
+    await githubRequest(`/repos/${login}/${repoName}/contents/${encodedPath}`, {
+      token,
+      method: 'PUT',
+      body: contentBody,
+    });
+
+    const title = `Suggest edit to HIP-${hip.hip}: ${hip.title}`;
+    const body = [
+      `Suggested edit from hips.hedera.com for HIP-${hip.hip}.`,
+      '',
+      source.kind === 'pull_request' && source.prNumber ? `Source HIP is currently displayed from PR #${source.prNumber}.` : 'Source HIP is currently merged on main.',
+    ].join('\n');
+
+    setEditStatusText(status, 'Opening pull request...', 'busy');
+    const prUrl = await createPrOrCompareUrl({
+      token,
+      target,
+      login,
+      branch,
+      title,
+      body,
+    });
+
+    const safePrUrl = githubHtmlUrl(prUrl);
+    setEditStatusPullRequest(status, safePrUrl);
+    window.open(safePrUrl, '_blank', 'noopener');
+  } catch (e) {
+    setEditStatusText(status, e.message || 'GitHub submit failed. Try again.', 'error');
+  }
+}
+
+async function ensureFork(token, login, repoName) {
+  try {
+    return await githubRequest(`/repos/${login}/${repoName}`, { token });
+  } catch (e) {
+    if (e.status !== 404) throw e;
+  }
+
+  await githubRequest(`/repos/${REPO_OWNER}/${REPO_NAME}/forks`, {
+    token,
+    method: 'POST',
+    body: { default_branch_only: false },
+  });
+
+  for (let i = 0; i < 20; i++) {
+    await sleep(1500);
+    try {
+      return await githubRequest(`/repos/${login}/${repoName}`, { token });
+    } catch (e) {
+      if (e.status !== 404) throw e;
+    }
+  }
+  throw new Error('GitHub is still creating the fork. Try Submit PR again in a minute.');
+}
+
+async function getRefSha(token, owner, repo, branch) {
+  const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/${encodeGitRef(branch)}`, { token });
+  return ref.object?.sha;
+}
+
+async function createPrOrCompareUrl({ token, target, login, branch, title, body }) {
+  const baseOwner = target.baseOwner || REPO_OWNER;
+  const baseRepo = target.baseRepo || REPO_NAME;
+  const baseBranch = target.baseBranch || 'main';
+  const compareUrl = comparePrUrl({ baseOwner, baseRepo, baseBranch, login, branch, title, body });
+
+  try {
+    const pr = await githubRequest(`/repos/${baseOwner}/${baseRepo}/pulls`, {
+      token,
+      method: 'POST',
+      body: {
+        title,
+        body,
+        head: `${login}:${branch}`,
+        base: baseBranch,
+        maintainer_can_modify: true,
+      },
+    });
+    return pr.html_url || compareUrl;
+  } catch (primaryError) {
+    const fallbackOwner = target.upstreamBaseOwner || REPO_OWNER;
+    const fallbackRepo = target.upstreamBaseRepo || REPO_NAME;
+    const fallbackBranch = target.upstreamBaseBranch || 'main';
+    const sameTarget = fallbackOwner === baseOwner && fallbackRepo === baseRepo && fallbackBranch === baseBranch;
+    if (sameTarget) return compareUrl;
+
+    const fallbackBody = `${body}\n\nGitHub did not allow opening this against ${baseOwner}/${baseRepo}:${baseBranch}, so this falls back to ${fallbackOwner}/${fallbackRepo}:${fallbackBranch}.`;
+    const fallbackCompareUrl = comparePrUrl({
+      baseOwner: fallbackOwner,
+      baseRepo: fallbackRepo,
+      baseBranch: fallbackBranch,
+      login,
+      branch,
+      title,
+      body: fallbackBody,
+    });
+
+    try {
+      const fallbackPr = await githubRequest(`/repos/${fallbackOwner}/${fallbackRepo}/pulls`, {
+        token,
+        method: 'POST',
+        body: {
+          title,
+          body: fallbackBody,
+          head: `${login}:${branch}`,
+          base: fallbackBranch,
+          maintainer_can_modify: true,
+        },
+      });
+      return fallbackPr.html_url || fallbackCompareUrl;
+    } catch {
+      return fallbackCompareUrl;
+    }
+  }
+}
+
+let githubSessionToken = '';
+let githubAuthRequest = null;
+
+async function getGitHubToken(status) {
+  if (githubSessionToken) return githubSessionToken;
+  if (githubAuthRequest) return githubAuthRequest;
+
+  githubAuthRequest = requestGitHubToken(status).finally(() => {
+    githubAuthRequest = null;
+  });
+
+  return githubAuthRequest;
+}
+
+async function requestGitHubToken(status) {
+  if (typeof window.HIPS_GITHUB_TOKEN_PROVIDER === 'function') {
+    setEditStatusText(status, 'Connecting to GitHub...', 'busy');
+    const token = normalizeGitHubToken(await window.HIPS_GITHUB_TOKEN_PROVIDER());
+    if (!token) {
+      setEditStatusText(status, 'GitHub connection did not complete. Try again when you are ready.', 'warn');
+      return '';
+    }
+    githubSessionToken = token;
+    return githubSessionToken;
+  }
+
+  const startUrl = getGitHubAuthStartUrl();
+  if (!startUrl) {
+    setEditStatusText(
+      status,
+      'GitHub Connect is not configured for this deployment yet. Configure the production OAuth broker and try again.',
+      'warn'
+    );
+    return '';
+  }
+
+  try {
+    githubSessionToken = await requestGitHubTokenFromPopup(startUrl, status);
+    return githubSessionToken;
+  } catch (e) {
+    setEditStatusText(status, e.message || 'GitHub connection failed. Try again.', 'error');
+    return '';
+  }
+}
+
+function getGitHubAuthStartUrl() {
+  return window.HIPS_GITHUB_AUTH_START_URL || GITHUB_AUTH_START_URL;
+}
+
+function requestGitHubTokenFromPopup(startUrl, status) {
+  return new Promise((resolve, reject) => {
+    const state = randomState();
+    const authUrl = new URL(startUrl, window.location.href);
+    const allowedOrigin = authUrl.origin;
+    authUrl.searchParams.set('state', state);
+    authUrl.searchParams.set('origin', window.location.origin);
+    authUrl.searchParams.set('return_to', `${window.location.pathname}${window.location.search}${window.location.hash}`);
+
+    const popup = window.open(
+      authUrl.toString(),
+      'hips-github-auth',
+      'popup,width=520,height=720'
+    );
+    if (!popup) {
+      reject(new Error('GitHub sign-in popup was blocked. Allow popups for this site and try again.'));
+      return;
+    }
+
+    setEditStatusText(status, 'A GitHub sign-in window was opened. Finish approval there to continue.', 'busy');
+
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      reject(new Error('GitHub sign-in timed out. Try again when you are ready.'));
+    }, GITHUB_AUTH_TIMEOUT_MS);
+
+    const closedCheck = window.setInterval(() => {
+      if (popup.closed) {
+        cleanup();
+        reject(new Error('GitHub sign-in was closed before approval completed.'));
+      }
+    }, 700);
+
+    const onMessage = event => {
+      const data = event.data || {};
+      if (data.type !== 'hips:github-token' || data.state !== state) return;
+      if (event.origin !== window.location.origin && event.origin !== allowedOrigin) return;
+
+      cleanup();
+      const token = normalizeGitHubToken(data);
+      if (token) {
+        resolve(token);
+      } else {
+        reject(new Error(data.error_description || data.error || 'GitHub connection did not complete.'));
+      }
+    };
+
+    function cleanup() {
+      window.clearTimeout(timeout);
+      window.clearInterval(closedCheck);
+      window.removeEventListener('message', onMessage);
+      try { popup.close(); } catch { /* ignore popup close errors */ }
+    }
+
+    window.addEventListener('message', onMessage);
+  });
+}
+
+function normalizeGitHubToken(value) {
+  if (typeof value === 'string') return value.trim();
+  return String(value?.token || value?.access_token || '').trim();
+}
+
+function randomState() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function comparePrUrl({ baseOwner, baseRepo, baseBranch, login, branch, title, body }) {
+  const compare = `${encodeURIComponent(baseBranch)}...${encodeURIComponent(login)}:${encodeURIComponent(branch)}`;
+  const params = new URLSearchParams({ quick_pull: '1', title, body });
+  return `https://github.com/${baseOwner}/${baseRepo}/compare/${compare}?${params.toString()}`;
+}
+
+async function githubRequest(path, { token, method = 'GET', body } = {}) {
+  const res = await fetch(`https://api.github.com${path}`, {
+    method,
+    headers: {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      Authorization: `Bearer ${token}`,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    let message = `${res.status} ${res.statusText}`;
+    try {
+      const json = await res.json();
+      if (json.message) message = json.message;
+    } catch { /* ignore non-json errors */ }
+    const error = new Error(message);
+    error.status = res.status;
+    throw error;
+  }
+
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function base64Encode(value) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = '';
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+
+function encodePath(path) {
+  return String(path).split('/').map(encodeURIComponent).join('/');
+}
+
+function encodeGitRef(ref) {
+  return String(ref).split('/').map(encodeURIComponent).join('/');
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function copyToClipboard(value) {
+  try {
+    await navigator.clipboard.writeText(value);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = value;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+}
+
+function flashButton(btn, text) {
+  const original = btn.textContent;
+  btn.textContent = text;
+  setTimeout(() => { btn.textContent = original; }, 1300);
+}
+
+function setEditStatusText(el, message, state) {
+  el.className = `edit-status edit-status--${state}`;
+  el.textContent = message;
+}
+
+function setEditStatusPullRequest(el, prUrl) {
+  el.className = 'edit-status edit-status--ok';
+  el.textContent = 'Ready: ';
+
+  const link = document.createElement('a');
+  link.href = prUrl;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.textContent = 'open the pull request';
+
+  el.appendChild(link);
+  el.appendChild(document.createTextNode('.'));
+}
+
+function githubHtmlUrl(value) {
+  try {
+    const url = new URL(value, window.location.href);
+    if (url.protocol === 'https:' && url.hostname === 'github.com') {
+      return url.toString();
+    }
+  } catch { /* fall through to repository PR list */ }
+  return `https://github.com/${REPO_OWNER}/${REPO_NAME}/pulls`;
 }
 
 /* =============================================
