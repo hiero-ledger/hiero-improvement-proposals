@@ -15,10 +15,17 @@
     "highlightjs-solidity": "^2.0.6",
     "marked": "^15.0.0",
     "marked-highlight": "^2.2.3",
-    "mermaid": "^11.13.0",
-    "vite": "^6.4.2"
+    "mermaid": "^11.15.0",
+    "vite": "^6.4.3"
   },
   "devDependencies": {
     "fast-check": "^3.23.2"
+  },
+  "//overrides": "Patched versions of transitive deps to clear Dependabot/OpenSSF vuln alerts. Each has a single consumer and stays within its existing major; js-yaml is held on the 3.x line that gray-matter's API requires.",
+  "overrides": {
+    "dompurify": "^3.4.11",
+    "uuid": "^11.1.1",
+    "lodash-es": "^4.18.0",
+    "js-yaml": "^3.15.0"
   }
 }
