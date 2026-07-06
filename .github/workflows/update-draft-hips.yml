@@ -1,174 +1,36 @@
-name: Update Draft HIPs Data
+name: Refresh Draft HIPs on Site
+
+# Draft HIPs (open PRs that add a new HIP) are fetched live during the site
+# build (see site/scripts/build-data.js). This job just triggers a Netlify
+# rebuild on a schedule so the published site stays current, WITHOUT committing
+# any generated data to main. Requires a NETLIFY_BUILD_HOOK repo secret; if it
+# is not set, the job is a no-op.
 
 on:
   schedule:
-    - cron: "0 */6 * * *" # Runs every 6 hours
-  workflow_dispatch: # Allows manual triggering
+    - cron: "0 */6 * * *" # every 6 hours
+  workflow_dispatch: # allow manual triggering
 
 permissions:
   contents: read
 
 jobs:
-  update-draft-hips:
-    if: ${{ github.ref == 'refs/heads/main' }} # Only run on main branch
+  trigger-site-rebuild:
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: hiero-improvement-proposals-linux-medium
-    permissions:
-      contents: read
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
-      - name: Checkout Code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
-          ref: 'main'
-
-      - name: Import GPG Key
-        id: gpg_importer
-        uses: step-security/ghaction-import-gpg@69c854a83c7f79463f8bdf46772ab09826c560cd # v6.3.1
-        with:
-          git_commit_gpgsign: true
-          git_tag_gpgsign: true
-          git_user_signingkey: true
-          gpg_private_key: ${{ secrets.GPG_KEY_CONTENTS }}
-          passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: "20"
-
-      - name: Create Script
-        run: |
-          mkdir -p _data
-          cat << 'EOF' > fetch-draft-hips.js
-          const https = require('https');
-          const fs = require('fs');
-
-          async function makeGraphQLRequest(query, token) {
-            return new Promise((resolve, reject) => {
-              const options = {
-                hostname: 'api.github.com',
-                path: '/graphql',
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                  'User-Agent': 'Node.js'
-                }
-              };
-
-              const req = https.request(options, (res) => {
-                let data = '';
-                res.on('data', chunk => { data += chunk; });
-                res.on('end', () => resolve(JSON.parse(data)));
-              });
-
-              req.on('error', reject);
-              req.write(JSON.stringify({ query }));
-              req.end();
-            });
-          }
-
-          async function getAllPRs() {
-            const query = `
-              query { 
-                repository(name: "hiero-improvement-proposals", owner: "hiero-ledger") {
-                  pullRequests(first: 100, states: [OPEN], orderBy: {field: CREATED_AT, direction: DESC}) {
-                    nodes {
-                      title
-                      number
-                      url
-                      headRefOid
-                      files(first: 100) {
-                        edges {
-                          node {
-                            path
-                            changeType
-                            additions
-                            deletions
-                          }
-                        }
-                      }
-                      author {
-                        login
-                      }
-                    }
-                  }
-                }
-              }
-            `;
-
-            try {
-              const result = await makeGraphQLRequest(query, process.env.GITHUB_TOKEN);
-              
-              if (result.errors) {
-                console.error('GraphQL errors:', result.errors);
-                process.exit(1); 
-              }
-
-              // Check if data and the expected path to nodes exist
-              if (!result.data || !result.data.repository || !result.data.repository.pullRequests || !result.data.repository.pullRequests.nodes) {
-                console.error('Unexpected GraphQL response structure:', result);
-                process.exit(1);
-              }
-
-              return result.data.repository.pullRequests.nodes;
-            } catch (error) {
-              console.error('Error fetching PRs:', error);
-              throw error;
-            }
-          }
-
-          // Run the main function
-          getAllPRs().then(allPRs => {
-            const draftHIPPRs = allPRs.filter(pr => {
-              if (!pr.files || !pr.files.edges) {
-                return false;
-              }
-              const hipFiles = pr.files.edges.filter(edge => {
-                const fileNode = edge.node;
-                const isNewHIPFile = /^HIP\/hip-[a-zA-Z0-9-]+\.md$/.test(fileNode.path);
-                return fileNode.changeType === 'ADDED' && isNewHIPFile;
-              }).map(edge => edge.node);
-
-              return hipFiles.length > 0;
-            });
-
-            const outputPath = '_data/draft_hips.json';
-            
-            if (fs.existsSync(outputPath)) {
-              console.log(`Removing existing file: ${outputPath}`);
-              fs.unlinkSync(outputPath);
-            }
-            
-            console.log(`Writing ${draftHIPPRs.length} filtered PRs to: ${outputPath}`);
-            fs.writeFileSync(outputPath, JSON.stringify(draftHIPPRs, null, 2));
-          }).catch(error => {
-            console.error('Failed to fetch and filter PRs:', error);
-            process.exit(1);
-          });
-          EOF
-
-      - name: Run Script
-        run: node fetch-draft-hips.js
+      - name: Trigger Netlify build (re-fetches open draft-HIP PRs at build time)
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
-
-      - name: Commit and Push Changes
-        env:
-          GITHUB_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
-          GITHUB_USER_NAME: ${{ vars.GIT_USER_NAME }}
+          NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
         run: |
-          set -e
-          git config --local user.email "$GITHUB_USER_EMAIL"
-          git config --local user.name "$GITHUB_USER_NAME"
-          git add _data/draft_hips.json
-          git diff --cached --quiet && echo "No changes to commit" && exit 0
-          
-          git commit -s -S -m "Update draft HIPs data [skip ci]"
-          git push origin main
-          set +e
+          if [ -z "$NETLIFY_BUILD_HOOK" ]; then
+            echo "NETLIFY_BUILD_HOOK secret not set — skipping."
+            echo "Add the secret (Netlify build hook URL) to enable scheduled draft-HIP refreshes."
+            exit 0
+          fi
+          curl -fsS -X POST -d '{}' "$NETLIFY_BUILD_HOOK" && echo "Netlify build triggered."
