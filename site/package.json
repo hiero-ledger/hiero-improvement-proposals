@@ -6,7 +6,8 @@
     "build:data": "node scripts/build-data.js",
     "dev": "npm run build:data && vite",
     "build": "npm run build:data && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test scripts/hip-parse.test.js"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
@@ -16,5 +17,8 @@
     "marked-highlight": "^2.2.3",
     "mermaid": "^11.13.0",
     "vite": "^6.4.2"
+  },
+  "devDependencies": {
+    "fast-check": "^3.23.2"
   }
 }
