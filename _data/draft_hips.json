@@ -1,16 +1,142 @@
 [
   {
+    "title": "HIP: Reduce the Smart Contract Service Gas Price",
+    "number": 1508,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1508",
+    "headRefOid": "0cea3ea2f465781b6f63e5137b2d40a586f5eccb",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1508.md",
+            "changeType": "ADDED",
+            "additions": 237,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mshakeg"
+    }
+  },
+  {
+    "title": "Add HIP: Periodic Holding Fee for Hedera Token Service Fungible Tokens",
+    "number": 1500,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1500",
+    "headRefOid": "39212ff4facf878ab148cd0eb1cb15b53e00c297",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-0000-periodic-holding-fee.md",
+            "changeType": "ADDED",
+            "additions": 654,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "AdrianKBL"
+    }
+  },
+  {
+    "title": "HIP 1497: Consensus Node Migration to Kubernetes-Native Deployment",
+    "number": 1497,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1497",
+    "headRefOid": "32c271147660ff3d848fde5faff8c53aeb63420e",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1497.md",
+            "changeType": "ADDED",
+            "additions": 999,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "leninmehedy"
+    }
+  },
+  {
+    "title": "HIP 1496: Globally Synchronized Network Upgrade Process",
+    "number": 1496,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1496",
+    "headRefOid": "45436dd5f403a5c03f29d09314a36ce5b856fbee",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1496.md",
+            "changeType": "ADDED",
+            "additions": 2474,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "leninmehedy"
+    }
+  },
+  {
+    "title": "HIP 1495: Kubernetes-Native Consensus Node Deployment",
+    "number": 1495,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1495",
+    "headRefOid": "457a47f8da129d0b1cd51392b3d80d1748149be0",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1495.md",
+            "changeType": "ADDED",
+            "additions": 1284,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "leninmehedy"
+    }
+  },
+  {
+    "title": "HIP 1494: Consensus Node Deployment Package Specification",
+    "number": 1494,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1494",
+    "headRefOid": "1968ab493ca36bd322c04dc8f7436007d9e4c597",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1494.md",
+            "changeType": "ADDED",
+            "additions": 1016,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "leninmehedy"
+    }
+  },
+  {
     "title": "New debug and trace APIs on Mirror node side",
     "number": 1485,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1485",
-    "headRefOid": "2320538aaa90fcbba8cdea3d12a892e58bcba4be",
+    "headRefOid": "42d78fd630c0e5d9cf096e5ea66d081c52e44961",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1485.md",
             "changeType": "ADDED",
-            "additions": 972,
+            "additions": 1053,
             "deletions": 0
           }
         }
@@ -310,7 +436,7 @@
     "title": "HIP-1208: Consensus Service Precompiled Contract for Smart Contract Service",
     "number": 1208,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1208",
-    "headRefOid": "0496f03ebae898d2c647ff80c42b2afd5aadba00",
+    "headRefOid": "0450584cf10737afa6eab4dbc53d8395cc35c085",
     "files": {
       "edges": [
         {
@@ -331,14 +457,14 @@
     "title": "Sponsored Fees",
     "number": 1068,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1068",
-    "headRefOid": "70c7c6a01f1049e6d836ba67881c8ab4195d17b8",
+    "headRefOid": "384c4f607766631dcd0cd4953ff2ceee464a309e",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1068.md",
             "changeType": "ADDED",
-            "additions": 880,
+            "additions": 881,
             "deletions": 0
           }
         },
