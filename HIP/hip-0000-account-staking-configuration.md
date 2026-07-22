@@ -1,8 +1,8 @@
 ---
-hip: 0000 # Assigned by the HIP editor.
+hip: 1522
 title: Account Staking Configuration via the Hedera Account Service
 author: Stoyan Panayotov (@stoqnkpL)
-discussions-to: # Filled by the HIP editor upon PR creation.
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/1523
 type: Standards Track
 category: Service
 needs-hiero-approval: Yes
