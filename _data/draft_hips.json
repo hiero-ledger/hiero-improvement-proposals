@@ -1,5 +1,26 @@
 [
   {
+    "title": "HIP: Reduce the Smart Contract Service Gas Price",
+    "number": 1508,
+    "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1508",
+    "headRefOid": "0cea3ea2f465781b6f63e5137b2d40a586f5eccb",
+    "files": {
+      "edges": [
+        {
+          "node": {
+            "path": "HIP/hip-1508.md",
+            "changeType": "ADDED",
+            "additions": 237,
+            "deletions": 0
+          }
+        }
+      ]
+    },
+    "author": {
+      "login": "mshakeg"
+    }
+  },
+  {
     "title": "Add HIP: Periodic Holding Fee for Hedera Token Service Fungible Tokens",
     "number": 1500,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1500",
@@ -21,10 +42,10 @@
     }
   },
   {
-    "title": "HIP DRAFT: Consensus Node Migration to Kubernetes-Native Deployment",
+    "title": "HIP 1497: Consensus Node Migration to Kubernetes-Native Deployment",
     "number": 1497,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1497",
-    "headRefOid": "49bc51e52a8b6a2e994e39ce0b8047fc658a3e48",
+    "headRefOid": "32c271147660ff3d848fde5faff8c53aeb63420e",
     "files": {
       "edges": [
         {
@@ -42,17 +63,17 @@
     }
   },
   {
-    "title": "HIP DRAFT: Globally Synchronized Network Upgrade Process",
+    "title": "HIP 1496: Globally Synchronized Network Upgrade Process",
     "number": 1496,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1496",
-    "headRefOid": "b0b1ba2db3800375e77b28487e24726e83ca692a",
+    "headRefOid": "45436dd5f403a5c03f29d09314a36ce5b856fbee",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1496.md",
             "changeType": "ADDED",
-            "additions": 2441,
+            "additions": 2474,
             "deletions": 0
           }
         }
@@ -63,17 +84,17 @@
     }
   },
   {
-    "title": "HIP DRAFT: Kubernetes-Native Consensus Node Deployment",
+    "title": "HIP 1495: Kubernetes-Native Consensus Node Deployment",
     "number": 1495,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1495",
-    "headRefOid": "a4f976bc55a21fee360a2dc7e7ecc60f5d5eb5fe",
+    "headRefOid": "457a47f8da129d0b1cd51392b3d80d1748149be0",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1495.md",
             "changeType": "ADDED",
-            "additions": 1282,
+            "additions": 1284,
             "deletions": 0
           }
         }
@@ -84,17 +105,17 @@
     }
   },
   {
-    "title": "HIP DRAFT: Consensus Node Deployment Package Specification",
+    "title": "HIP 1494: Consensus Node Deployment Package Specification",
     "number": 1494,
     "url": "https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1494",
-    "headRefOid": "c3740ba3bd755aba7508eda61c264415ac00eca3",
+    "headRefOid": "1968ab493ca36bd322c04dc8f7436007d9e4c597",
     "files": {
       "edges": [
         {
           "node": {
             "path": "HIP/hip-1494.md",
             "changeType": "ADDED",
-            "additions": 1015,
+            "additions": 1016,
             "deletions": 0
           }
         }

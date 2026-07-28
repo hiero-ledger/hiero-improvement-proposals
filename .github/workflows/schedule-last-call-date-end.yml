@@ -1,9 +1,7 @@
 name: Schedule Status Update Based on Last Call Time
 
 permissions:
-  pull-requests: write
-  contents: write
-  packages: write
+  contents: read
 
 defaults:
   run:
@@ -19,6 +17,9 @@ jobs:
   check-merged-file:
     if: github.event.pull_request.merged == true
     runs-on: hiero-improvement-proposals-linux-medium
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Harden Runner
