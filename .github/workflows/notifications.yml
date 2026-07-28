@@ -1,7 +1,6 @@
 name: Dispatch Status Change Notifications (discord and email)
 permissions:
-    contents: read
-    actions: write
+  contents: read
 on:
   push:
     branches:
@@ -13,6 +12,9 @@ defaults:
 jobs:
   DispatchNotifications:
     runs-on: hiero-improvement-proposals-linux-medium
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
