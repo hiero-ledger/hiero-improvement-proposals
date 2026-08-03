@@ -1,9 +1,7 @@
 name: Schedule Status Update Based on Last Call Time
 
 permissions:
-  pull-requests: write
-  contents: write
-  packages: write
+  contents: read
 
 defaults:
   run:
@@ -19,15 +17,18 @@ jobs:
   check-merged-file:
     if: github.event.pull_request.merged == true
     runs-on: hiero-improvement-proposals-linux-medium
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
       - name: Check out the code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Import GPG Key
         id: gpg_importer
