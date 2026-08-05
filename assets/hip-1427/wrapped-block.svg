@@ -41,9 +41,9 @@
 <!-- ── RecordStreamFile ───────────────────────────────────── -->
 <rect x="50" y="385" width="960" height="175" rx="7" fill="#eaecee" stroke="#566573" stroke-width="1.8"/>
 <rect x="60" y="393" width="300" height="26" rx="4" fill="#444444"/>
-<text x="70" y="406" text-anchor="start" dominant-baseline="central" font-size="14" font-family="sans-serif" font-weight="bold" fill="#ffffff">RecordStreamFile</text>
+<text x="70" y="406" text-anchor="start" dominant-baseline="central" font-size="14" font-family="sans-serif" font-weight="bold" fill="#ffffff">RecordFileItem</text>
 
-<text x="70" y="435" text-anchor="start" dominant-baseline="central" font-size="10" font-family="monospace" fill="#444444">record_stream_contents:</text>
+<text x="70" y="435" text-anchor="start" dominant-baseline="central" font-size="10" font-family="monospace" fill="#444444">record_file_contents:</text>
 <text x="300" y="435" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Raw bytes of the original record file (v2 / v5 / v6) — preserved exactly</text>
 
 <text x="70" y="461" text-anchor="start" dominant-baseline="central" font-size="10" font-family="monospace" fill="#444444">sidecar_files:</text>
