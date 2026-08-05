@@ -93,7 +93,7 @@
 <!-- Consensus Node -->
 <rect x="900" y="272" width="270" height="100" rx="8" fill="#a9dfbf" stroke="#1e8449" stroke-width="2.2"/>
 <text x="1035" y="303" text-anchor="middle" dominant-baseline="central" font-size="15" font-family="sans-serif" font-weight="bold" fill="#1e8449">Consensus Node</text>
-<text x="1035" y="325" text-anchor="middle" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Loads jumpstart.bin at first</text>
+<text x="1035" y="325" text-anchor="middle" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Reads jumpstart config at first</text>
 <text x="1035" y="344" text-anchor="middle" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">startup after upgrade</text>
 <line x1="1035" y1="245" x2="1035" y2="270" stroke="#d35400" stroke-width="2" marker-end="url(#arr-orange)"/>
 
@@ -109,7 +109,7 @@
 <!-- Tier-1 Block Nodes -->
 <rect x="900" y="608" width="270" height="95" rx="8" fill="#d7bde2" stroke="#6c3483" stroke-width="2.2"/>
 <text x="1035" y="636" text-anchor="middle" dominant-baseline="central" font-size="15" font-family="sans-serif" font-weight="bold" fill="#6c3483">Tier-1 Block Nodes</text>
-<text x="1035" y="658" text-anchor="middle" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Ingest via historic file plugin</text>
+<text x="1035" y="658" text-anchor="middle" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Bulk ingestion mechanism TBD</text>
 <text x="1035" y="678" text-anchor="middle" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Backfill history from genesis</text>
 <line x1="1035" y1="580" x2="1035" y2="606" stroke="#6c3483" stroke-width="2" marker-end="url(#arr-purple)"/>
 </svg>
