@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="580" viewBox="0 0 1300 580">
+<defs>
+  <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#1a5276"/>
+  </marker>
+</defs>
+<rect width="1300" height="580" fill="#ffffff"/>
+<text x="650" y="34" text-anchor="middle" dominant-baseline="central" font-size="21" font-family="sans-serif" font-weight="bold" fill="#1a5276">blocks wrap — Four-Stage Concurrent Pipeline  (Phase 4)</text>
+
+<!-- Stage 1 — Parse & RSA-Verify -->
+<rect x="40" y="65" width="290" height="480" rx="8" fill="#d6eaf8" stroke="#1a5276" stroke-width="2"/>
+<circle cx="70" cy="95" r="20" fill="#1a5276"/>
+<text x="70" y="95" text-anchor="middle" dominant-baseline="central" font-size="16" font-family="sans-serif" font-weight="bold" fill="#ffffff">1</text>
+<text x="98" y="85" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1a5276">Parse &amp;</text>
+<text x="98" y="105" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1a5276">RSA-Verify</text>
+<rect x="48" y="131" width="274" height="20" rx="10" fill="#1e8449"/>
+<text x="185" y="141" text-anchor="middle" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#ffffff">PARALLEL</text>
+<text x="185" y="167" text-anchor="middle" dominant-baseline="central" font-size="10" font-family="sans-serif" font-style="italic" fill="#566573">parseAndVerifyPool  (N threads — sliding prefetch window)</text>
+<line x1="50" y1="179" x2="320" y2="179" stroke="#1a5276" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="54" y="200" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Read UnparsedRecordBlock</text>
+<text x="54" y="218" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  from .tar.zstd day archive</text>
+<text x="54" y="252" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Parse record block</text>
+<text x="54" y="270" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  → ParsedRecordBlock</text>
+<text x="54" y="304" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Locate address book for</text>
+<text x="54" y="322" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  block's timestamp</text>
+<text x="54" y="356" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• RSA-verify each signature</text>
+<text x="54" y="374" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  file against signed hash</text>
+<text x="54" y="408" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Retain only verified</text>
+<text x="54" y="426" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  signatures</text>
+<rect x="46" y="501" width="278" height="38" rx="6" fill="#1a5276"/>
+<text x="185" y="513" text-anchor="middle" dominant-baseline="central" font-size="10" font-family="sans-serif" font-weight="bold" fill="#ffffff">OUTPUT</text>
+<text x="185" y="529" text-anchor="middle" dominant-baseline="central" font-size="11" font-family="monospace" fill="#ffffff">PreVerifiedBlock</text>
+
+<line x1="332" y1="305" x2="348" y2="305" stroke="#1a5276" stroke-width="2.5" marker-end="url(#arr)"/>
+
+<!-- Stage 2 — Convert & Update Chain State -->
+<rect x="350" y="65" width="290" height="480" rx="8" fill="#fad7a0" stroke="#d35400" stroke-width="2"/>
+<circle cx="380" cy="95" r="20" fill="#d35400"/>
+<text x="380" y="95" text-anchor="middle" dominant-baseline="central" font-size="16" font-family="sans-serif" font-weight="bold" fill="#ffffff">2</text>
+<text x="408" y="85" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#d35400">Convert &amp; Update</text>
+<text x="408" y="105" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#d35400">Chain State</text>
+<rect x="358" y="131" width="274" height="20" rx="10" fill="#d35400"/>
+<text x="495" y="141" text-anchor="middle" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#ffffff">SEQUENTIAL</text>
+<text x="495" y="167" text-anchor="middle" dominant-baseline="central" font-size="10" font-family="sans-serif" font-style="italic" fill="#566573">Main thread  (STRICTLY SEQUENTIAL)</text>
+<line x1="360" y1="179" x2="630" y2="179" stroke="#d35400" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="364" y="200" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Convert to wrapped Block</text>
+<text x="364" y="218" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  protobuf</text>
+<text x="364" y="252" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Compute SHA-384 root hash</text>
+<text x="364" y="270" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  (48 bytes)</text>
+<text x="364" y="304" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Update all-blocks</text>
+<text x="364" y="322" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  Merkle tree</text>
+<text x="364" y="356" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Update in-memory</text>
+<text x="364" y="374" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  tree hasher</text>
+<text x="364" y="408" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Register block hash</text>
+<text x="364" y="426" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  in registry</text>
+<rect x="356" y="501" width="278" height="38" rx="6" fill="#d35400"/>
+<text x="495" y="513" text-anchor="middle" dominant-baseline="central" font-size="10" font-family="sans-serif" font-weight="bold" fill="#ffffff">OUTPUT</text>
+<text x="495" y="529" text-anchor="middle" dominant-baseline="central" font-size="11" font-family="monospace" fill="#ffffff">Block + SHA-384 hash</text>
+
+<line x1="642" y1="305" x2="658" y2="305" stroke="#1a5276" stroke-width="2.5" marker-end="url(#arr)"/>
+
+<!-- Stage 3 — Serialize & Compress -->
+<rect x="660" y="65" width="290" height="480" rx="8" fill="#d7bde2" stroke="#6c3483" stroke-width="2"/>
+<circle cx="690" cy="95" r="20" fill="#6c3483"/>
+<text x="690" y="95" text-anchor="middle" dominant-baseline="central" font-size="16" font-family="sans-serif" font-weight="bold" fill="#ffffff">3</text>
+<text x="718" y="85" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#6c3483">Serialize &amp;</text>
+<text x="718" y="105" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#6c3483">Compress</text>
+<rect x="668" y="131" width="274" height="20" rx="10" fill="#1e8449"/>
+<text x="805" y="141" text-anchor="middle" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#ffffff">PARALLEL</text>
+<text x="805" y="167" text-anchor="middle" dominant-baseline="central" font-size="10" font-family="sans-serif" font-style="italic" fill="#566573">serializePool  (N threads)</text>
+<line x1="670" y1="179" x2="940" y2="179" stroke="#6c3483" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="674" y="200" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Serialize block to bytes</text>
+<text x="674" y="218" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  (PBJ protobuf format)</text>
+<text x="674" y="252" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Apply zstd block-level</text>
+<text x="674" y="270" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  compression</text>
+<rect x="666" y="501" width="278" height="38" rx="6" fill="#6c3483"/>
+<text x="805" y="513" text-anchor="middle" dominant-baseline="central" font-size="10" font-family="sans-serif" font-weight="bold" fill="#ffffff">OUTPUT</text>
+<text x="805" y="529" text-anchor="middle" dominant-baseline="central" font-size="11" font-family="monospace" fill="#ffffff">Compressed byte[ ]</text>
+
+<line x1="952" y1="305" x2="968" y2="305" stroke="#1a5276" stroke-width="2.5" marker-end="url(#arr)"/>
+
+<!-- Stage 4 — Zip Write -->
+<rect x="970" y="65" width="290" height="480" rx="8" fill="#a9dfbf" stroke="#1e8449" stroke-width="2"/>
+<circle cx="1000" cy="95" r="20" fill="#1e8449"/>
+<text x="1000" y="95" text-anchor="middle" dominant-baseline="central" font-size="16" font-family="sans-serif" font-weight="bold" fill="#ffffff">4</text>
+<text x="1028" y="95" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1e8449">Zip Write</text>
+<rect x="978" y="131" width="274" height="20" rx="10" fill="#d35400"/>
+<text x="1115" y="141" text-anchor="middle" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#ffffff">SEQUENTIAL</text>
+<text x="1115" y="167" text-anchor="middle" dominant-baseline="central" font-size="10" font-family="sans-serif" font-style="italic" fill="#566573">zipWritePool  (SINGLE thread)</text>
+<line x1="980" y1="179" x2="1250" y2="179" stroke="#1e8449" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="984" y="200" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Open / rotate ZipOutputStream</text>
+<text x="984" y="218" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  per 10,000-block range</text>
+<text x="984" y="252" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• CRC32 + putNextEntry</text>
+<text x="984" y="270" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  + write bytes</text>
+<text x="984" y="304" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">• Close &amp; re-open when</text>
+<text x="984" y="322" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#1c2833">  block# crosses 10k boundary</text>
+<rect x="976" y="501" width="278" height="38" rx="6" fill="#1e8449"/>
+<text x="1115" y="513" text-anchor="middle" dominant-baseline="central" font-size="10" font-family="sans-serif" font-weight="bold" fill="#ffffff">OUTPUT</text>
+<text x="1115" y="529" text-anchor="middle" dominant-baseline="central" font-size="11" font-family="monospace" fill="#ffffff">wrappedBlocks/&lt;range&gt;.zip</text>
+</svg>
