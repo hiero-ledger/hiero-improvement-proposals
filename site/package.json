@@ -5,9 +5,10 @@
   "scripts": {
     "build:data": "node scripts/build-data.js",
     "dev": "npm run build:data && vite",
-    "build": "npm run build:data && vite build",
+    "build:app": "vite build",
+    "build": "npm run build:data && npm run build:app",
     "preview": "vite preview",
-    "test": "node --test scripts/hip-parse.test.js"
+    "test": "node --test scripts/*.test.js"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
