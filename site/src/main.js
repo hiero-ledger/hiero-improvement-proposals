@@ -204,9 +204,9 @@ let sectionSorts = new Map();
 async function init() {
   // Support old /hip/hip-NNN paths — GitHub Pages serves 404.html (= index.html)
   // for unknown paths, so the SPA loads and we route based on the pathname.
-  const pathMatch = window.location.pathname.match(/\/hip\/hip-(\d+)$/);
+  const pathMatch = window.location.pathname.match(/\/hip\/hip-(\d+)\/?$/);
   if (pathMatch && !window.location.hash) {
-    history.replaceState(null, '', window.location.pathname.replace(/\/hip\/hip-\d+$/, '') + '#hip-' + pathMatch[1]);
+    history.replaceState(null, '', window.location.pathname.replace(/\/hip\/hip-\d+\/?$/, '') + '#hip-' + pathMatch[1]);
   }
 
   initTheme();

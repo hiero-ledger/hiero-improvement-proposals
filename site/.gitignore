@@ -1,4 +1,11 @@
 node_modules/
 public/data/
 public/assets/
+public/api/
+public/hip/
+public/llm.txt
+public/llms.txt
+public/llms-full.txt
+public/robots.txt
+public/sitemap.xml
 dist/

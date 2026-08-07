@@ -6,10 +6,13 @@ import {
   draftHipNumber,
   replaceHipImages,
 } from './hip-parse.js';
+import { fetchOpenDraftPullRequests } from './github-drafts.js';
+import { DEFAULT_SITE_URL, writeAiArtifacts } from './ai-artifacts.js';
 
 const HIP_DIR = path.resolve('../HIP');
 const DATA_DIR = path.resolve('../_data');
 const ASSETS_DIR = path.resolve('../assets');
+const PUBLIC_DIR = path.resolve('public');
 const OUT_DIR = path.resolve('public/data');
 const PUBLIC_ASSETS = path.resolve('public/assets');
 const REPO_OWNER = 'hiero-ledger';
@@ -39,15 +42,32 @@ if (fs.existsSync(ASSETS_DIR)) {
 const files = fs.readdirSync(HIP_DIR).filter(f => f.endsWith('.md'));
 const hips = [];
 const hipBodies = new Map();
+const hipDocuments = new Map();
 const mergedHipNumbers = new Set();
 
 for (const file of files) {
   const raw = fs.readFileSync(path.join(HIP_DIR, file), 'utf-8');
   const parsed = parseMarkdown(raw);
   if (!parsed || !parsed.data.hip) continue;
-  mergedHipNumbers.add(Number(parsed.data.hip));
-  hips.push(extractHip(parsed.data, parsed.content));
-  hipBodies.set(String(parsed.data.hip), replaceHipImages(parsed.content));
+  const hipNumber = Number(parsed.data.hip);
+  const body = replaceHipImages(parsed.content);
+  const hip = extractHip(parsed.data, parsed.content);
+  const sourceRef = process.env.GITHUB_SHA || 'main';
+  const sourcePath = `HIP/${file}`;
+  mergedHipNumbers.add(hipNumber);
+  hips.push(hip);
+  hipBodies.set(String(hipNumber), body);
+  hipDocuments.set(String(hipNumber), {
+    hip,
+    metadata: parsed.data,
+    body,
+    source: {
+      kind: 'merged',
+      path: sourcePath,
+      ref: sourceRef,
+      url: `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${sourceRef}/${sourcePath}`,
+    },
+  });
 }
 
 console.log(`Parsed ${hips.length} merged HIPs`);
@@ -63,47 +83,14 @@ async function getDraftPRs() {
   const token = process.env.GITHUB_TOKEN;
 
   if (token) {
-    const query = `query {
-      repository(owner: "${REPO_OWNER}", name: "${REPO_NAME}") {
-        pullRequests(first: 100, states: [OPEN], orderBy: { field: CREATED_AT, direction: DESC }) {
-          nodes {
-            title
-            number
-            url
-            headRefOid
-            files(first: 100) { edges { node { path changeType additions deletions } } }
-            author { login }
-          }
-        }
-      }
-    }`;
-
     try {
-      const res = await fetch('https://api.github.com/graphql', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'hips-build',
-        },
-        body: JSON.stringify({ query }),
+      const drafts = await fetchOpenDraftPullRequests({
+        token,
+        owner: REPO_OWNER,
+        repository: REPO_NAME,
       });
-      const json = await res.json();
-      if (json.errors) {
-        console.warn(`  Draft-HIP PR fetch: ${json.errors[0]?.message || 'GraphQL error'} — falling back to committed data`);
-      } else {
-        const nodes = json.data?.repository?.pullRequests?.nodes || [];
-        // Keep only PRs that ADD a new HIP/hip-*.md file — the same filter the
-        // old update-draft-hips.yml workflow used to produce _data/draft_hips.json.
-        const drafts = nodes.filter(pr =>
-          (pr.files?.edges || []).some(e =>
-            e.node.changeType === 'ADDED' &&
-            /^HIP\/hip-[A-Za-z0-9-]+\.md$/.test(e.node.path)
-          )
-        );
-        console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
-        return drafts;
-      }
+      console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
+      return drafts;
     } catch (e) {
       console.warn(`  Draft-HIP PR fetch failed (${e.message}) — falling back to committed data`);
     }
@@ -123,15 +110,10 @@ async function fetchDraftHips() {
   let skipped = 0;
 
   for (const pr of draftPRs) {
-    if (mergedHipNumbers.has(pr.number)) {
-      skipped++;
-      continue;
-    }
-
     // Find the HIP markdown file in this PR's changed files
     const hipFile = pr.files?.edges?.find(f =>
-      f.node.path.startsWith('HIP/') &&
-      f.node.path.endsWith('.md') &&
+      f.node.changeType === 'ADDED' &&
+      /^HIP\/hip-[A-Za-z0-9-]+\.md$/.test(f.node.path) &&
       !f.node.path.includes('template')
     );
 
@@ -160,6 +142,11 @@ async function fetchDraftHips() {
       // Draft PRs often retain placeholder frontmatter such as "hip: xxxx" or
       // "hip: <to be assigned>". Ignore those and use the assigned draft number.
       const hipNum = draftHipNumber(parsed.data.hip, pr.number, filePath);
+      if (mergedHipNumbers.has(hipNum) || hipDocuments.has(String(hipNum))) {
+        console.warn(`  PR-${pr.number}: HIP-${hipNum} already exists, skipping duplicate`);
+        skipped++;
+        continue;
+      }
 
       // Force status to Draft if not already set or if it differs
       const data = {
@@ -169,14 +156,29 @@ async function fetchDraftHips() {
         'discussions-to': parsed.data['discussions-to'] || pr.url || '',
       };
 
-      hips.push(extractHip(data, parsed.content, { prNumber: pr.number }));
+      const hip = extractHip(data, parsed.content, { prNumber: pr.number });
       const rawBase = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${pr.headRefOid}`;
       const availableAssets = new Set(
         (pr.files?.edges || [])
           .map(e => e.node.path)
           .filter(p => p.startsWith('assets/'))
       );
-      hipBodies.set(String(hipNum), replaceHipImages(parsed.content, { rawBase, availableAssets }));
+      const body = replaceHipImages(parsed.content, { rawBase, availableAssets });
+      hips.push(hip);
+      hipBodies.set(String(hipNum), body);
+      hipDocuments.set(String(hipNum), {
+        hip,
+        metadata: data,
+        body,
+        source: {
+          kind: 'pull_request',
+          pullRequest: pr.number,
+          commit: pr.headRefOid,
+          path: filePath,
+          author: pr.author?.login || '',
+          url: pr.url,
+        },
+      });
       fetched++;
       console.log(`  PR-${pr.number}: fetched HIP-${hipNum} "${data.title}"`);
     } catch (e) {
@@ -384,6 +386,17 @@ async function main() {
   await fetchDraftHips();
 
   hips.sort((a, b) => Number(a.hip) - Number(b.hip));
+
+  const aiArtifacts = writeAiArtifacts({
+    documents: [...hipDocuments.values()],
+    publicDir: PUBLIC_DIR,
+    siteUrl: process.env.SITE_URL || DEFAULT_SITE_URL,
+    sourceRevision: process.env.GITHUB_SHA || '',
+  });
+  console.log(
+    `Built AI-readable artifacts for ${aiArtifacts.total} HIPs ` +
+    `(${aiArtifacts.merged} merged, ${aiArtifacts.drafts} open-PR drafts)`,
+  );
 
   const [discussions, prReviews] = await Promise.all([
     fetchDiscussions(),
