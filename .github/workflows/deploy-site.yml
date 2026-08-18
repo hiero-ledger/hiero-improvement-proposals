@@ -3,6 +3,10 @@ name: Deploy Site
 on:
   push:
     branches: [main]
+  # Draft HIPs live only in open pull requests, so refresh the published
+  # GitHub Pages artifact even when main has not changed.
+  schedule:
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -37,6 +41,10 @@ jobs:
         working-directory: site
         run: npm ci
 
+      - name: Test site
+        working-directory: site
+        run: npm test
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
@@ -46,10 +54,11 @@ jobs:
         run: npm run build:data
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUIRE_LIVE_DRAFT_HIPS: "true"
 
       - name: Build site
         working-directory: site
-        run: npm run build
+        run: npm run build:app
         env:
           VITE_BASE: ${{ steps.pages.outputs.base_path }}/
 
