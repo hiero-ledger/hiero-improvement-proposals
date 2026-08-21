@@ -24,8 +24,10 @@ test('escapes Mermaid source before inserting it into HTML', () => {
     text: 'graph TD\n    A["<script>alert(1)</script>"] --> B',
   });
 
-  assert.doesNotMatch(rendered, /<script>/);
-  assert.match(rendered, /&lt;script&gt;/);
+  assert.equal(
+    rendered,
+    '<div class="mermaid">graph TD\n    A[&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;] --&gt; B</div>\n',
+  );
 });
 
 test('falls back to the default renderer for other code fences', () => {
