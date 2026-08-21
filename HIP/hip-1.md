@@ -6,7 +6,7 @@ type: Process
 status: Active
 created: 2021-02-11
 discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/discussions/54
-updated: 2025-07-23
+updated: 2026-08-21
 ---
 
 ## What is a HIP?
@@ -83,11 +83,12 @@ When the HIP author believes the proposal is complete, they may request content 
 
 A HIP may be marked **Last Call** to gather final user feedback. 
 
-Following a successful **Last Call** period (or if **Last Call** is deemed unnecessary for minor changes):
-- For HIPs requiring Hiero's technical endorsement (most Standards Track and Process HIPs), the Hiero TSC will review the HIP. If they agree, the HIP status changes to **Approved**.
-- For HIPs that also require Hedera's acceptance (e.g., changes to be implemented on the Hedera mainnet, typically Standards Track HIPs of type Core, Service, Mirror Node, Block Node where `needs-hedera-review: Yes`), Hedera will conduct a review. If Hedera agrees to adopt and implement the HIP its header property `hedera-acceptance-decision` and `hedera-reviewed-on` should be updated with the date and the decision made (**Accepted** or **Not Accepted**).
+Review by the Hiero TSC and review by Hedera are separate:
 
-A HIP can only be reviewed by Hedera after it has been **Approved** by Hiero TSC (if Hiero TSC approval is required).
+- For HIPs requiring Hiero's technical endorsement (most Standards Track and Process HIPs), the Hiero TSC will review the HIP following a successful **Last Call** period (or when **Last Call** is deemed unnecessary for minor changes). If they agree, the HIP status changes to **Approved**.
+- For HIPs that also require Hedera's acceptance (e.g., changes to be implemented on the Hedera mainnet, typically Standards Track HIPs of type Core, Service, Mirror Node, Block Node where `needs-hedera-review: Yes`), Hedera may conduct its review at any point in the HIP lifecycle. If Hedera agrees to adopt and implement the HIP, its header properties `hedera-acceptance-decision` and `hedera-reviewed-on` should be updated with the decision made (**Accepted** or **Not Accepted**) and the review date.
+
+Hedera's review and acceptance do not depend on Hiero TSC approval. Hedera may review or accept a HIP before or after the Hiero TSC decides, and may accept a HIP that the Hiero TSC has rejected or otherwise not approved. The Hiero TSC's decision governs the Hiero codebase; it does not give Hiero veto authority over what Hedera deploys to its networks.
 
 ### HIP Status Titles
 
@@ -114,7 +115,7 @@ Standards Track HIPs (categories: Core, Service, Mirror or Block Node) follow th
 2.  **Draft**: Create a copy of the [HIP template](./hip-0000-template.md), fill in the details, and submit it as a pull request (PR) to the HIPs repository. The HIP status should be **Draft**. `needs-hedera-review` and `needs-hiero-approval` should be `Yes`.
 3.  **Review**: Once the PR is submitted, the HIP editors and community will review the proposal. The status changes to **Review**.
 4.  **Last Call**: If the HIP is generally agreed upon, a HIP editor will assign a `last-call-date-time` and change the status to **Last Call**. This is a final opportunity for community feedback, typically lasting 14 days.
-5.  **Approved**: After the Last Call period, if there are no major objections that cannot be resolved, Hiero TSC will vote on the HIP and if it is approved, a HIP editor or maintainer will create a PR changing the status to **Approved**. At this point, the HIP is considered approved by the Hiero community and awaits review by Hedera where needed.
+5.  **Approved**: After the Last Call period, if there are no major objections that cannot be resolved, Hiero TSC will vote on the HIP and if it is approved, a HIP editor or maintainer will create a PR changing the status to **Approved**. At this point, the HIP is considered approved by the Hiero community. Hedera review, where needed, is independent and may occur before or after this status is reached.
 6.  **Final**: When a HIP is implemented in code, the HIP maintainer updates the status of the HIP to **Final** and specifies a `release` number.
 7.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: A HIP may also end up in one of these states as described in "HIP Statuses".
 
