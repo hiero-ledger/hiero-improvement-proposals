@@ -41,4 +41,9 @@ test('HIP-1 embeds both workflows and keeps Hedera review independent', () => {
   assert.equal(diagrams.length, 2);
   assert.match(diagrams[0], /Idea -. May occur at any time .-> Hedera/);
   assert.doesNotMatch(diagrams[0], /LastCall --> Hedera/);
+  assert.match(hip1, /Hiero approval does not require Hedera to adopt or deploy a change/);
+  assert.match(
+    hip1,
+    /Hiero rejection or lack of approval does not prevent Hedera from implementing or deploying it/,
+  );
 });

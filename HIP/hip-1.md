@@ -15,12 +15,13 @@ HIP stands for **Hiero Improvement Proposal**. A HIP is intended to provide info
 
 HIPs are intended to be the primary mechanism for proposing new features, for collecting community input, and for documenting the design decisions that go into the Hiero codebase. The HIP author is responsible for building consensus within the community and documenting dissenting opinions.
 
-For HIPs that propose changes to the Hiero codebase (typically Standards Track HIPs for Core, Service, Mirror Node or Block Node categories), the process involves Hiero providing technical approval and Hedera providing review and acceptance if the changes are to be incorporated into the Hedera network or ecosystem.
+For HIPs that propose changes to the Hiero codebase (typically Standards Track HIPs for Core, Service, Mirror Node or Block Node categories), Hiero governance determines whether to approve the proposal for the Hiero project. Separately, Hedera determines whether and how to adopt a feature for its networks. Neither decision binds the other.
 
 Because the HIPs are maintained as text files in a versioned repository, their revision history is the historical record of the proposal. HIPs are **not** meant to address *bugs* in implemented code. Bugs should be addressed using issues on the implementation's repository.
 
-> **Note on Hedera Adoption**  
-> While the Hiero Technical Steering Committee (TSC) decides on Approving or Rejecting HIPs into the Hiero codebase, there is an optional set of headers (`needs-hedera-review`, `hedera-reviewed-on`, `hedera-acceptance-decision`) to record whether Hedera has decided to adopt the feature for mainnet. A Hedera decision may predate the HIP. If Hedera chooses not to adopt, `hedera-acceptance-decision` can be set to `Not Accepted`. The HIP maintainer is responsible for updating these fields once a corresponding HIP exists.
+> **Note on Independent Adoption Decisions**
+>
+> Hiero approval and Hedera adoption serve different purposes. The Hiero Technical Steering Committee (TSC) decides whether a proposal is approved for the Hiero project. Hedera independently decides which features and code to adopt, omit, or modify for its networks. As with any downstream deployment or distribution of open-source software, Hedera is not required to adopt a change because Hiero approved it, and Hiero rejection or lack of approval does not prevent Hedera from implementing or deploying the change independently, subject to the applicable open-source licenses. The optional headers (`needs-hedera-review`, `hedera-reviewed-on`, `hedera-acceptance-decision`) record Hedera's decision; they do not make either decision dependent on the other. A Hedera decision may predate the HIP. If Hedera chooses not to adopt, `hedera-acceptance-decision` can be set to `Not Accepted`. The HIP maintainer is responsible for updating these fields once a corresponding HIP exists.
 
 ## HIP Types
 
@@ -88,7 +89,7 @@ Review by the Hiero TSC and review by Hedera are separate:
 - For HIPs requiring Hiero's technical endorsement (most Standards Track and Process HIPs), the Hiero TSC will review the HIP following a successful **Last Call** period (or when **Last Call** is deemed unnecessary for minor changes). If they agree, the HIP status changes to **Approved**.
 - For HIPs that also require Hedera's acceptance (e.g., changes to be implemented on the Hedera mainnet, typically Standards Track HIPs of type Core, Service, Mirror Node, Block Node where `needs-hedera-review: Yes`), Hedera may review and accept the underlying feature at any time, including before a corresponding HIP is created or published. Once Hedera makes a decision and a corresponding HIP exists, the HIP's header properties `hedera-acceptance-decision` and `hedera-reviewed-on` should record the decision (**Accepted** or **Not Accepted**) and the review date.
 
-Hedera's review and acceptance do not depend on Hiero TSC approval or even on prior publication of a HIP. Hedera may initiate and accept a feature before a corresponding HIP exists, may review or accept it before or after the Hiero TSC decides, and may accept a HIP that the Hiero TSC has rejected or otherwise not approved. The Hiero TSC's decision governs the Hiero codebase; it does not give Hiero veto authority over what Hedera deploys to its networks.
+Hedera's review and acceptance do not depend on Hiero TSC approval or even on prior publication of a HIP. Hedera may initiate and accept a feature before a corresponding HIP exists, may review or accept it before or after the Hiero TSC decides, and may accept a HIP that the Hiero TSC has rejected or otherwise not approved. This independence runs in both directions: Hiero approval does not require Hedera to adopt or deploy a change, and Hiero rejection or lack of approval does not prevent Hedera from implementing or deploying it. The Hiero TSC's decision governs the Hiero project; Hedera controls its own network deployments.
 
 ### HIP Status Titles
 
