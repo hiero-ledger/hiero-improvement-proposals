@@ -74,10 +74,6 @@ export function draftHipNumber(frontmatterHip, prNumber, filePath) {
 // For draft HIPs, the assets live only on the PR branch, so we rewrite to raw.githubusercontent.com
 // pinned to the PR's commit SHA. GitHub serves commits from open PR forks via the upstream repo URL.
 export function replaceHipImages(content, { rawBase, availableAssets } = {}) {
-  // Replace image references with placeholders (actual mermaid divs injected post-markdown in main.js)
-  content = content.replace(/!\[HIP States\]\([^)]*hip-states-standards-track\.[^)]*\)/g, '<!--DIAGRAM:STANDARDS_TRACK-->');
-  content = content.replace(/!\[HIP States\]\([^)]*hip-states-ipa\.[^)]*\)/g, '<!--DIAGRAM:IPA-->');
-
   // For draft HIPs we know exactly which asset files exist in the PR. Replace
   // markdown image references to assets that are NOT in the PR with a friendly
   // placeholder so the page doesn't show a broken-image icon. (Common cause:

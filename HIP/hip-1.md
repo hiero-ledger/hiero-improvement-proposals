@@ -20,7 +20,7 @@ For HIPs that propose changes to the Hiero codebase (typically Standards Track H
 Because the HIPs are maintained as text files in a versioned repository, their revision history is the historical record of the proposal. HIPs are **not** meant to address *bugs* in implemented code. Bugs should be addressed using issues on the implementation's repository.
 
 > **Note on Hedera Adoption**  
-> While the Hiero Technical Steering Committee (TSC) decides on Approving or Rejecting HIPs into the Hiero codebase, there is an optional set of headers (`needs-hedera-review`, `hedera-reviewed-on`, `hedera-acceptance-status`) to note if/when Hedera decides to Accept the HIP to be included on mainnet. If Hedera chooses not to adopt, the `hedera-acceptance-status` can be set to `Not Accepted`. The HIP maintainer is responsible for updating these fields.
+> While the Hiero Technical Steering Committee (TSC) decides on Approving or Rejecting HIPs into the Hiero codebase, there is an optional set of headers (`needs-hedera-review`, `hedera-reviewed-on`, `hedera-acceptance-decision`) to record whether Hedera has decided to adopt the feature for mainnet. A Hedera decision may predate the HIP. If Hedera chooses not to adopt, `hedera-acceptance-decision` can be set to `Not Accepted`. The HIP maintainer is responsible for updating these fields once a corresponding HIP exists.
 
 ## HIP Types
 
@@ -86,9 +86,9 @@ A HIP may be marked **Last Call** to gather final user feedback.
 Review by the Hiero TSC and review by Hedera are separate:
 
 - For HIPs requiring Hiero's technical endorsement (most Standards Track and Process HIPs), the Hiero TSC will review the HIP following a successful **Last Call** period (or when **Last Call** is deemed unnecessary for minor changes). If they agree, the HIP status changes to **Approved**.
-- For HIPs that also require Hedera's acceptance (e.g., changes to be implemented on the Hedera mainnet, typically Standards Track HIPs of type Core, Service, Mirror Node, Block Node where `needs-hedera-review: Yes`), Hedera may conduct its review at any point in the HIP lifecycle. If Hedera agrees to adopt and implement the HIP, its header properties `hedera-acceptance-decision` and `hedera-reviewed-on` should be updated with the decision made (**Accepted** or **Not Accepted**) and the review date.
+- For HIPs that also require Hedera's acceptance (e.g., changes to be implemented on the Hedera mainnet, typically Standards Track HIPs of type Core, Service, Mirror Node, Block Node where `needs-hedera-review: Yes`), Hedera may review and accept the underlying feature at any time, including before a corresponding HIP is created or published. Once Hedera makes a decision and a corresponding HIP exists, the HIP's header properties `hedera-acceptance-decision` and `hedera-reviewed-on` should record the decision (**Accepted** or **Not Accepted**) and the review date.
 
-Hedera's review and acceptance do not depend on Hiero TSC approval. Hedera may review or accept a HIP before or after the Hiero TSC decides, and may accept a HIP that the Hiero TSC has rejected or otherwise not approved. The Hiero TSC's decision governs the Hiero codebase; it does not give Hiero veto authority over what Hedera deploys to its networks.
+Hedera's review and acceptance do not depend on Hiero TSC approval or even on prior publication of a HIP. Hedera may initiate and accept a feature before a corresponding HIP exists, may review or accept it before or after the Hiero TSC decides, and may accept a HIP that the Hiero TSC has rejected or otherwise not approved. The Hiero TSC's decision governs the Hiero codebase; it does not give Hiero veto authority over what Hedera deploys to its networks.
 
 ### HIP Status Titles
 
@@ -115,12 +115,46 @@ Standards Track HIPs (categories: Core, Service, Mirror or Block Node) follow th
 2.  **Draft**: Create a copy of the [HIP template](./hip-0000-template.md), fill in the details, and submit it as a pull request (PR) to the HIPs repository. The HIP status should be **Draft**. `needs-hedera-review` and `needs-hiero-approval` should be `Yes`.
 3.  **Review**: Once the PR is submitted, the HIP editors and community will review the proposal. The status changes to **Review**.
 4.  **Last Call**: If the HIP is generally agreed upon, a HIP editor will assign a `last-call-date-time` and change the status to **Last Call**. This is a final opportunity for community feedback, typically lasting 14 days.
-5.  **Approved**: After the Last Call period, if there are no major objections that cannot be resolved, Hiero TSC will vote on the HIP and if it is approved, a HIP editor or maintainer will create a PR changing the status to **Approved**. At this point, the HIP is considered approved by the Hiero community. Hedera review, where needed, is independent and may occur before or after this status is reached.
+5.  **Approved**: After the Last Call period, if there are no major objections that cannot be resolved, Hiero TSC will vote on the HIP and if it is approved, a HIP editor or maintainer will create a PR changing the status to **Approved**. At this point, the HIP is considered approved by the Hiero community. Hedera review, where needed, is independent and may occur before HIP publication or at any later point.
 6.  **Final**: When a HIP is implemented in code, the HIP maintainer updates the status of the HIP to **Final** and specifies a `release` number.
 7.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: A HIP may also end up in one of these states as described in "HIP Statuses".
 
-The possible paths of the status of Standards Track HIPs are as follows:
-![HIP States](../assets/hip-1/hip-states-standards-track.png)
+The Hiero status path and independent Hedera decision path for Standards Track proposals are shown below. The dashed Hedera path may begin before the HIP is published.
+
+```mermaid
+graph TD
+    Idea(["Idea (not yet published)"]) --> Draft([Draft])
+    Draft --> Review([Review])
+    Draft --> Deferred([Deferred])
+    Draft --> Withdrawn([Withdrawn])
+    Review --> LastCall([Last Call])
+    Review --> Rejected([Rejected])
+    LastCall --> Rejected
+    LastCall --> TSC([Hiero TSC Review])
+    TSC -- Yes --> Approved([Approved])
+    TSC -- No --> Rejected
+    Approved --> Final([Final])
+    Final --> Replaced([Replaced])
+
+    Idea -. May occur at any time .-> Hedera(["Hedera Review (TechCom)"])
+    Hedera -- Yes --> Accepted([Accepted])
+    Hedera -- No --> NotAccepted([Not Accepted])
+
+    style Idea fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Draft fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Review fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style LastCall fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style TSC fill:#0f3460,stroke:#4cc9f0,stroke-width:2px,color:#fff
+    style Hedera fill:#0f3460,stroke:#4cc9f0,stroke-width:2px,color:#fff
+    style Approved fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Final fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
+    style Accepted fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
+    style Deferred fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+    style Withdrawn fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+    style Rejected fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
+    style NotAccepted fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
+    style Replaced fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+```
 
 ### Informational, Process and Application HIPs
 
@@ -139,7 +173,28 @@ The possible paths of the status of Informational, Process and Application HIPs 
 
 ⚠️ **NOTE**: The diagram below illustrates all valid status transitions:
 
-![HIP States](../assets/hip-1/hip-states-ipa.png)
+```mermaid
+graph TD
+    Idea([Idea]) --> Draft([Draft])
+    Draft --> Review([Review])
+    Draft --> Deferred([Deferred])
+    Draft --> Withdrawn([Withdrawn])
+    Review --> LastCall([Last Call])
+    Review --> Rejected([Rejected])
+    LastCall --> Active([Active])
+    LastCall --> Rejected
+    Active --> Replaced([Replaced])
+
+    style Idea fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Draft fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Review fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style LastCall fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
+    style Active fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
+    style Deferred fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+    style Withdrawn fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+    style Rejected fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
+    style Replaced fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
+```
 
 ## What belongs in a successful HIP?
 
