@@ -47,3 +47,11 @@ test('HIP-1 embeds both workflows and keeps Hedera review independent', () => {
     /Hiero rejection or lack of approval does not prevent Hedera from implementing or deploying it/,
   );
 });
+
+test('HIP-1 treats network adoption as outside the HIP workflow', () => {
+  const hip1 = fs.readFileSync(new URL('../../HIP/hip-1.md', import.meta.url), 'utf8');
+
+  assert.match(hip1, /## Networks and HIP Adoption/);
+  assert.match(hip1, /never a precondition for \*\*Approved\*\* or \*\*Final\*\*/);
+  assert.match(hip1, /#### Optional network-specific headers/);
+});
