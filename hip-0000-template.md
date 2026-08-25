@@ -73,7 +73,7 @@ in [an attached file](assets/hip-0000-template/sample.proto).
 Describe impacts, if any, on the Hiero Mirror node.
 
 ### Impact on SDK
-Describe Impacts, if any, on the Heiro SDKs
+Describe Impacts, if any, on the Hiero SDKs
 
 ## Backwards Compatibility
 All HIPs that introduce backward incompatibilities must include a section
