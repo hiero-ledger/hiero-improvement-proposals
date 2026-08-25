@@ -123,11 +123,11 @@ Standards Track HIPs (categories: Core, Service, Mirror or Block Node) follow th
 6.  **Final**: When a HIP is implemented in code, the HIP maintainer updates the status of the HIP to **Final** and specifies a `release` number.
 7.  **Stagnant / Deferred / Withdrawn / Rejected / Replaced**: A HIP may also end up in one of these states as described in "HIP Statuses".
 
-The Hiero status path and independent Hedera decision path for Standards Track proposals are shown below. The dashed Hedera path may begin before the HIP is published. Hedera is shown as a concrete example: any network running the Hiero codebase may make its own adoption decision under its own governance and on its own schedule, outside the HIP workflow (see [Networks and HIP Adoption](#networks-and-hip-adoption)).
+The possible paths of the status of Standards Track HIPs are as follows. Network adoption decisions are deliberately not shown: each network follows its own process, under its own governance and on its own schedule—possibly even before a HIP is published—so no network workflow is prescribed here (see [Networks and HIP Adoption](#networks-and-hip-adoption)).
 
 ```mermaid
 graph TD
-    Idea(["Idea (not yet published)"]) --> Draft([Draft])
+    Idea([Idea]) --> Draft([Draft])
     Draft --> Review([Review])
     Draft --> Deferred([Deferred])
     Draft --> Withdrawn([Withdrawn])
@@ -140,23 +140,16 @@ graph TD
     Approved --> Final([Final])
     Final --> Replaced([Replaced])
 
-    Idea -. May occur at any time .-> Hedera(["Hedera Review (TechCom)"])
-    Hedera -- Yes --> Accepted([Accepted])
-    Hedera -- No --> NotAccepted([Not Accepted])
-
     style Idea fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
     style Draft fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
     style Review fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
     style LastCall fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
     style TSC fill:#0f3460,stroke:#4cc9f0,stroke-width:2px,color:#fff
-    style Hedera fill:#0f3460,stroke:#4cc9f0,stroke-width:2px,color:#fff
     style Approved fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
     style Final fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
-    style Accepted fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
     style Deferred fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
     style Withdrawn fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
     style Rejected fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
-    style NotAccepted fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
     style Replaced fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
 ```
 

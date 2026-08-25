@@ -34,13 +34,13 @@ test('falls back to the default renderer for other code fences', () => {
   assert.equal(renderMermaidCode({ lang: 'javascript', text: 'const x = 1;' }), false);
 });
 
-test('HIP-1 embeds both workflows and keeps Hedera review independent', () => {
+test('HIP-1 embeds both workflows and keeps network review out of the diagrams', () => {
   const hip1 = fs.readFileSync(new URL('../../HIP/hip-1.md', import.meta.url), 'utf8');
   const diagrams = [...hip1.matchAll(/```mermaid\n([\s\S]*?)```/g)].map(match => match[1]);
 
   assert.equal(diagrams.length, 2);
-  assert.match(diagrams[0], /Idea -. May occur at any time .-> Hedera/);
-  assert.doesNotMatch(diagrams[0], /LastCall --> Hedera/);
+  assert.doesNotMatch(diagrams[0], /Hedera/);
+  assert.doesNotMatch(diagrams[1], /Hedera/);
   assert.match(hip1, /Hiero approval does not require Hedera to adopt or deploy a change/);
   assert.match(
     hip1,

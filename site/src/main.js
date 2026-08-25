@@ -662,12 +662,10 @@ async function showDetail(num) {
 
 const STATE_TOOLTIPS = new Map([
   ['Idea', 'Propose your idea — create a GitHub issue to discuss it with the community before writing a formal HIP.'],
-  ['Idea (not yet published)', 'A feature idea may exist before any corresponding HIP is created or published.'],
   ['Draft', 'A formal HIP has been written and submitted as a pull request. The author is refining the proposal.'],
   ['Review', 'The HIP editors and community are actively reviewing the proposal and providing feedback.'],
   ['Last Call', 'Review period is ending (typically 14 days). Final chance to raise objections before approval.'],
   ['Hiero TSC Review', 'The Hiero Technical Steering Committee reviews the HIP for technical soundness.'],
-  ['Hedera Review (TechCom)', 'Hedera TechCom may review and accept a feature at any time, including before a HIP is published and independently of Hiero TSC.'],
   ['Approved', 'The HIP has been approved by the Hiero TSC and is ready for implementation.'],
   ['Final', 'The HIP has been implemented and is considered complete. No further changes expected.'],
   ['Active', 'The HIP is active and in effect. Used for Informational, Process, and Application HIPs.'],
