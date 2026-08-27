@@ -1,0 +1,57 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { marked } from 'marked';
+import { renderMermaidCode } from '../src/markdown.js';
+
+marked.use({
+  renderer: {
+    code: renderMermaidCode,
+  },
+});
+
+test('renders Mermaid code fences as diagram containers', () => {
+  const source = ['```mermaid', 'graph TD', '    Idea --> Draft', '```'].join('\n');
+  const rendered = marked.parse(source);
+
+  assert.match(rendered, /^<div class="mermaid">graph TD/);
+  assert.match(rendered, /Idea --&gt; Draft<\/div>/);
+});
+
+test('escapes Mermaid source before inserting it into HTML', () => {
+  const rendered = renderMermaidCode({
+    lang: 'mermaid',
+    text: 'graph TD\n    A["<script>alert(1)</script>"] --> B',
+  });
+
+  assert.equal(
+    rendered,
+    '<div class="mermaid">graph TD\n    A[&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;] --&gt; B</div>\n',
+  );
+});
+
+test('falls back to the default renderer for other code fences', () => {
+  assert.equal(renderMermaidCode({ lang: 'javascript', text: 'const x = 1;' }), false);
+});
+
+test('HIP-1 embeds both workflows and keeps network review out of the diagrams', () => {
+  const hip1 = fs.readFileSync(new URL('../../HIP/hip-1.md', import.meta.url), 'utf8');
+  const diagrams = [...hip1.matchAll(/```mermaid\n([\s\S]*?)```/g)].map(match => match[1]);
+
+  assert.equal(diagrams.length, 2);
+  assert.doesNotMatch(diagrams[0], /Hedera/);
+  assert.doesNotMatch(diagrams[1], /Hedera/);
+  assert.match(hip1, /Hiero approval does not require Hedera to adopt or deploy a change/);
+  assert.match(
+    hip1,
+    /Hiero rejection or lack of approval does not prevent Hedera from implementing or deploying it/,
+  );
+});
+
+test('HIP-1 treats network adoption as outside the HIP workflow', () => {
+  const hip1 = fs.readFileSync(new URL('../../HIP/hip-1.md', import.meta.url), 'utf8');
+
+  assert.match(hip1, /## Networks and HIP Adoption/);
+  assert.match(hip1, /never a precondition for \*\*Approved\*\* or \*\*Final\*\*/);
+  assert.match(hip1, /#### Optional network-specific headers/);
+});
