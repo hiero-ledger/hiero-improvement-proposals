@@ -1,0 +1,48 @@
+# Runs the site's property-based (fuzz) tests for the HIP parsers on every PR
+# and push to main, so the suite in site/scripts/hip-parse.test.js is exercised
+# in CI (a visible, clickable run) rather than only locally.
+name: Site Tests
+
+on:
+  pull_request:
+    paths:
+      - "site/**"
+      - ".github/workflows/site-tests.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "site/**"
+      - ".github/workflows/site-tests.yml"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  fuzz-tests:
+    runs-on: hiero-improvement-proposals-linux-medium
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Check out repository code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Use Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Run property-based (fuzz) tests
+        working-directory: site
+        run: npm test
