@@ -21,5 +21,11 @@
   },
   "devDependencies": {
     "fast-check": "^3.23.2"
+  },
+  "//overrides": "Patched versions of deep transitive deps that have no Dependabot PR (no parent bump reaches them). Each has a single consumer and stays within its existing major; js-yaml is held on the 3.x line that gray-matter's API requires.",
+  "overrides": {
+    "lodash-es": "^4.18.0",
+    "js-yaml": "^3.15.0",
+    "uuid": "^11.1.1"
   }
 }
