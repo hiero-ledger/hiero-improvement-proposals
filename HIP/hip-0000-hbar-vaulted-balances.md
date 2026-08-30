@@ -2,7 +2,7 @@
 hip: 0000
 title: HBAR Vaulted Balances with Delayed Release and Recovery
 author: Schayan Salehi (@shayansal)
-discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/0000
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1539
 type: Standards Track
 category: Service
 needs-hiero-approval: Yes
