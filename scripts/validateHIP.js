@@ -846,6 +846,17 @@ function escapeWorkflowData(value) {
   return String(value).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
 }
 
+function escapeSummaryCell(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/\\/g, '&#92;')
+    .replace(/\|/g, '&#124;')
+    .replace(/`/g, '&#96;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r?\n/g, ' ');
+}
+
 function formatIssue(entry, index, useColor) {
   const color = useColor ? COLORS.yellow : '';
   const bold = useColor ? COLORS.bold : '';
@@ -912,7 +923,7 @@ function appendStepSummary(results) {
     const status = validation.errors.length === 0
       ? `✅ Pass${validation.warnings.length ? ` (${validation.warnings.length} pre-existing warning${validation.warnings.length === 1 ? '' : 's'})` : ''}`
       : `❌ ${validation.errors.length} error${validation.errors.length === 1 ? '' : 's'}`;
-    lines.push(`| \`${normalizePath(filePath).replace(/\|/g, '\\|')}\` | ${status} |`);
+    lines.push(`| <code>${escapeSummaryCell(normalizePath(filePath))}</code> | ${status} |`);
   }
   lines.push('');
   fs.appendFileSync(summaryPath, `${lines.join('\n')}\n`);
@@ -1014,6 +1025,7 @@ module.exports = {
   ACTIVE_STATUSES,
   STANDARD_STATUSES,
   TRANSITIONS,
+  escapeSummaryCell,
   flowFor,
   isCalendarDate,
   isUtcDateTime,

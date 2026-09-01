@@ -8,6 +8,7 @@ const { spawnSync } = require('node:child_process');
 const test = require('node:test');
 
 const {
+  escapeSummaryCell,
   parseFrontMatter,
   validateChange,
   validateDocument,
@@ -93,6 +94,13 @@ test('front matter parser preserves scalar values containing colons', () => {
     'https://github.com/hiero-ledger/hiero-improvement-proposals/pull/123',
   );
   assert.match(parsed.body, /## Abstract/);
+});
+
+test('job summary cells safely encode hostile HIP filenames', () => {
+  assert.equal(
+    escapeSummaryCell('HIP/a\\b|c`d<e>&f\r\ng.md'),
+    'HIP/a&#92;b&#124;c&#96;d&lt;e&gt;&amp;f g.md',
+  );
 });
 
 test('front matter parser supports template comments without stripping URL fragments', () => {
