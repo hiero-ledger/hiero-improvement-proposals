@@ -2,14 +2,14 @@
 hip: 0000
 title: Ledger-Bound ML-DSA-44 Transaction Signatures
 author: Schayan Salehi (@shayansal)
-discussions-to: <URL of the GitHub Pull Request for this HIP>
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1550
 type: Standards Track
 category: Core
 needs-hiero-approval: Yes
 needs-hedera-review: Yes
 status: Draft
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-11
 ---
 
 ## Abstract
