@@ -238,10 +238,10 @@ Developer documentation should include exact transcript vectors, canonical proto
 
 The draft reference implementation is split so the primitive profile can be reviewed independently from consensus-node integration:
 
-- `hiero-cryptography`: Java ML-DSA-44 key generation, raw key encoding, key-ID derivation, transcript signing, and fail-closed verification, with unit tests.
-- `hiero-consensus-node`: protobuf fields, exact-key-ID expansion, ledger-bound verification, canonical transaction enforcement, entity-key validation, mixed-key traversal, default-off configuration, signature-count bounds, and integration tests.
+- [`hiero-cryptography` PR #693](https://github.com/hiero-ledger/hiero-cryptography/pull/693): Java ML-DSA-44 key generation, raw key encoding, key-ID derivation, transcript signing, and fail-closed verification, with unit tests.
+- [`hiero-consensus-node` PR #27253](https://github.com/hiero-ledger/hiero-consensus-node/pull/27253): protobuf fields, exact-key-ID expansion, ledger-bound verification, canonical transaction enforcement, entity-key validation, mixed-key traversal, default-off configuration, signature-count bounds, and integration tests.
 
-Links to the draft code pull requests will be added before this HIP pull request is opened. Neither draft is a production activation recommendation.
+Neither draft is a production activation recommendation.
 
 ## Rejected Ideas
 
