@@ -55,12 +55,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REQUIRE_LIVE_DRAFT_HIPS: "true"
+          SITE_URL: https://hips.hedera.com
 
       - name: Build site
         working-directory: site
         run: npm run build:app
         env:
           VITE_BASE: ${{ steps.pages.outputs.base_path }}/
+          SITE_URL: https://hips.hedera.com
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

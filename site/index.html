@@ -5,15 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hiero Improvement Proposals</title>
   <meta name="description" content="Browse, search, and filter all Hiero Improvement Proposals.">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
   <meta property="og:title" content="Hiero Improvement Proposals">
   <meta property="og:description" content="Browse, search, and filter all Hiero Improvement Proposals.">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="HIP index for language models">
+  <link rel="alternate" type="application/json" href="/api/hips.json" title="Complete HIP catalog">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
   <link rel="icon" href="/favicon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "Hiero Improvement Proposals",
+      "description": "Canonical collection of merged Hiero Improvement Proposals and drafts from open pull requests.",
+      "url": "https://hips.hedera.com/",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "Hiero Improvement Proposals",
+        "url": "https://hips.hedera.com/"
+      },
+      "mainEntity": {
+        "@type": "Dataset",
+        "name": "Hiero Improvement Proposals corpus",
+        "url": "https://hips.hedera.com/api/hips.json",
+        "encodingFormat": "application/json",
+        "license": "https://www.apache.org/licenses/LICENSE-2.0"
+      }
+    }
+  </script>
 </head>
 <body>
+  <noscript>
+    <p>JavaScript is only required for the interactive browser. Read the complete HIP corpus in <a href="/llms-full.txt">Markdown</a> or <a href="/api/hips.json">JSON</a>.</p>
+  </noscript>
   <header class="site-header">
     <div class="header-inner">
       <div class="header-left">
@@ -229,6 +257,8 @@
       <a href="https://github.com/hiero-ledger/hiero-improvement-proposals" target="_blank">GitHub</a>
       <span class="sep">&middot;</span>
       <a href="https://discord.com/channels/905194001349627914/1289954446712770600" target="_blank">Discord</a>
+      <span class="sep">&middot;</span>
+      <a href="/llms.txt">AI / Data</a>
     </div>
   </footer>
 

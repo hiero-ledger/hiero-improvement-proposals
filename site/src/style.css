@@ -654,6 +654,27 @@ main {
   word-break: break-word;
 }
 
+/* Build-time fallback shown until the SPA enhances a direct HIP URL. It keeps
+   the complete document readable to clients that do not execute JavaScript. */
+.static-source-notice {
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
+}
+
+.static-hip-markdown {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  line-height: 1.65;
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
 /* Reactions bar */
 .reactions-bar {
   display: flex;
