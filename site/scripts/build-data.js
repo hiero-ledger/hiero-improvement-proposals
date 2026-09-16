@@ -17,6 +17,7 @@ const OUT_DIR = path.resolve('public/data');
 const PUBLIC_ASSETS = path.resolve('public/assets');
 const REPO_OWNER = 'hiero-ledger';
 const REPO_NAME = 'hiero-improvement-proposals';
+const REQUIRE_LIVE_DRAFT_HIPS = process.env.REQUIRE_LIVE_DRAFT_HIPS === 'true';
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
@@ -92,9 +93,15 @@ async function getDraftPRs() {
       console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
       return drafts;
     } catch (e) {
+      if (REQUIRE_LIVE_DRAFT_HIPS) {
+        throw new Error(`Required live draft-HIP fetch failed: ${e.message}`);
+      }
       console.warn(`  Draft-HIP PR fetch failed (${e.message}) — falling back to committed data`);
     }
   } else {
+    if (REQUIRE_LIVE_DRAFT_HIPS) {
+      throw new Error('GITHUB_TOKEN is required when REQUIRE_LIVE_DRAFT_HIPS=true');
+    }
     console.log('No GITHUB_TOKEN set — using committed _data/draft_hips.json if present');
   }
 
@@ -417,4 +424,7 @@ async function main() {
   if (Object.keys(prReviews).length) console.log(`  ${Object.keys(prReviews).length} PR review threads cached`);
 }
 
-main();
+main().catch((error) => {
+  console.error(`Site data build failed: ${error.message}`);
+  process.exitCode = 1;
+});

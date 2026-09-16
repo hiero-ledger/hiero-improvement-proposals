@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="880" viewBox="0 0 1300 880">
+<defs>
+  <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#1a5276"/>
+  </marker>
+</defs>
+<rect width="1300" height="880" fill="#ffffff"/>
+<text x="650" y="36" text-anchor="middle" dominant-baseline="central" font-size="24" font-family="sans-serif" font-weight="bold" fill="#1a5276">Five-Phase Conversion Pipeline</text>
+
+<!-- Column headers -->
+<rect x="40" y="70" width="300" height="36" rx="4" fill="#1a5276"/>
+<text x="190" y="88" text-anchor="middle" dominant-baseline="central" font-size="14" font-family="sans-serif" font-weight="bold" fill="#ffffff">Phase</text>
+<rect x="370" y="70" width="300" height="36" rx="4" fill="#1a5276"/>
+<text x="520" y="88" text-anchor="middle" dominant-baseline="central" font-size="14" font-family="sans-serif" font-weight="bold" fill="#ffffff">Inputs</text>
+<rect x="700" y="70" width="300" height="36" rx="4" fill="#1a5276"/>
+<text x="850" y="88" text-anchor="middle" dominant-baseline="central" font-size="14" font-family="sans-serif" font-weight="bold" fill="#ffffff">Commands</text>
+<rect x="1030" y="70" width="250" height="36" rx="4" fill="#1a5276"/>
+<text x="1155" y="88" text-anchor="middle" dominant-baseline="central" font-size="14" font-family="sans-serif" font-weight="bold" fill="#ffffff">Outputs</text>
+
+<!-- Phase 1 row -->
+<rect x="40" y="110" width="300" height="140" rx="6" fill="#d6eaf8" stroke="#1a5276" stroke-width="1.8"/>
+<circle cx="68" cy="140" r="20" fill="#1a5276"/>
+<text x="68" y="140" text-anchor="middle" dominant-baseline="central" font-size="16" font-family="sans-serif" font-weight="bold" fill="#ffffff">1</text>
+<text x="100" y="132" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1a5276">Gather Mirror Node</text>
+<text x="100" y="152" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1a5276">Metadata</text>
+<rect x="370" y="110" width="300" height="140" rx="6" fill="#d6eaf8" stroke="#1a5276" stroke-width="1"/>
+<text x="382" y="180" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Hedera Mirror Node</text>
+<rect x="700" y="110" width="300" height="140" rx="6" fill="#d6eaf8" stroke="#1a5276" stroke-width="1"/>
+<text x="712" y="134" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ mirror fetchRecordsCsv</text>
+<text x="712" y="156" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ mirror extractBlockTimes</text>
+<text x="712" y="178" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ mirror extractDayBlock</text>
+<rect x="1030" y="110" width="250" height="140" rx="6" fill="#d6eaf8" stroke="#1a5276" stroke-width="1"/>
+<text x="1040" y="158" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#1a5276">✓ data/block_times.bin</text>
+<text x="1040" y="182" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#1a5276">✓ data/day_blocks.json</text>
+
+<line x1="650" y1="252" x2="650" y2="259" stroke="#1a5276" stroke-width="2.5" marker-end="url(#arr)"/>
+
+<!-- Phase 2 row -->
+<rect x="40" y="260" width="300" height="140" rx="6" fill="#eaecee" stroke="#566573" stroke-width="1.8"/>
+<circle cx="68" cy="290" r="20" fill="#566573"/>
+<text x="68" y="290" text-anchor="middle" dominant-baseline="central" font-size="16" font-family="sans-serif" font-weight="bold" fill="#ffffff">2</text>
+<text x="100" y="282" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#566573">Download Record Files</text>
+<text x="100" y="302" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#566573">from GCP</text>
+<rect x="370" y="260" width="300" height="140" rx="6" fill="#eaecee" stroke="#566573" stroke-width="1"/>
+<text x="382" y="322" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">GCP hedera-mainnet-streams</text>
+<text x="382" y="344" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">bucket  (≈ 30 TB)</text>
+<rect x="700" y="260" width="300" height="140" rx="6" fill="#eaecee" stroke="#566573" stroke-width="1"/>
+<text x="712" y="278" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ rclone lsjson … → files.json</text>
+<text x="712" y="298" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ days split-files-listing</text>
+<text x="712" y="316" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">  → listingsByDay/</text>
+<text x="712" y="336" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ days download-days-v3</text>
+<text x="712" y="356" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">  → compressedDays/</text>
+<rect x="1030" y="260" width="250" height="140" rx="6" fill="#eaecee" stroke="#566573" stroke-width="1"/>
+<text x="1040" y="300" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#566573">✓ compressedDays/</text>
+<text x="1040" y="320" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#566573">  YYYY-MM-DD.tar.zstd</text>
+<text x="1040" y="340" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" fill="#566573">  (≈ 1 GB / day)</text>
+
+<line x1="650" y1="402" x2="650" y2="409" stroke="#1a5276" stroke-width="2.5" marker-end="url(#arr)"/>
+
+<!-- Phase 3 row -->
+<rect x="40" y="410" width="300" height="140" rx="6" fill="#fef9e7" stroke="#b7950b" stroke-width="1.8"/>
+<circle cx="68" cy="440" r="20" fill="#b7950b"/>
+<text x="68" y="440" text-anchor="middle" dominant-baseline="central" font-size="16" font-family="sans-serif" font-weight="bold" fill="#ffffff">3</text>
+<text x="100" y="432" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#b7950b">Validate Downloaded</text>
+<text x="100" y="452" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#b7950b">Day Archives</text>
+<rect x="370" y="410" width="300" height="140" rx="6" fill="#fef9e7" stroke="#b7950b" stroke-width="1"/>
+<text x="382" y="480" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">compressedDays/</text>
+<rect x="700" y="410" width="300" height="140" rx="6" fill="#fef9e7" stroke="#b7950b" stroke-width="1"/>
+<text x="712" y="430" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ days validate</text>
+<text x="712" y="450" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">  → recompute running hashes</text>
+<text x="712" y="470" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">  + addressBookHistory.json</text>
+<rect x="1030" y="410" width="250" height="140" rx="6" fill="#fef9e7" stroke="#b7950b" stroke-width="1"/>
+<text x="1040" y="450" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#b7950b">✓ validateCmdStatus.json</text>
+<text x="1040" y="474" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#b7950b">✓ addressBookHistory.json</text>
+
+<line x1="650" y1="552" x2="650" y2="559" stroke="#1a5276" stroke-width="2.5" marker-end="url(#arr)"/>
+
+<!-- Phase 4 row -->
+<rect x="40" y="560" width="300" height="140" rx="6" fill="#d6eaf8" stroke="#1a5276" stroke-width="1.8"/>
+<circle cx="68" cy="590" r="20" fill="#1a5276"/>
+<text x="68" y="590" text-anchor="middle" dominant-baseline="central" font-size="16" font-family="sans-serif" font-weight="bold" fill="#ffffff">4</text>
+<text x="100" y="582" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1a5276">Convert Record Files</text>
+<text x="100" y="602" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1a5276">→ Wrapped Blocks</text>
+<text x="100" y="622" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1a5276">(blocks wrap)</text>
+<rect x="370" y="560" width="300" height="140" rx="6" fill="#d6eaf8" stroke="#1a5276" stroke-width="1"/>
+<text x="382" y="598" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">compressedDays/</text>
+<text x="382" y="620" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">data/block_times.bin</text>
+<text x="382" y="642" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">data/day_blocks.json</text>
+<rect x="700" y="560" width="300" height="140" rx="6" fill="#d6eaf8" stroke="#1a5276" stroke-width="1"/>
+<text x="712" y="590" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ blocks wrap</text>
+<text x="712" y="610" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">  (4-stage concurrent pipeline)</text>
+<rect x="1030" y="560" width="250" height="140" rx="6" fill="#d6eaf8" stroke="#1a5276" stroke-width="1"/>
+<text x="1040" y="580" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#1a5276">✓ wrappedBlocks/*.zip</text>
+<text x="1040" y="600" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#1a5276">✓ jumpstart.bin</text>
+<text x="1040" y="620" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#1a5276">✓ blockStreamBlockHashes.bin</text>
+<text x="1040" y="640" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#1a5276">✓ streamingMerkleTree.bin</text>
+
+<line x1="650" y1="702" x2="650" y2="709" stroke="#1a5276" stroke-width="2.5" marker-end="url(#arr)"/>
+
+<!-- Phase 5 row -->
+<rect x="40" y="710" width="300" height="140" rx="6" fill="#a9dfbf" stroke="#1e8449" stroke-width="1.8"/>
+<circle cx="68" cy="740" r="20" fill="#1e8449"/>
+<text x="68" y="740" text-anchor="middle" dominant-baseline="central" font-size="16" font-family="sans-serif" font-weight="bold" fill="#ffffff">5</text>
+<text x="100" y="732" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1e8449">Verify Wrapped Blocks</text>
+<text x="100" y="752" text-anchor="start" dominant-baseline="central" font-size="13" font-family="sans-serif" font-weight="bold" fill="#1e8449">(blocks validate)</text>
+<rect x="370" y="710" width="300" height="140" rx="6" fill="#a9dfbf" stroke="#1e8449" stroke-width="1"/>
+<text x="382" y="748" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">wrappedBlocks/</text>
+<text x="382" y="770" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">data/balance_checkpoints.zstd</text>
+<rect x="700" y="710" width="300" height="140" rx="6" fill="#a9dfbf" stroke="#1e8449" stroke-width="1"/>
+<text x="712" y="730" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ blocks fetchBalanceCheckpoints</text>
+<text x="712" y="752" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1c2833">$ blocks validate</text>
+<rect x="1030" y="710" width="250" height="140" rx="6" fill="#a9dfbf" stroke="#1e8449" stroke-width="1"/>
+<text x="1040" y="740" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#1e8449">✓ PASS: artifacts ready</text>
+<text x="1040" y="762" text-anchor="start" dominant-baseline="central" font-size="11" font-family="sans-serif" font-weight="bold" fill="#1e8449">  for production deployment</text>
+</svg>

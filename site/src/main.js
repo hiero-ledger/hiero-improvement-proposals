@@ -13,6 +13,7 @@ import bash from 'highlight.js/lib/languages/bash';
 import java from 'highlight.js/lib/languages/java';
 import protobuf from 'highlight.js/lib/languages/protobuf';
 import plaintext from 'highlight.js/lib/languages/plaintext';
+import { renderMermaidCode } from './markdown.js';
 /* hljs theme is custom — defined in style.css */
 import './style.css';
 
@@ -39,12 +40,19 @@ hljs.registerLanguage('text', plaintext);
 marked.use(markedHighlight({
   langPrefix: 'hljs language-',
   highlight(code, lang) {
+    if (lang === 'mermaid') return code;
     if (lang && hljs.getLanguage(lang)) {
       return hljs.highlight(code, { language: lang }).value;
     }
     return hljs.highlightAuto(code).value;
   },
 }));
+
+marked.use({
+  renderer: {
+    code: renderMermaidCode,
+  },
+});
 
 mermaid.initialize({
   startOnLoad: false,
@@ -74,63 +82,6 @@ mermaid.initialize({
 /* =============================================
    DATA & CONSTANTS
    ============================================= */
-
-const DIAGRAM_STANDARDS_TRACK = `<div class="mermaid">
-graph TD
-    Idea([Idea]) --> Draft([Draft])
-    Draft --> Review([Review])
-    Draft --> Deferred([Deferred])
-    Draft --> Withdrawn([Withdrawn])
-    Review --> LastCall([Last Call])
-    Review --> Rejected([Rejected])
-    LastCall --> Rejected
-    LastCall --> TSC([Hiero TSC Review])
-    LastCall --> Hedera([Hedera Review])
-    TSC -- Yes --> Approved([Approved])
-    TSC -- No --> Rejected
-    Hedera -- Yes --> Accepted([Accepted])
-    Hedera -- No --> NotAccepted([Not Accepted])
-    Approved --> Final([Final])
-    Final --> Replaced([Replaced])
-
-    style Idea fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
-    style Draft fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
-    style Review fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
-    style LastCall fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
-    style TSC fill:#0f3460,stroke:#4cc9f0,stroke-width:2px,color:#fff
-    style Hedera fill:#0f3460,stroke:#4cc9f0,stroke-width:2px,color:#fff
-    style Approved fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
-    style Final fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
-    style Accepted fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
-    style Deferred fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
-    style Withdrawn fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
-    style Rejected fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
-    style NotAccepted fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
-    style Replaced fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
-</div>`;
-
-const DIAGRAM_IPA = `<div class="mermaid">
-graph TD
-    Idea([Idea]) --> Draft([Draft])
-    Draft --> Review([Review])
-    Draft --> Deferred([Deferred])
-    Draft --> Withdrawn([Withdrawn])
-    Review --> LastCall([Last Call])
-    Review --> Rejected([Rejected])
-    LastCall --> Active([Active])
-    LastCall --> Rejected
-    Active --> Replaced([Replaced])
-
-    style Idea fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
-    style Draft fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
-    style Review fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
-    style LastCall fill:#2d6a4f,stroke:#52b788,stroke-width:2px,color:#fff
-    style Active fill:#0b6e4f,stroke:#40916c,stroke-width:3px,color:#fff
-    style Deferred fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
-    style Withdrawn fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
-    style Rejected fill:#6c2020,stroke:#e06c75,stroke-width:2px,color:#f8d7da
-    style Replaced fill:#343a40,stroke:#868e96,stroke-width:1px,color:#ced4da
-</div>`;
 
 let allHips = [];
 let hipBodies = new Map();
@@ -677,10 +628,7 @@ async function showDetail(num) {
 
   // Render markdown content
   const body = hipBodies.get(String(hip.hip)) || '';
-  let rendered = marked.parse(body);
-  // Inject mermaid diagrams after markdown processing to avoid marked corrupting the syntax
-  rendered = rendered.replace(/<!--DIAGRAM:STANDARDS_TRACK-->/g, DIAGRAM_STANDARDS_TRACK);
-  rendered = rendered.replace(/<!--DIAGRAM:IPA-->/g, DIAGRAM_IPA);
+  const rendered = marked.parse(body);
   safeHTML($('#hip-content'), rendered);
   applyRainbowIndent($('#hip-content'));
 
@@ -718,12 +666,11 @@ const STATE_TOOLTIPS = new Map([
   ['Review', 'The HIP editors and community are actively reviewing the proposal and providing feedback.'],
   ['Last Call', 'Review period is ending (typically 14 days). Final chance to raise objections before approval.'],
   ['Hiero TSC Review', 'The Hiero Technical Steering Committee reviews the HIP for technical soundness.'],
-  ['Hedera Review', 'Hedera Council reviews the HIP when it affects the Hedera network (needs-hedera-review: Yes).'],
   ['Approved', 'The HIP has been approved by the Hiero TSC and is ready for implementation.'],
   ['Final', 'The HIP has been implemented and is considered complete. No further changes expected.'],
   ['Active', 'The HIP is active and in effect. Used for Informational, Process, and Application HIPs.'],
-  ['Accepted', 'The HIP has been accepted by both the Hiero TSC and Hedera Council.'],
-  ['Not Accepted', 'The Hedera Council did not accept the HIP after review.'],
+  ['Accepted', 'Hedera has accepted the feature for adoption; this decision does not require Hiero TSC approval.'],
+  ['Not Accepted', 'Hedera did not accept the feature after review.'],
   ['Deferred', 'The HIP has been paused by the author. It can be resumed later by moving back to Draft.'],
   ['Withdrawn', 'The author has pulled the HIP from consideration. It is no longer being pursued.'],
   ['Rejected', 'The HIP was reviewed and rejected. It will not move forward in its current form.'],

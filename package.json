@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test": "node --test scripts/*.test.js"
+  },
   "dependencies": {
     "simple-jekyll-search": "^1.10.0"
   }
