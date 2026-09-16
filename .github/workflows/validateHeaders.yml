@@ -1,6 +1,7 @@
-# This is a github actions workflow that retrieves the modified hips and runs a validator script against them written in Node.
 name: Validate HIP
-on: [pull_request]
+
+on:
+  pull_request:
 
 permissions:
   contents: read
@@ -26,26 +27,25 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: "12.x"
+          node-version: "20"
 
-      - name: Install jq
-        run: sudo apt-get install jq
+      - name: Test HIP validator
+        run: npm test
 
       - name: Validate HIPs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERTESIA_API_KEY: ${{ secrets.VERTESIA_API_KEY }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          REPO=${{ github.repository }}
-          PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER/files")
-          MD_FILES=$(echo "$PR_DATA" | jq -r '.[] | select(.filename | test(".md$")) | select(.status != "removed") | .filename')
+          git cat-file -e "${BASE_SHA}^{commit}"
 
-          for FILE in $MD_FILES; do
-            FULL_PATH="${{ github.workspace }}/$FILE"
-            if [[ -f "$FULL_PATH" ]]; then
-              node "${{ github.workspace }}/scripts/validateHIP.js" "$FULL_PATH"
-            else
-              echo "Skipping $FILE (not found on disk)"
-            fi
-          done
+          HIP_FILES=()
+          while IFS= read -r -d '' FILE; do
+            HIP_FILES+=("$FILE")
+          done < <(git diff --name-only --diff-filter=ACMR -z "$BASE_SHA" -- ':(glob)HIP/*.md')
+
+          if (( ${#HIP_FILES[@]} == 0 )); then
+            echo "No added or modified HIP files to validate."
+            exit 0
+          fi
+
+          node scripts/validateHIP.js --base-ref "$BASE_SHA" "${HIP_FILES[@]}"
