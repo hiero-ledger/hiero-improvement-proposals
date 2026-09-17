@@ -1,0 +1,576 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f5f5f5;
+    position: relative;
+}
+
+.container {
+    /* max-width: 1200px; */
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+    position: relative;
+    height: 500px;
+    margin: 20px 0;
+    margin-top: 10px;
+}
+
+.controls {
+    margin: 20px 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.controls button {
+    margin: 5px;
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.controls button:hover {
+    background-color: #0056b3;
+}
+
+.controls button.active {
+    background-color: #28a745;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+}
+
+.controls button.active:hover {
+    background-color: #218838;
+}
+
+.controls .threshold-control {
+    margin-left: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.controls .threshold-control label {
+    font-weight: 500;
+    color: #495057;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.controls .threshold-control input {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 3px;
+    font-size: 14px;
+    text-align: center;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.controls .threshold-control input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.controls .threshold-control input:hover {
+    border-color: #adb5bd;
+}
+
+.analytics-container {
+    display: flex;
+    gap: 15px;
+    margin: 20px 0;
+    width: 100%;
+}
+
+.threshold-panel,
+.stats-panel {
+    flex: 1;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #dee2e6;
+    min-width: 0;
+}
+
+.threshold-panel {
+    overflow-x: auto;
+}
+
+.panel-title {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #495057;
+    text-align: center;
+}
+
+.stats-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+}
+
+.time-stat-row {
+    flex: 0 0 auto;
+}
+
+/* Two-column layout for time stats */
+.time-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+@media (max-width: 500px) {
+    .time-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.other-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    flex: 1;
+}
+
+.stat-box {
+    padding: 10px 8px;
+    background-color: white;
+    border-radius: 4px;
+    text-align: center;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 70px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.time-stat-row .stat-box {
+    min-height: 80px;
+}
+
+.stat-box>div:first-child {
+    font-size: 16px;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 4px;
+    line-height: 1.1;
+    flex-shrink: 0;
+}
+
+.threshold-analysis {
+    margin: 0;
+    background-color: transparent;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+}
+
+.threshold-grid {
+    display: grid;
+    /* Let first column size to its content instead of a fixed width */
+    grid-template-columns: max-content 1fr 1fr 1fr;
+    /* Added Percentage Inside column */
+    gap: 8px;
+    align-items: center;
+    grid-auto-rows: min-content;
+    width: 100%;
+}
+
+/* Single grid will now host both headers and data rows */
+
+.threshold-header {
+    font-weight: bold;
+    color: #495057;
+    text-align: center;
+    padding: 6px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+    /* Ensure text stays inside cell */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.threshold-cell {
+    text-align: center;
+    padding: 5px 8px;
+    background-color: white;
+    border-radius: 3px;
+    border: 1px solid #dee2e6;
+    font-size: 16px;
+    line-height: 1.3;
+    box-sizing: border-box;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.threshold-cell.current-threshold {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    font-weight: bold;
+}
+
+/* Disable red high-outlier styling (kept class name in case logic still adds it) */
+.threshold-cell.high-outlier {
+    background-color: white;
+    border-color: #dee2e6;
+    color: inherit;
+}
+
+/* Entire row green when 100% inside (0% outside) */
+.threshold-cell.all-inside {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+@media (max-width: 1200px) {
+    .analytics-container {
+        flex-direction: column;
+    }
+
+    .other-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .other-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: 1fr 1fr;
+    }
+
+    .analytics-container {
+        gap: 15px;
+    }
+
+    .stats-panel,
+    .threshold-panel {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    .other-stats-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 1fr);
+    }
+}
+
+.stat-value {
+    font-size: 1.6em;
+    font-weight: bold;
+    color: #007bff;
+    line-height: 1.1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-value.outliers-warning {
+    color: #dc3545;
+}
+
+.data-section {
+    margin-top: 30px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px 20px 24px;
+}
+
+.data-section h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.data-section small.section-note {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #e9ecef;
+    padding: 4px 8px;
+    border-radius: 12px;
+    letter-spacing: .5px;
+    color: #495057;
+    text-transform: uppercase;
+}
+
+.data-management-grid {
+    /* align with analytics two-panel layout */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    /* match .analytics-container gap */
+    align-items: start;
+}
+
+.data-instructions {
+    font-size: 14px;
+    line-height: 1.45;
+    color: #444;
+}
+
+.data-instructions p {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.data-instructions pre {
+    margin: 0 0 10px;
+    background: #dbdbdb;
+    color: #212529;
+    padding: 12px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    overflow: auto;
+    line-height: 1.3;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.data-example {
+    margin-top: 4px;
+}
+
+.data-example .example-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin: 0 0 6px;
+}
+
+.data-instructions code {
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.data-input-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+@media (max-width: 900px) {
+
+    /* collapse below similar breakpoint */
+    .data-management-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+#dataTextarea {
+    width: 100%;
+    height: 240px;
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    border: none;
+    /* remove inner border to avoid double border effect */
+    border-radius: 4px;
+    padding: 10px 12px;
+    resize: vertical;
+    background: #fdfdfe;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: box-shadow .18s ease, background-color .18s ease;
+    box-sizing: border-box;
+    line-height: 1.35;
+}
+
+#dataTextarea:focus {
+    outline: none;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.data-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.data-actions button.update-button {
+    flex: 0 0 auto;
+}
+
+.data-hint {
+    font-size: 14px;
+    color: #6c757d;
+    line-height: 1.3;
+}
+
+/* Removed unused details/summary styles */
+
+.textarea-wrapper {
+    background: #ffffff;
+    padding: 14px 16px 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.textarea-wrapper label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    margin: 0 0 6px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+}
+
+.update-button {
+    --btn-bg-start: #0d6efd;
+    --btn-bg-end: #0b5ed7;
+    background: linear-gradient(135deg, var(--btn-bg-start), var(--btn-bg-end));
+    border: 1px solid #0a58ca;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: .4px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+    transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+}
+
+.update-button svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.update-button:hover {
+    background: linear-gradient(135deg, #0c62e6, #0a53be);
+    box-shadow: 0 3px 6px rgba(13, 110, 253, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+.update-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.25) inset;
+}
+
+.update-button.unsaved::after {
+    content: '●';
+    color: #ffc107;
+    font-size: 10px;
+    line-height: 1;
+    margin-left: 2px;
+}
+
+.update-button.saved::after {
+    content: '✓';
+    color: #28a745;
+    font-size: 12px;
+    line-height: 1;
+    margin-left: 2px;
+}
+
+h1 {
+    color: #333;
+    margin-top: 0;
+}
+
+h2 {
+    color: #333;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 500px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    font-size: 18px;
+    color: #6c757d;
+}
+
+.loading::after {
+    content: "";
+    width: 20px;
+    height: 20px;
+    border: 3px solid #007bff;
+    border-top: 3px solid transparent;
+    border-radius: 50%;
+    margin-left: 10px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.github-logo {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.github-logo:hover {
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.github-logo svg {
+    display: block;
+    fill: #333;
+    transition: fill 0.2s ease;
+}
+
+.github-logo:hover svg {
+    fill: #007bff;
+}
