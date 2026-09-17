@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="630" viewBox="0 0 1100 630">
-<rect width="1100" height="630" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="778" viewBox="0 0 1100 778">
+<rect width="1100" height="778" fill="#ffffff"/>
 <text x="550" y="36" text-anchor="middle" dominant-baseline="central" font-size="24" font-family="sans-serif" font-weight="bold" fill="#d35400">jumpstart.bin — Binary Format</text>
 <text x="550" y="62" text-anchor="middle" dominant-baseline="central" font-size="14" font-family="sans-serif" font-style="italic" fill="#566573">Loaded by the consensus node at first startup after the block stream upgrade</text>
 
@@ -37,41 +37,63 @@
 <text x="520" y="240" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Becomes previous_block_root_hash in the</text>
 <text x="520" y="258" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">BlockFooter of the first live block.</text>
 
-<!-- Row 3 — leaf_count -->
+<!-- Row 3 — consensus_timestamp_hash (NEW) -->
 <rect x="30" y="282" width="104" height="70" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
 <rect x="150" y="282" width="114" height="70" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
 <rect x="280" y="282" width="214" height="70" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
 <rect x="510" y="282" width="560" height="70" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
 <text x="82" y="317" text-anchor="middle" dominant-baseline="central" font-size="15" font-family="monospace" fill="#d35400">56</text>
-<text x="207" y="317" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">8 bytes</text>
-<text x="290" y="317" text-anchor="start" dominant-baseline="central" font-size="13" font-family="monospace" fill="#1a5276">leaf_count</text>
-<text x="520" y="308" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">All-blocks streaming Merkle tree: total number of</text>
-<text x="520" y="326" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">block hashes accumulated  (big-endian long)</text>
+<text x="207" y="317" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">48 bytes</text>
+<text x="290" y="317" text-anchor="start" dominant-baseline="central" font-size="12" font-family="monospace" fill="#1a5276">consensus_timestamp_hash</text>
+<text x="520" y="308" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Consensus timestamp hash of the last wrapped block.</text>
+<text x="520" y="326" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Used by the consensus node to cross-check the claim.</text>
 
-<!-- Row 4 — hash_count -->
+<!-- Row 4 — output_items_tree_root_hash (NEW) -->
 <rect x="30" y="356" width="104" height="70" rx="5" fill="#fef9e7" stroke="#d35400" stroke-width="1"/>
 <rect x="150" y="356" width="114" height="70" rx="5" fill="#fef9e7" stroke="#d35400" stroke-width="1"/>
 <rect x="280" y="356" width="214" height="70" rx="5" fill="#fef9e7" stroke="#d35400" stroke-width="1"/>
 <rect x="510" y="356" width="560" height="70" rx="5" fill="#fef9e7" stroke="#d35400" stroke-width="1"/>
-<text x="82" y="391" text-anchor="middle" dominant-baseline="central" font-size="15" font-family="monospace" fill="#d35400">64</text>
-<text x="207" y="391" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">4 bytes</text>
-<text x="290" y="391" text-anchor="start" dominant-baseline="central" font-size="13" font-family="monospace" fill="#1a5276">hash_count  (N)</text>
-<text x="520" y="382" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Number of intermediate hashes in the streaming</text>
-<text x="520" y="400" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Merkle tree pending sub-tree list  (big-endian int)</text>
+<text x="82" y="391" text-anchor="middle" dominant-baseline="central" font-size="15" font-family="monospace" fill="#d35400">104</text>
+<text x="207" y="391" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">48 bytes</text>
+<text x="290" y="391" text-anchor="start" dominant-baseline="central" font-size="11" font-family="monospace" fill="#1a5276">output_items_tree_root_hash</text>
+<text x="520" y="382" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Output items tree root hash of the last wrapped block.</text>
+<text x="520" y="400" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Used by the consensus node to cross-check the claim.</text>
 
-<!-- Row 5 — hash_list -->
-<rect x="30" y="430" width="104" height="90" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
-<rect x="150" y="430" width="114" height="90" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
-<rect x="280" y="430" width="214" height="90" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
-<rect x="510" y="430" width="560" height="90" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
-<text x="82" y="475" text-anchor="middle" dominant-baseline="central" font-size="15" font-family="monospace" fill="#d35400">68</text>
-<text x="207" y="467" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">48 x N</text>
-<text x="207" y="483" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">bytes</text>
-<text x="290" y="475" text-anchor="start" dominant-baseline="central" font-size="13" font-family="monospace" fill="#1a5276">hash_list[0…N-1]</text>
-<text x="520" y="456" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Streaming Merkle tree intermediate hash list.</text>
-<text x="520" y="474" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">At most ceil(log2(block_count)) entries —</text>
-<text x="520" y="492" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">approx. 30 hashes for 1 billion blocks  (max ~1.5 KB)</text>
+<!-- Row 5 — leaf_count -->
+<rect x="30" y="430" width="104" height="70" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
+<rect x="150" y="430" width="114" height="70" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
+<rect x="280" y="430" width="214" height="70" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
+<rect x="510" y="430" width="560" height="70" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
+<text x="82" y="465" text-anchor="middle" dominant-baseline="central" font-size="15" font-family="monospace" fill="#d35400">152</text>
+<text x="207" y="465" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">8 bytes</text>
+<text x="290" y="465" text-anchor="start" dominant-baseline="central" font-size="13" font-family="monospace" fill="#1a5276">leaf_count</text>
+<text x="520" y="456" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">All-blocks streaming Merkle tree: total number of</text>
+<text x="520" y="474" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">block hashes accumulated  (big-endian long)</text>
+
+<!-- Row 6 — hash_count -->
+<rect x="30" y="504" width="104" height="70" rx="5" fill="#fef9e7" stroke="#d35400" stroke-width="1"/>
+<rect x="150" y="504" width="114" height="70" rx="5" fill="#fef9e7" stroke="#d35400" stroke-width="1"/>
+<rect x="280" y="504" width="214" height="70" rx="5" fill="#fef9e7" stroke="#d35400" stroke-width="1"/>
+<rect x="510" y="504" width="560" height="70" rx="5" fill="#fef9e7" stroke="#d35400" stroke-width="1"/>
+<text x="82" y="539" text-anchor="middle" dominant-baseline="central" font-size="15" font-family="monospace" fill="#d35400">160</text>
+<text x="207" y="539" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">4 bytes</text>
+<text x="290" y="539" text-anchor="start" dominant-baseline="central" font-size="13" font-family="monospace" fill="#1a5276">hash_count  (N)</text>
+<text x="520" y="530" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Number of intermediate hashes in the streaming</text>
+<text x="520" y="548" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Merkle tree pending sub-tree list  (big-endian int)</text>
+
+<!-- Row 7 — hash_list -->
+<rect x="30" y="578" width="104" height="90" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
+<rect x="150" y="578" width="114" height="90" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
+<rect x="280" y="578" width="214" height="90" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
+<rect x="510" y="578" width="560" height="90" rx="5" fill="#fad7a0" stroke="#d35400" stroke-width="1"/>
+<text x="82" y="623" text-anchor="middle" dominant-baseline="central" font-size="15" font-family="monospace" fill="#d35400">164</text>
+<text x="207" y="615" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">48 x N</text>
+<text x="207" y="631" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="monospace" fill="#d35400">bytes</text>
+<text x="290" y="623" text-anchor="start" dominant-baseline="central" font-size="13" font-family="monospace" fill="#1a5276">hash_list[0…N-1]</text>
+<text x="520" y="604" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">Streaming Merkle tree intermediate hash list.</text>
+<text x="520" y="622" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">At most ceil(log2(block_count)) entries —</text>
+<text x="520" y="640" text-anchor="start" dominant-baseline="central" font-size="12" font-family="sans-serif" fill="#1c2833">approx. 30 hashes for 1 billion blocks  (max ~1.5 KB)</text>
 
 <!-- Footer -->
-<text x="550" y="564" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="sans-serif" font-style="italic" fill="#566573">Maximum file size:  68 + 48 x ceil(log2(N)) bytes  —  for 1 billion blocks: &lt; 1.6 KB</text>
+<text x="550" y="712" text-anchor="middle" dominant-baseline="central" font-size="13" font-family="sans-serif" font-style="italic" fill="#566573">Maximum file size:  164 + 48 x ceil(log2(N)) bytes  —  for 1 billion blocks: ≈ 1.6 KB</text>
 </svg>
