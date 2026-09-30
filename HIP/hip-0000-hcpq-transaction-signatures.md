@@ -1,7 +1,8 @@
 ---
 hip: 0000
 title: Ledger-Bound ML-DSA-44 Transaction Signatures
-author: Schayan Salehi (@shayansal)
+author: Shayan Salehi (@shayansal)
+requested-by: Shayan Salehi (ColdAI)
 discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1550
 type: Standards Track
 category: Core
@@ -9,7 +10,7 @@ needs-hiero-approval: Yes
 needs-hedera-review: Yes
 status: Draft
 created: 2026-09-09
-updated: 2026-09-11
+updated: 2026-10-01
 ---
 
 ## Abstract
@@ -90,6 +91,17 @@ key_id = SHA3-256(
 
 `0x01` is the HCPQ version. `0x02` identifies ML-DSA-44 inside the transcript. The public-key length MUST be 1,312. The complete 32-byte `key_id` MUST be used; prefix truncation is invalid.
 
+The HCPQ version byte and the algorithm identifier byte are independent. The version byte changes only if the key-ID or transaction transcript framing changes. The algorithm identifier names the signature primitive and parameter set:
+
+| Algorithm identifier | Meaning |
+|---|---|
+| `0x00` | Reserved; never valid |
+| `0x01` | Reserved; never assigned, to avoid confusion with the HCPQ version byte `0x01` |
+| `0x02` | ML-DSA-44 (this HIP) |
+| `0x03`–`0xFF` | Unassigned |
+
+Each new algorithm identifier MUST be allocated by a HIP that also defines the corresponding `Key` and `SignaturePair` oneof fields, exact key and signature lengths, and the FIPS or other standard it profiles. For example, a later FN-DSA or ML-DSA-65 HIP would take the next unassigned identifier and its own wire fields without changing HCPQ v1 transcripts. Identifiers are never reused after allocation, including after a profile is deprecated.
+
 ### Transaction transcript
 
 Let `ledger_id` be the immutable ledger identifier supplied by node configuration, and let `body` be the exact canonical protobuf bytes of `TransactionBody`. Clients MUST compute:
@@ -107,7 +119,15 @@ transaction_digest = SHA3-256(
 
 The ledger identifier MUST contain between 1 and 65,535 bytes. Nodes MUST obtain it from trusted network configuration and MUST NOT accept it from a transaction or API caller.
 
-The ML-DSA signer and verifier MUST use the FIPS 204 context string `HCPQ-SIG-TX-v1` and MUST sign or verify the 32-byte `transaction_digest` as the message. Signers SHOULD use randomized or hedged signing with cryptographically secure operating-system-backed randomness. Failure to obtain randomness MUST fail signing.
+HCPQ uses pure ML-DSA: FIPS 204 `ML-DSA.Sign` (Algorithm 2) and `ML-DSA.Verify` (Algorithm 3). The pre-hash variant HashML-DSA (Algorithms 4 and 5) MUST NOT be used, and a HashML-DSA signature MUST fail verification. The signer and verifier MUST use the 14-byte ASCII context string `HCPQ-SIG-TX-v1` and MUST sign or verify the 32-byte `transaction_digest` as the message. The value passed to the FIPS 204 internal functions is therefore:
+
+```text
+M' = 0x00 || 0x0e || "HCPQ-SIG-TX-v1" || transaction_digest
+```
+
+The leading `0x00` byte identifies pure ML-DSA, and `0x0e` is the context length. Libraries that cannot accept a context string MAY implement HCPQ by passing `M'` to `ML-DSA.Sign_internal` and `ML-DSA.Verify_internal`. The published vectors include `M'` for each valid signature.
+
+Signers SHOULD use the hedged variant with cryptographically secure operating-system-backed randomness. Failure to obtain randomness MUST fail signing. The FIPS 204 deterministic variant produces signatures that verify identically and is used only to make test vectors reproducible.
 
 The following derivation vectors are normative lowercase hexadecimal outputs. They test the HCPQ framing and SHA3-256 steps, not ML-DSA public-key validity:
 
@@ -115,6 +135,13 @@ The following derivation vectors are normative lowercase hexadecimal outputs. Th
 |---|---|
 | `ledger_id = 00`, `body = 0a0101` | `transaction_digest = b06481a311d5d184b1524f565611f20dd7a48c1f5fb1388fe26c963abb9d84f1` |
 | `pk = 1312` zero bytes | `key_id = 12e887dd05eccac5b490be89fd73d070109cc7dccbc615d06d466bc5f0b9caac` |
+
+The complete conformance vectors are published with the reference implementation in `cryptography/hedera-cryptography-hcpq/src/test/resources/hcpq-v1/` ([`hiero-cryptography` PR #693](https://github.com/hiero-ledger/hiero-cryptography/pull/693)):
+
+- `signature-vectors.json` covers key identifiers for seeded ML-DSA-44 keys, transaction digests with multi-byte length prefixes, valid signatures over canonical transaction bodies, and invalid signatures. The invalid cases cover cross-ledger replay, modified bodies, wrong and empty contexts, HashML-DSA, signing the raw body instead of the digest, wrong keys, mismatched or truncated key identifiers, and malformed lengths.
+- `canonical-transaction-body-vectors.json` covers canonical `TransactionBody` encodings and alternate encodings that nodes MUST reject.
+
+Implementations MUST produce the accept and reject result given for every test in both files. The signature vectors have been checked with two independent ML-DSA implementations (Bouncy Castle and OpenSSL).
 
 ### Protobuf changes
 
@@ -134,6 +161,8 @@ bytes ML_DSA_44 = 7;
 
 For this signature type, `pubKeyPrefix` MUST contain exactly the 32-byte HCPQ `key_id`; it is not a variable-length prefix. The signature field MUST contain exactly the 2,420-byte raw signature.
 
+`Key` field 9 and `SignaturePair` field 7 were unassigned on `hiero-consensus-node` `main` on 2026-09-30. If either number is taken before this HIP is accepted, the next free number is used and this section is updated.
+
 ### Canonical `TransactionBody` rule
 
 If a `SignedTransaction.sigMap` contains at least one HCPQ signature, the node MUST:
@@ -145,6 +174,21 @@ If a `SignedTransaction.sigMap` contains at least one HCPQ signature, the node M
 This rejects duplicate fields, non-minimal varints, alternate field ordering, explicit encodings of default values, trailing data, and other alternate byte encodings. Verification MUST use the original accepted `bodyBytes`; a node MUST NOT silently replace them with re-encoded bytes before verification.
 
 The new canonical rule applies only when an HCPQ signature is present. It does not change the historical encoding compatibility of transactions signed only with Ed25519 or ECDSA(secp256k1).
+
+#### Canonical encoding profile
+
+Clients do not need PBJ to produce canonical bytes. The PBJ encoding of a `TransactionBody` is the unique encoding that satisfies all of the following rules, at every level of nesting:
+
+1. Fields appear in ascending field-number order. This is not the order of declaration in the `.proto` file. For example, `batch_key = 73` is declared before `contractCall = 7` in `TransactionBody` but is encoded after every lower-numbered field that is present.
+2. Each non-repeated field appears at most once. The elements of a repeated field appear consecutively, in order.
+3. A singular scalar, string, bytes, or enum field without explicit presence is omitted when it holds its default value (zero, `false`, empty, or the zero enum value).
+4. A message-typed field that is set is always encoded, even when empty. A member of a `oneof` that is set is always encoded, even when it holds a default value. For example, an empty `UtilPrngTransactionBody` selected in the `data` oneof is encoded as a zero-length field.
+5. Repeated numeric and enum fields use packed encoding.
+6. Varints and length prefixes use the minimal number of bytes. `sint32` and `sint64` fields use ZigZag encoding.
+7. Strings are valid UTF-8.
+8. There are no unknown fields and no bytes after the last field.
+
+Google's reference protobuf encoder (`protoc`) reproduces every accepted body in the published vectors byte for byte. Not every protobuf library follows all eight rules, though. An encoder that writes fields in declaration order, writes every field explicitly set on a message object even when the value is the default, or keeps unknown fields produces bytes that parse successfully but are rejected. SDKs MUST check their output against the canonical-body vectors.
 
 ### Expansion and verification
 
@@ -172,6 +216,28 @@ hcpq.maxSignaturesPerTransaction = 1
 
 When HCPQ is disabled, transactions containing HCPQ signatures and attempts to store new HCPQ keys MUST fail with `NOT_SUPPORTED`. When enabled, the node MUST reject any transaction exceeding the configured HCPQ signature count before cryptographic verification. The initial activation value SHOULD be one until fees, throttles, and representative network benchmarks justify a higher value.
 
+#### Multi-signer transactions and the transaction size limit
+
+Each HCPQ entry in a `SignatureMap` adds 2,460 bytes to the serialized transaction: the 2,420-byte signature, the 32-byte key identifier, and protobuf framing. Against the default `transaction.maxBytes` of 6,144 bytes, the serialized transaction sizes are:
+
+| Signatures on a 60-byte `CryptoTransfer` body | Serialized `Transaction` |
+|---|---:|
+| 1 HCPQ | 2,528 bytes |
+| 1 HCPQ + 1 Ed25519 | 2,630 bytes |
+| 2 HCPQ | 4,988 bytes |
+| 3 HCPQ | 7,448 bytes (exceeds the limit) |
+
+The size limit therefore allows at most two HCPQ signatures in one transaction, whatever `hcpq.maxSignaturesPerTransaction` is set to. With two, the `TransactionBody` can be at most 1,215 bytes. With one, it can be at most 3,675 bytes.
+
+With the initial `hcpq.maxSignaturesPerTransaction = 1`, a transaction that needs two HCPQ signatures is rejected. Examples:
+
+- an HCPQ-keyed payer transferring from, or updating, a different HCPQ-keyed account;
+- a token or topic operation where both the payer and an admin, treasury, or submit key are HCPQ keys;
+- a `ThresholdKey` or `KeyList` that requires two HCPQ keys;
+- a `ScheduleSign` that adds a second HCPQ signature in the same transaction.
+
+Transactions that combine one HCPQ signature with any number of Ed25519 or ECDSA(secp256k1) signatures are unaffected. Until the limit is raised, the cases above can be split across transactions. For example, a scheduled transaction can collect its HCPQ signatures through several `ScheduleSign` transactions, each carrying at most one HCPQ signature, including the payer's. Wallets and SDKs SHOULD detect a second required HCPQ signature before submission and report it clearly. Raising the value to two is a governance decision that SHOULD be informed by benchmarks of two-signature verification cost. Going above two requires a separate change to the transaction size limit.
+
 ### Mixed and migration policies
 
 Existing `KeyList` and `ThresholdKey` semantics are unchanged. For example, a two-of-two threshold containing one Ed25519 key and one HCPQ key requires both signatures over the same `TransactionBody`; each algorithm retains its own existing message processing and the HCPQ signature additionally applies its ledger-bound transcript.
@@ -184,7 +250,7 @@ Mirror nodes and protobuf consumers must preserve and expose the new `Key.ML_DSA
 
 ## Impact on SDK
 
-SDKs must add ML-DSA-44 key generation/import, secure private-key storage, exact public-key and signature encodings, HCPQ key-ID derivation, canonical `TransactionBody` serialization, ledger-ID selection from a trusted network profile, and the HCPQ transcript. SDKs must refuse shortened key identifiers and malformed lengths. Hardware-wallet and remote-signer protocols require explicit support; software fallback is not evidence of side-channel-resistant signing.
+SDKs must add ML-DSA-44 key generation/import, secure private-key storage, exact public-key and signature encodings, HCPQ key-ID derivation, canonical `TransactionBody` serialization, ledger-ID selection from a trusted network profile, and the HCPQ transcript. SDKs must refuse shortened key identifiers and malformed lengths, and they must pass the published signature and canonical-body vectors. Hardware-wallet and remote-signer protocols require explicit support; software fallback is not evidence of side-channel-resistant signing.
 
 ## Backwards Compatibility
 
@@ -200,7 +266,7 @@ The principal security considerations are:
 
 - **Implementation and side channels:** signing code handles long-lived secret material and complex sampling. Production wallets, HSMs, and hardware devices require implementation-specific timing, power, electromagnetic, fault, and randomness review.
 - **Denial of service:** signatures are large and verification consumes CPU before ordinary transaction handling. Default-off activation, strict size checks, a signature-count bound, ingress throttles, and fees calibrated to measured resource costs are required.
-- **Canonicalization:** every implementation must agree on exact accepted bytes. Cross-language adversarial vectors must cover duplicate fields, default values, field ordering, overlong varints, truncation, and unknown fields.
+- **Canonicalization:** every implementation must agree on exact accepted bytes. The published canonical-body vectors cover duplicate fields, explicit default values, field ordering (including `.proto` declaration order), overlong varints and lengths, unpacked repeated fields, truncation, trailing bytes, invalid UTF-8, and unknown fields. Each alternate encoding in them parses to the same `TransactionBody` as a canonical one, so only the canonical rule rejects it.
 - **Replay:** the configured ledger ID and purpose-specific domain/context prevent cross-ledger and cross-protocol reuse when implemented as specified.
 - **Key identification:** complete 32-byte identifiers are mandatory. Implementations must never fall back to ordinary prefix matching.
 - **Migration:** post-quantum algorithms do not protect an account that still permits a vulnerable classical key alone. Conversely, prematurely requiring HCPQ can lock out unsupported wallets.
@@ -210,7 +276,7 @@ Independent cryptographic and implementation review is a prerequisite to product
 
 ## Performance and capacity
 
-An HCPQ signature pair carries 2,420 signature bytes and a 32-byte key identifier, versus a 64-byte Ed25519 signature and typically shorter key-prefix material. The 1,312-byte public key is stored in entity state rather than repeated in each transaction.
+An HCPQ signature pair carries 2,420 signature bytes and a 32-byte key identifier, versus a 64-byte Ed25519 signature and typically shorter key-prefix material. The 1,312-byte public key is stored in entity state rather than repeated in each transaction. The size limit allows at most two HCPQ signatures per transaction; see [Multi-signer transactions and the transaction size limit](#multi-signer-transactions-and-the-transaction-size-limit).
 
 The reference code has local primitive microbenchmarks, but this HIP intentionally makes no claim that Hedera's advertised or observed transaction throughput is preserved. Before activation, operators must measure at minimum:
 
@@ -238,7 +304,7 @@ Developer documentation should include exact transcript vectors, canonical proto
 
 The draft reference implementation is split so the primitive profile can be reviewed independently from consensus-node integration:
 
-- [`hiero-cryptography` PR #693](https://github.com/hiero-ledger/hiero-cryptography/pull/693): Java ML-DSA-44 key generation, raw key encoding, key-ID derivation, transcript signing, and fail-closed verification, with unit tests.
+- [`hiero-cryptography` PR #693](https://github.com/hiero-ledger/hiero-cryptography/pull/693): Java ML-DSA-44 key generation, raw key encoding, key-ID derivation, transcript signing, and fail-closed verification, with unit tests. It also contains the conformance vectors described under [Transaction transcript](#transaction-transcript), a test that recomputes every value in them, and a script that re-checks the signature vectors with OpenSSL.
 - [`hiero-consensus-node` PR #27253](https://github.com/hiero-ledger/hiero-consensus-node/pull/27253): protobuf fields, exact-key-ID expansion, ledger-bound verification, canonical transaction enforcement, entity-key validation, mixed-key traversal, default-off configuration, signature-count bounds, and integration tests.
 
 Neither draft is a production activation recommendation.
@@ -271,9 +337,9 @@ Existing threshold and key-list policies already express classical-plus-post-qua
 
 ## Open Issues
 
+- Run the published signature and canonical-body vectors in at least two independent SDK implementations, and extend them with any cases those implementations find. The vectors now cover the transcript, key identifiers, deterministic signatures, invalid signatures, and canonical and non-canonical `TransactionBody` encodings. Cross-language agreement on canonical bytes is the main prerequisite for SDK support.
 - Determine fees and ingress throttles from representative multi-node capacity tests.
-- Decide the initial network value for `hcpq.maxSignaturesPerTransaction` after mixed-key benchmarks.
-- Publish cross-provider and cross-language known-answer and malformed-encoding vectors.
+- Decide the initial network value for `hcpq.maxSignaturesPerTransaction` (one or two) after mixed-key and two-signature benchmarks. More than two requires a separate change to `transaction.maxBytes` or to large-transaction support.
 - Define SDK, remote-signer, HSM, hardware-wallet, and key-backup interoperability profiles.
 - Specify mirror-node presentation and historical key-query behavior.
 - Decide whether a future HIP should extend arbitrary-message and smart-contract authorization APIs with a trusted ledger-bound HCPQ domain.
