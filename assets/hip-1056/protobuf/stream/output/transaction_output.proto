@@ -16,16 +16,14 @@ syntax = "proto3";
 package com.hedera.hapi.block.stream.output;
 
 // SPDX-License-Identifier: Apache-2.0
-
 option java_package = "com.hedera.hapi.block.stream.output.protoc";
 // <<<pbj.java_package = "com.hedera.hapi.block.stream.output">>> This comment is special code for setting PBJ Compiler java package
 option java_multiple_files = true;
 
-import "stream/output/schedule_service.proto";
-import "stream/output/util_service.proto";
-import "stream/output/crypto_service.proto";
-import "stream/output/token_service.proto";
-import "stream/output/smart_contract_service.proto";
+import "block/stream/output/schedule_service.proto";
+import "block/stream/output/util_service.proto";
+import "block/stream/output/crypto_service.proto";
+import "block/stream/output/smart_contract_service.proto";
 
 /**
  * Output from a transaction.
@@ -37,14 +35,11 @@ import "stream/output/smart_contract_service.proto";
  * >> Only a few transactions produce output that is not in the transaction
  * >> and also not reflected in state changes. All other transaction types
  * >> are _currently_ not included here. We have, however, allocated names
- * >> and indexes for those transaction types to preserve consistency if we
+ * >> for those transaction types to preserve consistency if we
  * >> add them later.
  *
  * <!--
  * Reserved definitions:
- * import "stream/output/consensus_service.proto";
- *    SubmitMessageOutput submit_message;
- *
  * import "stream/smart_contract_service.proto";
  *    UpdateContractOutput contract_update;
  *    DeleteContractOutput contract_delete;
@@ -62,10 +57,10 @@ import "stream/output/smart_contract_service.proto";
  *    SystemUndeleteOutput system_undelete;
  *
  * import "stream/crypto_service.proto";
+ *    CryptoTransferOutput crypto_transfer;
  *    UpdateNodeStakeOutput update_node_stake;
  *    ApproveAllowanceOutput approve_allowance;
  *    DeleteAllowanceOutput delete_allowance;
- *    CreateAccountOutput create_account;
  *    UpdateAccountOutput update_account;
  *    DeleteAccountOutput delete_account;
  *
@@ -86,9 +81,11 @@ import "stream/output/smart_contract_service.proto";
  *    UpdateTokenFeeScheduleOutput update_token_fee_schedule;
  *    PauseTokenOutput pause_token;
  *    UnpauseTokenOutput unpause_token;
+ *    TokenAirdropOutput token_airdrop;
  *
  * import "stream/consensus_service.proto";
  *    DeleteTopicOutput delete_topic;
+ *    SubmitMessageOutput submit_message;
  *
  * import "stream/schedule_service.proto";
  *    DeleteScheduleOutput delete_schedule;
@@ -100,36 +97,42 @@ import "stream/output/smart_contract_service.proto";
 message TransactionOutput {
     oneof transaction {
         /**
+         * Output from a utilPrng transaction to request a
+         * deterministic pseudo-random number.
+         */
+        UtilPrngOutput util_prng = 1;
+
+        /**
          * Output from a contract call transaction.
          */
-        ContractCallOutput contract_call = 1;
+        CallContractOutput contract_call = 2;
+
+        /**
+         * Output from an ethereum call transaction.
+         */
+        EthereumOutput ethereum_call = 3;
 
         /**
          * Output from a contract create transaction.
          */
-        ContractCreateOutput contract_create = 2;
-
-        /**
-         * Output from an EVM RLP encoded transaction execution.
-         */
-        EthereumOutput evm_call = 4;
+        CreateContractOutput contract_create = 4;
 
         /**
          * Output from a schedule create transaction that executed
          * immediately on creation.
          */
-        ScheduleCreateOutput schedule_create = 5;
+        CreateScheduleOutput create_schedule = 5;
 
         /**
          * Output from a schedule sign transaction that resulted in
          * executing the scheduled transaction.
          */
-        ScheduleSignOutput schedule_sign = 6;
+        SignScheduleOutput sign_schedule = 6;
 
         /**
-         * Output from a utilPrng transaction to request a
-         * deterministic pseudo-random number.
+         * Output from a transaction that includes the creation of a new
+         * CryptoService Account.
          */
-        UtilPrngOutput util_prng = 7;
+        CreateAccountOutput account_create = 7;
     }
 }
