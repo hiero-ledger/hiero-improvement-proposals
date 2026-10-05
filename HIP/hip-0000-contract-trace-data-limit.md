@@ -22,17 +22,13 @@ limit is executed in full, then failed with `INSUFFICIENT_GAS` and rolled back. 
 gas whatever the gas limit, and no trace is published. Mirror-node simulation (`eth_estimateGas`, `eth_call`) runs
 with trace recording switched off, so it reports success for the same call.
 
-This HIP keeps the limit and its fail-closed behavior and proposes three compatible changes:
+This HIP keeps the limit, its value and its fail-closed behavior, and makes the limit visible as itself:
 
 1. a dedicated response code, `MAX_CONTRACT_TRACE_DATA_EXCEEDED`, in place of `INSUFFICIENT_GAS` for this failure;
 2. pre-flight parity: mirror-node simulation estimates the same trace size and reports the same status, and the
-   JSON-RPC relay surfaces it as a distinct error;
-3. an opt-in, block-stream-only compaction that records a call frame's input once when a child frame receives
-   byte-identical input from its parent (the proxy and router `DELEGATECALL` pattern), so the limit is not spent
-   on duplicate bytes.
+   JSON-RPC relay surfaces it as a distinct error.
 
-It also documents the limit's governance and asks that changes to its value be announced like other contract
-limits.
+It also asks that the limit be documented and that changes to its value be announced like other contract limits.
 
 ## Motivation
 
@@ -127,13 +123,14 @@ sound, and this HIP keeps it.
 
 ### Related work
 
-- [HIP-513](https://hips.hedera.com/hip/hip-513) defined the action and state-change sidecars whose size is limited here.
-- [HIP-435](https://hips.hedera.com/hip/hip-435) (record stream V6) and [#3709](https://github.com/hiero-ledger/hiero-consensus-node/pull/3709)
+- [HIP-513](./hip-513.md) defined the action and state-change sidecars whose size is limited here.
+- [HIP-435](./hip-435.md) (record stream V6) and [#3709](https://github.com/hiero-ledger/hiero-consensus-node/pull/3709)
   limit sidecar *file* size by splitting files; they do not limit a single transaction.
-- [HIP-1056](https://hips.hedera.com/hip/hip-1056) and [HIP-1193](https://hips.hedera.com/hip/hip-1193) move trace data into the block stream's
+- [HIP-1056](./hip-1056.md) and [HIP-1193](./hip-1193.md) move trace data into the block stream's
   `EvmTraceData`, which already compacts some repeated data (`InitcodeBookends`, and slot reads that refer to
-  written keys by index). Part C follows that precedent.
-- [HIP-801](https://hips.hedera.com/hip/hip-801) (`debug_traceTransaction`) and the open
+  written keys by index). A similar compaction for forwarded call data is left to a follow-up HIP (see Rejected
+  Ideas).
+- [HIP-801](./hip-801.md) (`debug_traceTransaction`) and the open
   [HIP-1485](https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1485) (mirror-node debug and trace
   APIs, `debug_traceCall`, `eth_simulateV1`) build on the same actions; Part B gives their simulations the same
   limit as consensus.
@@ -158,16 +155,9 @@ The mirror node already runs the consensus node's EVM; it only needs to measure 
 Measuring sizes is cheaper than building and storing the sidecars, and only matters for calls that go near the
 limit.
 
-**C. Opt-in input elision for identical child input.** In the measured case, 67,364 bytes are recorded twice only
-because a router `DELEGATECALL`s its logic module with the same call data. Proxies (ERC-1967, beacon, diamond) and
-routers are the most common contract structure on EVM networks, so every byte a user sends through a proxy costs
-twice its size against the limit. Recording "same input as the parent frame" with a flag keeps the trace lossless
-and reduces both the trace and the stream size. It is opt-in and block-stream only because consumers must
-understand the flag before it is enabled, and the record stream is being retired by HIP-1193.
-
-Part C alone would not have rescued the measured transaction (it removes 67,364 of 301,836 raw bytes, leaving about
-234 KB raw plus framing, still close to the limit). Parts A and B are the fixes for the developer experience; Part C
-is an efficiency gain that moves the limit closer to what a call does, not to how it is structured.
+Reducing how much trace a call produces (for example recording call data forwarded unchanged by a proxy only
+once) is a separate change to the stream format with its own consumers to coordinate, so it is not part of this
+HIP; see Rejected Ideas. Parts A and B address the developer experience whatever the limit's value or encoding.
 
 ## User stories
 
@@ -177,10 +167,8 @@ is an efficiency gain that moves the limit closer to what a call does, not to ho
   would, so that I find the problem before I pay for a failed transaction.
 - As a wallet or SDK author, I want to tell an unfixable limit from an out-of-gas condition, so that I do not
   retry with more gas.
-- As a contract author using a proxy or router, I want forwarded call data to count once against the limit, so
-  that the contract's structure does not halve the input I can accept.
-- As a mirror node or block node operator, I want any change to the trace encoding to be opt-in and announced, so
-  that ingestion keeps working.
+- As a mirror node or relay operator, I want the new status to need no schema change, so that ingestion keeps
+  working.
 
 ## Specification
 
@@ -234,37 +222,7 @@ describe it as out of gas. The relay's error documentation SHALL list the new st
 such transactions; no schema change is needed. Ingestion SHALL treat the new status like `INSUFFICIENT_GAS` today
 (a failed contract result with no actions or state changes), including indexing by Ethereum hash.
 
-### Part C: opt-in elision of identical child input (block stream only)
-
-Add a field to `ContractAction` (`streams/contract_action.proto`):
-
-```protobuf
-message ContractAction {
-    // ... fields 1-15 unchanged ...
-
-    /**
-     * If true, this action's `input` is byte-for-byte identical to the input of the
-     * nearest preceding action with call_depth = this.call_depth - 1 (its parent frame),
-     * and `input` is left empty. Consumers MUST reconstruct `input` from the parent.
-     * Only set when contracts.traceData.elideInputSameAsParent is enabled.
-     */
-    bool input_same_as_parent = 16;
-}
-```
-
-- New network property `contracts.traceData.elideInputSameAsParent`, default `false`.
-- When it is `true` and `blockStream.streamMode` is `BLOCKS`, the node SHALL, for every action whose input equals
-  its parent action's input, set `input_same_as_parent = true` and an empty `input` before the actions are measured
-  and added to `EvmTraceData`. The limiter then counts the encoded bytes, as today.
-- Only the input is elided. Output, revert reason, and every other field are unchanged. A child of an elided action
-  compares against the parent's reconstructed input.
-- The record stream (`ContractActions` sidecar) SHALL NOT use the flag, so record stream consumers are unaffected
-  until the record stream is retired.
-
-Enabling the property is a network governance decision that SHALL wait until the mirror node, block node, and other
-known block stream consumers have released support for the field.
-
-### Part D: configuration and governance of the limit
+### Part C: documentation and governance of the limit
 
 No change to the default value or the way the property is set. This HIP asks that:
 
@@ -280,8 +238,6 @@ No change to the default value or the way the property is set. This HIP asks tha
 
 - Ingest the new status (Part A); no schema change.
 - Apply the limit in contract call simulation and return the new status (Part B).
-- Reconstruct elided inputs when Part C is enabled; `debug_traceTransaction` and the `actions` endpoint keep
-  returning full inputs.
 
 ### Impact on SDK
 
@@ -303,10 +259,25 @@ As in Part B: a distinct error for pre-flight calls and a failed receipt that na
   `eth_call` uses that are never submitted could start failing; the mirror node MAY limit the check to
   `eth_estimateGas` and to `eth_call` with `estimate=true`, and report the estimated size on other calls instead.
   This is an open issue below.
-- **Part C** adds a field and is off by default. When it is enabled, consumers that ignore unknown fields will see an
-  empty `input` on elided actions until they upgrade, which is why enabling it is gated on consumer releases.
+- **Part C** changes documentation and release notes only.
 
-The limit's value, the set of transactions that fail, gas, and fees are unchanged by all parts.
+The limit's value, the set of transactions that fail, gas, fees and the stream formats are unchanged by all
+parts.
+
+## Network Optionality
+
+- **Part A is not optional per network.** The response code is part of the consensus result of a transaction, so
+  every node of a network must produce the same code; a network adopts it by upgrading to the release that contains
+  it. It changes no behavior other than the reported status, so there is nothing a network would need to opt out
+  of. A network that stays on an older release keeps reporting `INSUFFICIENT_GAS`.
+- **Part B is optional per deployment.** The mirror node check SHOULD be on by default and MAY be disabled by
+  configuration (for example `hiero.mirror.web3.evm.traceDataLimit.enabled`). With it disabled, simulation behaves
+  as today: `eth_call` and `eth_estimateGas` succeed for calls that consensus fails. The limit value the check uses
+  SHALL follow the network's own `contracts.maxSerializedTraceDataBytes`, so networks that configure a different
+  limit, or `0` to disable trace recording limits by other means, get parity with their own setting. The relay change
+  only maps a status it receives and has no setting.
+- **Part C is advisory.** Each network documents and announces its own value of the limit.
+- Nothing else depends on this HIP: a network that does not adopt a part sees no change in any other functionality.
 
 ## Security Implications
 
@@ -314,11 +285,8 @@ The limit's value, the set of transactions that fail, gas, and fees are unchange
   data. This HIP does not raise it, does not change when it applies, and keeps fail-closed rollback.
 - Part B adds work to mirror-node simulation. A size-only tracer adds a counter per frame and per slot. Simulation
   is already bounded by the gas limit and the mirror node's own rate limits; the check adds no new unbounded input.
-- Part C decreases stream size. A consumer that reconstructs elided inputs copies a parent's bytes, bounded by the
-  parent's own size, which was already counted. A malformed stream with the flag set on a depth-0 action, or with
-  no parent at `call_depth - 1`, MUST be rejected by consumers as invalid; nodes MUST NOT produce it.
-- Part C must not let a transaction record more data than the limit allows: the measured size is that of the
-  encoded (elided) actions, and the reconstructed size per action is never larger than its parent's input.
+- A distinct status reveals nothing that is not already public: the trace limit is a published network property,
+  and the transaction's gas used is in its record.
 
 ## How to Teach This
 
@@ -363,10 +331,6 @@ final class TraceSizeTracer implements OperationTracer {
 }
 ```
 
-Part C, in `ActionStack` / `BlockStreamBuilder.addActions`: before measuring, walk the action list once with a
-stack of inputs by depth; for each action whose input equals the input at `call_depth - 1`, set
-`input_same_as_parent` and clear `input`.
-
 A reference measurement tool (a `debug_traceTransaction`-based estimator) and the testnet evidence above are
 proposed to LFDT-CLPR/clpr-smart-contracts in
 [#37](https://github.com/LFDT-CLPR/clpr-smart-contracts/pull/37) (`docs/hedera-trace-cap.md` and
@@ -390,11 +354,18 @@ made up a third of the measured trace. Some Ethereum tracers omit them by defaul
 `trace_*`, Geth's `flatCallTracer`). Rejected for now because the mirror node's `debug_traceTransaction` returns
 Geth `callTracer` output, which includes precompile calls, and because excluding bytes from the count while still
 writing them breaks the limit's purpose. Listed as an open issue: a compact encoding for standard precompile
-actions (input hash plus length) could be added the same way as Part C if consumers agree.
+actions (input hash plus length) could be part of the follow-up HIP on trace compaction if consumers agree.
 
-**Deduplicate any identical byte strings across frames.** More general than Part C, but it needs a content-addressed
-table in `EvmTraceData` and makes every consumer resolve references. Part C covers the common proxy and router case
-with a single flag.
+**Record forwarded call data once (deferred to a follow-up HIP).** In the measured case, 67,364 bytes are
+recorded twice only because a router `DELEGATECALL`s its logic module with the same call data, and proxies
+(ERC-1967, beacon, diamond) do the same for every call. An opt-in, block-stream-only `ContractAction` flag meaning
+"input identical to the parent frame's input" would keep the trace lossless and reduce the trace and the stream.
+It is left out of this HIP because it is a separate idea that changes the stream format and has to be coordinated
+with mirror node, block node and other consumers, and because it would not have rescued the measured transaction
+on its own (it removes 67,364 of 301,836 raw bytes). The author intends to propose it separately.
+
+**Deduplicate any identical byte strings across frames.** More general than the forwarded-input flag above, but it
+needs a content-addressed table in `EvmTraceData` and makes every consumer resolve references.
 
 **Raise the default limit.** It would hide the problem for some transactions while increasing worst-case stream
 and consumer load. The right value is an operational decision for each network; this HIP keeps it.
@@ -410,9 +381,8 @@ and consumer load. The right value is an operational decision for each network; 
    not have to read file `0.0.121`?
 3. Should the trace size of successful transactions be reported (for example a `trace_data_bytes` field in contract
    results), so that developers can see how close a working call is to the limit?
-4. Should Part C also apply to output identical to a child's output (a proxy returning its logic module's return
-   data unchanged)? It is the same pattern in reverse and saves the same bytes.
-5. Is a compact encoding for standard precompile actions worth a follow-up HIP (see Rejected Ideas)?
+4. Should the follow-up HIP on trace compaction (forwarded input, identical output, standard precompile actions)
+   be one HIP or several?
 
 ## References
 
@@ -433,8 +403,8 @@ and consumer load. The right value is an operational decision for each network; 
 - hiero-mirror-node v0.164.0:
   [`EvmProperties`](https://github.com/hiero-ledger/hiero-mirror-node/blob/v0.164.0/web3/src/main/java/org/hiero/mirror/web3/evm/properties/EvmProperties.java)
 - [hiero-json-rpc-relay#5694](https://github.com/hiero-ledger/hiero-json-rpc-relay/issues/5694)
-- HIPs: [HIP-435](https://hips.hedera.com/hip/hip-435), [HIP-513](https://hips.hedera.com/hip/hip-513), [HIP-801](https://hips.hedera.com/hip/hip-801),
-  [HIP-1056](https://hips.hedera.com/hip/hip-1056), [HIP-1193](https://hips.hedera.com/hip/hip-1193),
+- HIPs: [HIP-435](./hip-435.md), [HIP-513](./hip-513.md), [HIP-801](./hip-801.md),
+  [HIP-1056](./hip-1056.md), [HIP-1193](./hip-1193.md),
   [HIP-1485 (open)](https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1485)
 - Measurements: [CLPRouter](https://github.com/ColdAI-org/clprouter) on Hedera testnet; method and tool in
   [LFDT-CLPR/clpr-smart-contracts#37](https://github.com/LFDT-CLPR/clpr-smart-contracts/pull/37)
