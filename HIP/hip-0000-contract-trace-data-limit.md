@@ -3,7 +3,7 @@ hip: 0000
 title: Explicit Status and Pre-flight Parity for the Contract Trace Data Size Limit
 author: Shayan Salehi (@shayansal)
 requested-by: Shayan Salehi (ColdAI)
-discussions-to: <URL of the GitHub Pull Request for this HIP>
+discussions-to: https://github.com/hiero-ledger/hiero-improvement-proposals/pull/1560
 type: Standards Track
 category: Service
 needs-hiero-approval: Yes
