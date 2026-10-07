@@ -14,6 +14,7 @@ import java from 'highlight.js/lib/languages/java';
 import protobuf from 'highlight.js/lib/languages/protobuf';
 import plaintext from 'highlight.js/lib/languages/plaintext';
 import { renderMermaidCode } from './markdown.js';
+import { editPreviewHtml, githubEditorUrl, githubConnectMode } from './edit-flow.js';
 /* hljs theme is custom — defined in style.css */
 import './style.css';
 
@@ -842,6 +843,10 @@ function openEditModal(hip) {
   const sourceLabel = source.kind === 'pull_request'
     ? prSourceLabel(source, hip)
     : `${source.path} on main`;
+  const connectMode = githubConnectMode({
+    tokenProvider: window.HIPS_GITHUB_TOKEN_PROVIDER,
+    authStartUrl: getGitHubAuthStartUrl(),
+  });
 
   const overlay = document.createElement('div');
   overlay.className = 'edit-modal-overlay';
@@ -878,16 +883,7 @@ function openEditModal(hip) {
         </div>
       </div>
 
-      <div class="edit-submit">
-        <div class="edit-submit-copy">
-          <strong>Submit through GitHub</strong>
-          <span>Your edit is committed to a branch in your fork, then opened as a pull request.</span>
-        </div>
-        <button type="button" class="edit-submit-btn" id="edit-submit-pr">Connect GitHub &amp; Submit PR</button>
-      </div>
-      <div id="edit-status" class="edit-status">
-        GitHub connection is only used for this browser session.
-      </div>
+${editSubmitPanelHtml(connectMode, directUrl)}
     </div>
   `);
 
@@ -931,14 +927,16 @@ function openEditModal(hip) {
       source.details = details;
       const url = directEditorUrl(source, details);
       direct.href = url;
+      overlay.querySelector('#edit-submit-github')?.setAttribute('href', url);
       direct.textContent = details.headBranch ? 'Open PR Branch' : 'Open PR Files';
       overlay.querySelector('#edit-source-label').textContent = prSourceLabel(source, hip, details);
     });
   }
 
   overlay.querySelector('#edit-copy').addEventListener('click', async e => {
+    const button = e.currentTarget; // null after the await below
     await copyToClipboard(textarea.value);
-    flashButton(e.currentTarget, 'Copied');
+    flashButton(button, 'Copied');
   });
 
   overlay.querySelector('#edit-download').addEventListener('click', () => {
@@ -950,10 +948,20 @@ function openEditModal(hip) {
     URL.revokeObjectURL(a.href);
   });
 
-  overlay.querySelector('#edit-submit-pr').addEventListener('click', async () => {
+  overlay.querySelector('#edit-submit-pr')?.addEventListener('click', async () => {
     const token = await getGitHubToken(status);
     if (!token) return;
     await submitEditPr({ hip, source, raw: textarea.value, token, status });
+  });
+
+  overlay.querySelector('#edit-submit-github')?.addEventListener('click', async () => {
+    setEditStatusText(status, 'Copying markdown and opening GitHub...', 'busy');
+    await copyToClipboard(textarea.value);
+    setEditStatusText(
+      status,
+      'Markdown copied. In the GitHub tab, select all, paste over the file, then choose Commit changes and Propose changes to open your pull request.',
+      'ok'
+    );
   });
 }
 
@@ -972,25 +980,57 @@ function sourceRawFallback(hip) {
   return `---\nhip: ${hip.hip}\ntitle: ${hip.title || ''}\nauthor: ${hip.author || ''}\ntype: ${hip.type || ''}\ncategory: ${hip.category || ''}\nstatus: ${hip.status || ''}\ncreated: ${hip.created || today}\nupdated: ${hip.updated || today}\n---\n\n${hipBodies.get(String(hip.hip)) || ''}`;
 }
 
-function renderEditPreview(raw, target) {
-  const bodyMatch = raw.match(/^---[\s\S]*?---\r?\n\r?\n?([\s\S]*)$/);
-  const body = bodyMatch ? bodyMatch[1] : raw;
-  let rendered = marked.parse(body || '');
-  rendered = rendered.replace(/<!--DIAGRAM:STANDARDS_TRACK-->/g, DIAGRAM_STANDARDS_TRACK);
-  rendered = rendered.replace(/<!--DIAGRAM:IPA-->/g, DIAGRAM_IPA);
+async function renderEditPreview(raw, target) {
+  let rendered = '';
+  try {
+    rendered = editPreviewHtml(raw);
+  } catch (e) {
+    console.error('HIP preview failed', e);
+    safeHTML(target, '<p style="color:var(--fg-muted)">Preview unavailable for this markdown.</p>');
+    return;
+  }
+
   safeHTML(target, rendered || '<p style="color:var(--fg-muted)">Nothing to preview yet.</p>');
   applyRainbowIndent(target);
+
+  const mermaidEls = target.querySelectorAll('.mermaid');
+  if (mermaidEls.length) {
+    try {
+      await mermaid.run({ nodes: mermaidEls });
+    } catch { /* keep the editor usable even if a diagram cannot render */ }
+  }
 }
 
 function directEditorUrl(source, details = null) {
-  const path = encodePath(source.path || '');
-  if (source.kind === 'pull_request') {
-    if (details?.headOwner && details?.headRepo && details?.headBranch) {
-      return `https://github.com/${details.headOwner}/${details.headRepo}/edit/${encodeURIComponent(details.headBranch)}/${path}`;
-    }
-    return source.prUrl || `https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${source.prNumber || ''}/files`;
+  return githubEditorUrl(source, details, { owner: REPO_OWNER, repo: REPO_NAME });
+}
+
+function editSubmitPanelHtml(connectMode, directUrl) {
+  if (connectMode === 'none') {
+    return `
+      <div class="edit-submit">
+        <div class="edit-submit-copy">
+          <strong>Propose on GitHub</strong>
+          <span>Copies your markdown and opens this file in GitHub's editor. Paste over the file contents, then choose Propose changes to open a pull request from your fork.</span>
+        </div>
+        <a class="edit-submit-btn" id="edit-submit-github" href="${esc(directUrl)}" target="_blank" rel="noopener">Copy &amp; Open GitHub Editor</a>
+      </div>
+      <div id="edit-status" class="edit-status">
+        One-click submission is not enabled on this site yet, so GitHub's web editor opens in a new tab.
+      </div>`;
   }
-  return `https://github.com/${source.owner}/${source.repo}/edit/${encodeURIComponent(source.branch || 'main')}/${path}`;
+
+  return `
+      <div class="edit-submit">
+        <div class="edit-submit-copy">
+          <strong>Submit through GitHub</strong>
+          <span>Your edit is committed to a branch in your fork, then opened as a pull request.</span>
+        </div>
+        <button type="button" class="edit-submit-btn" id="edit-submit-pr">Connect GitHub &amp; Submit PR</button>
+      </div>
+      <div id="edit-status" class="edit-status">
+        GitHub connection is only used for this browser session.
+      </div>`;
 }
 
 async function resolveEditTarget(source) {
