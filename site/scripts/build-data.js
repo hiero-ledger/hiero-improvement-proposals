@@ -44,6 +44,7 @@ const files = fs.readdirSync(HIP_DIR).filter(f => f.endsWith('.md'));
 const hips = [];
 const hipBodies = new Map();
 const hipDocuments = new Map();
+const hipSources = new Map();
 const mergedHipNumbers = new Set();
 
 for (const file of files) {
@@ -68,6 +69,14 @@ for (const file of files) {
       ref: sourceRef,
       url: `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${sourceRef}/${sourcePath}`,
     },
+  });
+  hipSources.set(String(hipNumber), {
+    kind: 'main',
+    owner: REPO_OWNER,
+    repo: REPO_NAME,
+    branch: 'main',
+    path: sourcePath,
+    raw,
   });
 }
 
@@ -163,7 +172,11 @@ async function fetchDraftHips() {
         'discussions-to': parsed.data['discussions-to'] || pr.url || '',
       };
 
-      const hip = extractHip(data, parsed.content, { prNumber: pr.number });
+      const hip = extractHip(data, parsed.content, {
+        prNumber: pr.number,
+        sourceKind: 'pull_request',
+        sourcePath: filePath,
+      });
       const rawBase = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${pr.headRefOid}`;
       const availableAssets = new Set(
         (pr.files?.edges || [])
@@ -185,6 +198,23 @@ async function fetchDraftHips() {
           author: pr.author?.login || '',
           url: pr.url,
         },
+      });
+      hipSources.set(String(hipNum), {
+        kind: 'pull_request',
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: filePath,
+        prNumber: pr.number,
+        prUrl: pr.url,
+        headSha: pr.headRefOid,
+        headBranch: pr.headRefName || '',
+        headOwner: pr.headRepository?.owner?.login || REPO_OWNER,
+        headRepo: pr.headRepository?.name || REPO_NAME,
+        baseBranch: pr.baseRefName || 'main',
+        baseOwner: pr.baseRepository?.owner?.login || REPO_OWNER,
+        baseRepo: pr.baseRepository?.name || REPO_NAME,
+        maintainerCanModify: Boolean(pr.maintainerCanModify),
+        raw,
       });
       fetched++;
       console.log(`  PR-${pr.number}: fetched HIP-${hipNum} "${data.title}"`);
@@ -415,6 +445,7 @@ async function main() {
   const buildHash = crypto.randomBytes(6).toString('hex');
   fs.writeFileSync(path.join(OUT_DIR, `hips.${buildHash}.json`), JSON.stringify(hips, null, 2));
   fs.writeFileSync(path.join(OUT_DIR, `hip-bodies.${buildHash}.json`), JSON.stringify(Object.fromEntries(hipBodies)));
+  fs.writeFileSync(path.join(OUT_DIR, `hip-sources.${buildHash}.json`), JSON.stringify(Object.fromEntries(hipSources)));
   fs.writeFileSync(path.join(OUT_DIR, `discussions.${buildHash}.json`), JSON.stringify(discussions));
   fs.writeFileSync(path.join(OUT_DIR, `pr-reviews.${buildHash}.json`), JSON.stringify(prReviews));
   fs.writeFileSync(path.join(OUT_DIR, 'manifest.json'), JSON.stringify({ buildHash }));

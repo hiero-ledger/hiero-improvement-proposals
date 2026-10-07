@@ -18,7 +18,22 @@ const OPEN_PULL_REQUESTS_QUERY = `
           title
           number
           url
+          baseRefName
           headRefOid
+          headRefName
+          headRepository {
+            name
+            owner {
+              login
+            }
+          }
+          baseRepository {
+            name
+            owner {
+              login
+            }
+          }
+          maintainerCanModify
           files(first: 100) {
             edges {
               node {
