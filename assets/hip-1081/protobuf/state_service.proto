@@ -71,6 +71,21 @@ message StateSnapshotResponse {
          * `snapshot_reference` field for the duration specified.
          */
         SUCCESS = 1;
+
+        /**
+         * The request cannot be fulfilled.<br/>
+         * The client sent a malformed or structurally incorrect request.
+         * <p>
+         * The client MAY retry the request after correcting the form and
+         * structure.
+         */
+        INVALID_REQUEST = 2;
+
+        /**
+         * The Block-Node had an error and cannot continue processing.<br/>
+         * The Publisher may retry again later.
+         */
+        ERROR = 3;
     }
 
     /**

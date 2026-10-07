@@ -21,7 +21,7 @@ Maintainers are assigned the following scopes in this repository:
 | Serg Metelin    | sergmetelin    | Maintainer |      |                   |       | Hashgraph           |
 | Michael Garber  | mgarbs         | Maintainer |      | michael_garber_87 |       | Hashgraph           |
 | Raphael Messian | RaphaelMessian | Maintainer |      |                   |       | Hashgraph           |
-
+| Keith Kowal     | Reccetech      | Maintainer |      |                   |       | Hashgraph           |
 
 ## Emeritus Maintainers
 
