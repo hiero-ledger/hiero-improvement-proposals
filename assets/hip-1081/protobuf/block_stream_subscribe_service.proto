@@ -102,13 +102,28 @@ message SubscribeStreamResponse {
         SUCCESS = 1;
 
         /**
+         * The request cannot be fulfilled.<br/>
+         * The client sent a malformed or structurally incorrect request.
+         * <p>
+         * The client MAY retry the request after correcting the form and
+         * structure.
+         */
+        INVALID_REQUEST = 2;
+
+        /**
+         * The Block-Node had an error and cannot continue processing.<br/>
+         * The Subscriber may retry again later.
+         */
+        ERROR = 3;
+
+        /**
          * The requested start block number is not valid.<br/>
          * The start block number is after the end block number, less
          * than `0`, or otherwise invalid.<br/>
          * The client MAY retry this request, but MUST change the
          * `start_block_number` field to a valid start block.
          */
-        INVALID_START_BLOCK_NUMBER = 2;
+        INVALID_START_BLOCK_NUMBER = 4;
 
         /**
          * The requested end block number is not valid.<br/>
@@ -117,13 +132,13 @@ message SubscribeStreamResponse {
          * The client MAY retry this request, but MUST change the
          * `end_block_number` field to a valid end block.
          */
-        INVALID_END_BLOCK_NUMBER = 3;
+        INVALID_END_BLOCK_NUMBER = 5;
 
         /**
          * The requested stream is not available.<br/>
          * The client MAY retry again later.
          */
-        NOT_AVAILABLE = 4;
+        NOT_AVAILABLE = 6;
     }
 
     oneof response {
@@ -141,6 +156,16 @@ message SubscribeStreamResponse {
          * followed by a single `status` message.
          */
         BlockItemSet block_items = 2;
+
+        /**
+         * A message indicating the end of a block.
+         * <p>
+         * This message SHALL be sent exactly once for each block.
+         * The next message after a `BlockEnd` SHALL be either a
+         * status message to indicate the stream is closed, or a
+         * `BlockItemSet` message starting with a `BlockHeader`.
+         */
+        BlockEnd end_of_block = 3;
     }
 }
 
