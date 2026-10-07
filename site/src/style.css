@@ -822,6 +822,12 @@ main {
   cursor: pointer;
 }
 .edit-submit-btn:hover { filter: brightness(1.05); }
+a.edit-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
 .edit-status {
   padding: .65rem 1.25rem;
   border-top: 1px solid var(--border-lt);
