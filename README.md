@@ -108,6 +108,10 @@ or on [LFDT's Discord Server](https://discord.com/channels/905194001349627914/12
 there you can start formalizing the language around your HIP and ensuring it has broad
 community support.
 
+## Code of Conduct
+
+Hiero uses the Linux Foundation Decentralised Trust [Code of Conduct](https://www.lfdecentralizedtrust.org/code-of-conduct).
+
 ## Disclaimer(s):
 These proposals and discussions have no effect regarding private (permissioned)
 implementations of the Hashgraph consensus algorithm; additionally, this
