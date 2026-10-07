@@ -21,12 +21,11 @@ syntax = "proto3";
 package com.hedera.hapi.block.stream;
 
 // SPDX-License-Identifier: Apache-2.0
-
 option java_package = "com.hedera.hapi.block.stream.protoc";
 // <<<pbj.java_package = "com.hedera.hapi.block.stream">>> This comment is special code for setting PBJ Compiler java package
 option java_multiple_files = true;
 
-import "stream/block_item.proto";
+import "block/stream/block_item.proto";
 
 /**
  * A single complete Hedera block chain block.

@@ -20,10 +20,7 @@ option java_package = "com.hedera.hapi.block.stream.trace.protoc";
 option java_multiple_files = true;
 
 import "services/basic_types.proto";
-import "services/contract_types.proto";
-import "streams/sidecar_file.proto";
 import "streams/contract_action.proto";
-import "google/protobuf/wrappers.proto";
 
 /**
  * Usage of a contract's storage slots in an EVM transaction.<br/>
@@ -175,38 +172,37 @@ message EvmTransactionLog {
 
 /**
  * EVM trace data, including:
- * 1. Initcode used for any internal contract creations.
- * 2. Contract actions executed during the transaction (i.e., the call trace)
- * 3. Contract slot usages, including reads and writes.
- * 4. Events logged during the transaction.
- * 5. Full error message, if any, produced by the contract call.
+ * 1. Contract actions executed during the transaction (i.e., the call trace)
+ * 2. Contract slot usages, including reads and writes.
+ * 3. Full error message, if any, produced by the contract call.
+ * 4. Initcode used for any internal contract creations.
+ * 5. Events logged during the transaction.
  */
 message EvmTraceData {
     /**
-     * The initcode executed for an internal contract creation.
-     */
-    ExecutedInitcode executed_initcode = 1;
-
-    /**
      * All contract actions executed during the transaction.
      */
-    repeated proto.ContractAction contract_actions = 2;
+    repeated proto.ContractAction contract_actions = 1;
 
     /**
      * Contract slot usages in the transaction, by contract id.
      */
-    repeated ContractSlotUsage contract_slot_usages = 3;
-
-    /**
-     * Log events produced during the transaction, by contract id.
-     */
-    repeated EvmTransactionLog logs = 4;
+    repeated ContractSlotUsage contract_slot_usages = 2;
 
     /**
      * Additional details of any error message in the EVM transaction result.
      * <p>
      * This SHALL be unset if the contract call succeeded.
      */
-    string error_details = 5;
-}
+    string error_details = 3;
 
+    /**
+     * The initcode executed for an internal contract creation.
+     */
+    ExecutedInitcode executed_initcode = 4;
+
+    /**
+     * Log events produced during the transaction, by contract id.
+     */
+    repeated EvmTransactionLog logs = 5;
+}

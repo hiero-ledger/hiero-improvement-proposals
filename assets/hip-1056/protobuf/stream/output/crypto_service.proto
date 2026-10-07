@@ -19,12 +19,11 @@ syntax = "proto3";
 package com.hedera.hapi.block.stream.output;
 
 // SPDX-License-Identifier: Apache-2.0
-
 option java_package = "com.hedera.hapi.block.stream.output.protoc";
 // <<<pbj.java_package = "com.hedera.hapi.block.stream.output">>> This comment is special code for setting PBJ Compiler java package
 option java_multiple_files = true;
 
-import "custom_fees.proto";
+import "services/basic_types.proto";
 
 /**
  * Block Stream data for a `approveAllowances` transaction.
@@ -77,7 +76,7 @@ message DeleteAccountOutput {}
  * This message SHALL NOT duplicate information already contained in
  * the original transaction.
  */
-message CryptoTransferOutput { }
+message CryptoTransferOutput {}
 
 /**
  * Block Stream data for a `updateAccount` transaction.
