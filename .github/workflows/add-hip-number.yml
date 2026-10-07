@@ -13,8 +13,13 @@ permissions:
 
 jobs:
   assign-hip-number:
+    # Repository secrets (GH_ACCESS_TOKEN, GPG_KEY_*) are not exposed to runs
+    # triggered from forks or by Dependabot, so the job would fail at checkout.
+    # Skip it there (neutral "skipped" check); a HIP editor assigns the number
+    # for fork PRs instead, as HIP-1 describes.
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
     runs-on: hiero-improvement-proposals-linux-medium
-    continue-on-error: true  # Silently fail - don't show red X on PRs
+    continue-on-error: true  # Keeps the workflow run green; the job's own check still reports its real result
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -137,12 +142,12 @@ jobs:
           fi
 
           git commit -sSm "Assigning HIP $PR_NUMBER and renaming file to hip-$PR_NUMBER.md" || {
-            echo "Commit failed. This may be expected for PRs from forks."
+            echo "Commit failed. Check the GPG import step and the commit output above."
             exit 0
           }
 
           git push origin "HEAD:$HEAD_REF" || {
-            echo "Push failed. This is expected for PRs from forks without write access."
+            echo "Push failed. GH_ACCESS_TOKEN may lack push rights to the branch, or the branch is protected."
             echo "The PR author will need to manually update their branch."
             exit 0
           }
