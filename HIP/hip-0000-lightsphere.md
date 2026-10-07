@@ -246,13 +246,17 @@ The digest that is signed is the standard EIP-712 digest
 #### Signature verification
 
 A state is **fully signed** when it carries exactly one signature from each
-participant, in participant order. The anchor contract MUST verify each
-signature by calling
+participant, in participant order. The anchor contract MUST accept a signature
+exactly when
 `IHederaAccountService(HAS_ADDRESS).isAuthorizedRaw(participant, digest, sig)`
-and MUST reject the state unless every call returns `true`. Per HIP-632, a
-65-byte signature is checked as ECDSA(secp256k1), and a 64-byte signature as
-ED25519 against the account's single ED25519 key. The anchor contract MUST
-reject ECDSA signatures with an `s` value in the upper half of the curve order.
+would return `true`, and MUST reject the state unless every signature is
+accepted. Per HIP-632, a 65-byte signature is checked as ECDSA(secp256k1), and a
+64-byte signature as ED25519 against the account's single ED25519 key. To save
+gas, the anchor MAY first try `ecrecover` on a 65-byte signature and accept it
+if the result equals the participant's EVM address alias. It MUST fall back to
+`isAuthorizedRaw` otherwise, which covers ED25519 keys and long-zero account
+aliases. The anchor contract MUST reject ECDSA signatures with an `s` value in
+the upper half of the curve order.
 
 Participants whose accounts have threshold or key-list keys cannot use
 `isAuthorizedRaw`. They SHOULD open spheres from a single-key account. Support
@@ -341,13 +345,15 @@ and the anchor contract are the two CLPR applications on that Channel.
 ```solidity
 struct NetworkConfig {
     string  sphereLedgerId;     // CAIP-2 identifier of the sphere network, as configured in CLPR
-    bytes   channelId;          // CLPR Channel between the anchor ledger and the sphere network
+    bytes32 channelId;          // CLPR Channel between the anchor ledger and the sphere network
+    bytes32 connectorId;        // CLPR Connector that pays for the anchor's outbound messages
     address gateway;            // Gateway contract address on the sphere network
     uint64  checkpointInterval; // seconds between checkpoints the gateway MUST emit
     uint64  haltTimeout;        // seconds without any message before the sphere may be declared halted
 }
 ```
 
+`channelId` and `connectorId` use the 32-byte form of the EVM CLPR Service.
 `haltTimeout` MUST be at least three times `checkpointInterval`, and SHOULD be
 long enough to cover planned maintenance on the sphere network and CLPR
 endpoints (days rather than hours on public anchors).
@@ -361,37 +367,60 @@ All network-mode payloads are ABI-encoded as
 | `msgType` | Name        | Direction        | `body`                                                                         |
 |-----------|-------------|------------------|--------------------------------------------------------------------------------|
 | 1         | DEPOSIT     | anchor -> sphere | `abi.encode(uint64 depositId, address asset, uint256 amount, address recipient)` |
-| 2         | WITHDRAW    | sphere -> anchor | `abi.encode(uint64 withdrawalId, uint64 sphereEpoch, address asset, uint256 amount, address recipient)` |
-| 3         | CHECKPOINT  | sphere -> anchor | `abi.encode(uint64 sphereEpoch, bytes32 balancesRoot)`                          |
+| 2         | WITHDRAW    | sphere -> anchor | `abi.encode(uint64 withdrawalId, uint64 sphereEpoch, address account, address asset, uint256 amount, address recipient)` |
+| 3         | CHECKPOINT  | sphere -> anchor | `abi.encode(uint64 sphereEpoch, bytes32 balancesRoot, uint64 lastAppliedDepositId)` |
 
 - **Deposit.** A user calls `depositToSphere(sphereId, asset, amount, recipient)`
-  on the anchor contract. The anchor escrows the asset, increments
-  `netDeposited[sphereId][recipient][asset]`, and sends a DEPOSIT. The gateway credits
-  `recipient` on the sphere network with a sphere-local representation of the
-  asset. If the CLPR Response reports failure, the anchor contract MUST
-  credit the depositor's `claimable` balance and decrement `netDeposited` by the
-  same amount.
-- **Withdraw.** A user burns their sphere-local balance through the gateway,
-  which sends a WITHDRAW. The anchor contract credits
-  `claimable[recipient][asset]` and increments `withdrawn[sphereId][recipient][asset]`.
+  on the anchor contract. The anchor escrows the asset, assigns the next
+  `depositId` for the sphere, increments `netDeposited[sphereId][recipient][asset]`,
+  and sends a DEPOSIT. The gateway credits `recipient` on the sphere network with
+  a sphere-local representation of the asset. When the CLPR Response arrives:
+  - on success, the anchor records the first successful `depositId` for
+    `(sphereId, recipient, asset)` if none is recorded yet;
+  - on failure, the anchor MUST credit the depositor's `claimable` balance and
+    decrement `netDeposited` by the same amount.
+- **Withdraw.** `account` burns its sphere-local balance through the gateway,
+  which sends a WITHDRAW naming `account` and the anchor-ledger `recipient`, and
+  tagged with the current `sphereEpoch`. The anchor records it as pending and
+  MUST NOT pay it yet. Once a CHECKPOINT with `sphereEpoch` greater than or
+  equal to the withdrawal's epoch has been accepted, anyone MAY call
+  `releaseWithdrawal(sphereId, withdrawalId)`. The anchor then credits
+  `claimable[recipient][asset]` and increments
+  `withdrawn[sphereId][account][asset]`. The withdrawal is counted against
+  `account`, the sphere account whose leaf records the burn, and not against
+  `recipient`. If the anchor rejects a WITHDRAW, the gateway MUST credit the
+  balance back and decrement the account's `cumulativeWithdrawalsInitiated`.
 - **Checkpoint.** At least every `checkpointInterval`, the gateway sends a
-  CHECKPOINT. `sphereEpoch` MUST increase strictly from one checkpoint to the
-  next. `balancesRoot` is the root of a Merkle tree, with sorted-pair hashing,
-  whose leaves are:
+  CHECKPOINT for the current epoch and then starts the next one. `sphereEpoch`
+  MUST increase strictly from one checkpoint to the next. `lastAppliedDepositId`
+  is the highest `depositId` the gateway has applied. `balancesRoot` is the
+  root of a Merkle tree, with sorted-pair hashing, whose leaves are:
 
   ```
   leaf = keccak256(bytes.concat(keccak256(abi.encode(
       address account,
       address asset,
-      uint256 balance,                 // sphere-local balance at the end of sphereEpoch
+      uint256 balance,                       // sphere-local balance at the end of sphereEpoch
       uint256 cumulativeDepositsApplied,     // total DEPOSIT amount credited to account on the sphere
       uint256 cumulativeWithdrawalsInitiated // total WITHDRAW amount burned by account on the sphere
   ))));
   ```
 
+Holding withdrawals until a covering checkpoint is what keeps the halt exit
+safe. Without it, Alice could transfer funds to Bob on the sphere after a
+checkpoint, Bob could withdraw them, and Alice could still exit with the
+checkpointed balance, so the anchor would pay the same funds twice. The cost is
+that a withdrawal takes up to one `checkpointInterval` longer.
+
 The anchor contract MUST accept network-mode messages only when the local
 CLPR Service delivers them on the configured Channel and they originate from
-the configured gateway. Every received message refreshes `lastHeardAt`.
+the configured gateway. Every accepted message refreshes `lastHeardAt`.
+The anchor's `onClprResponse` MUST NOT revert, because the CLPR Service delivers
+Responses best-effort, and a dropped Response would lose a refund.
+
+The anchor contract MUST track the assets it holds for each sphere and MUST NOT
+pay out more for a sphere than that sphere's escrow. This limits a faulty or
+malicious sphere network to the funds deposited into it.
 
 #### Halt and exit
 
@@ -400,28 +429,44 @@ If `block.timestamp > lastHeardAt + haltTimeout`, anyone MAY call
 
 1. The anchor contract MUST reject every later WITHDRAW and CHECKPOINT for that
    sphere, including messages that were proven before the halt but arrive
-   afterwards. It MUST reject new `depositToSphere` calls, and MUST ignore CLPR
-   Responses to DEPOSIT messages sent before the halt (those deposits are
-   settled by the exit formula instead).
-2. Each account MAY call
+   afterwards. It MUST reject new `depositToSphere` and `releaseWithdrawal`
+   calls, and MUST ignore CLPR Responses to DEPOSIT messages sent before the
+   halt. The exit formula settles all of these.
+2. An account with a leaf in the last accepted checkpoint MAY call
    `exit(sphereId, asset, balance, cumDepositsApplied, cumWithdrawalsInitiated, proof)`
-   once per asset, with a Merkle proof against the last accepted `balancesRoot`.
+   once per asset, with a Merkle proof against that checkpoint's `balancesRoot`.
    `msg.sender` MUST equal the leaf's `account`. The anchor credits:
 
    ```
    exitAmount = balance
               + (netDeposited[sphereId][account][asset] - cumDepositsApplied)
-              - (withdrawn[sphereId][account][asset]    - cumWithdrawalsInitiated)
+              + (cumWithdrawalsInitiated - withdrawn[sphereId][account][asset])
    ```
 
-   with signed arithmetic, and floored at zero.
+   The first adjustment adds back deposits the sphere had not applied by the
+   checkpoint. The second adds back withdrawals that were burned by the
+   checkpoint but never released on the anchor. With an honest sphere, both
+   terms are non-negative. The anchor MUST still floor the result at zero.
+3. An account without a leaf MAY call `exitWithoutLeaf(sphereId, asset)` once
+   per asset, and is credited
+   `netDeposited[sphereId][account][asset] - withdrawn[sphereId][account][asset]`,
+   floored at zero. This is allowed only if no checkpoint was accepted, or if
+   the account's first successful `depositId` for the asset is zero or greater
+   than the checkpoint's `lastAppliedDepositId`. Under that condition the
+   result is never more than the leaf-based amount, so claiming it without a
+   proof cannot overpay. The condition is decidable because CLPR returns
+   Responses in the same ordered queue as the sphere's own messages: by the time
+   a CHECKPOINT arrives, the anchor has seen the Response for every deposit up
+   to its `lastAppliedDepositId`.
 
-The two adjustments reconcile the checkpoint with what happened on the anchor
-afterwards. Deposits the sphere had not yet applied at the checkpoint are added
-back. Withdrawals credited on the anchor after the checkpoint are subtracted.
-Withdrawals that the sphere had burned but that never reached the anchor (and
-are now rejected by rule 1) give a negative second term, which correctly adds
-them back.
+With an honest sphere network, the total paid out (refunds, released
+withdrawals, and exits) equals the total deposited, whatever messages are in
+flight at the halt. The reference implementation checks this property with
+stateful fuzzing that randomly interleaves deposits, failed deliveries,
+transfers, withdrawals, checkpoints, and relays in both directions.
+
+After a halt, sphere-local balances can no longer be redeemed on the anchor.
+The exit is the only way to recover funds.
 
 #### Anchor contract interface (network mode additions)
 
@@ -429,12 +474,14 @@ them back.
 interface ILightsphereNetworkAnchor is ILightsphereAnchor {
     event DepositSent(bytes32 indexed sphereId, uint64 depositId, address indexed recipient, address asset, uint256 amount);
     event DepositRefunded(bytes32 indexed sphereId, uint64 depositId);
-    event WithdrawalCredited(bytes32 indexed sphereId, uint64 withdrawalId, address indexed recipient, address asset, uint256 amount);
-    event CheckpointAccepted(bytes32 indexed sphereId, uint64 sphereEpoch, bytes32 balancesRoot);
+    event WithdrawalReceived(bytes32 indexed sphereId, uint64 withdrawalId, uint64 sphereEpoch, address indexed account, address indexed recipient, address asset, uint256 amount);
+    event WithdrawalReleased(bytes32 indexed sphereId, uint64 withdrawalId);
+    event CheckpointAccepted(bytes32 indexed sphereId, uint64 sphereEpoch, bytes32 balancesRoot, uint64 lastAppliedDepositId);
     event SphereHalted(bytes32 indexed sphereId, uint64 lastSphereEpoch);
     event Exited(bytes32 indexed sphereId, address indexed account, address indexed asset, uint256 amount);
 
     function depositToSphere(bytes32 sphereId, address asset, uint256 amount, address recipient) external payable;
+    function releaseWithdrawal(bytes32 sphereId, uint64 withdrawalId) external;
     function declareHalt(bytes32 sphereId) external;
     function exit(
         bytes32 sphereId,
@@ -444,6 +491,7 @@ interface ILightsphereNetworkAnchor is ILightsphereAnchor {
         uint256 cumWithdrawalsInitiated,
         bytes32[] calldata proof
     ) external;
+    function exitWithoutLeaf(bytes32 sphereId, address asset) external;
 }
 ```
 
@@ -536,6 +584,15 @@ sphere. Anyone can call `open`, including with a malicious gateway, so wallets
 MUST show users the `networkConfig` that a `sphereId` commits to before they
 deposit, and SHOULD keep an allow-list of known sphere networks.
 
+**Data availability in network mode.** An exit needs the account's leaf and
+Merkle proof for the last accepted checkpoint, and if the sphere network
+disappears, it cannot provide them. The gateway MUST emit an event for every
+leaf change, so that the tree for any checkpoint can be rebuilt from the
+sphere network's records. Wallets SHOULD fetch and keep their proof after every
+checkpoint, and sphere operators SHOULD publish each checkpoint's full tree
+somewhere that does not depend on the sphere network. An account that has lost
+its proof can still use `exitWithoutLeaf` where the rule above allows it.
+
 **Confidentiality.** CLPR payloads, and therefore DEPOSIT, WITHDRAW, and
 CHECKPOINT messages, are stored in plaintext on both ledgers. A private sphere
 network that settles to a public anchor reveals the deposit and withdrawal
@@ -565,16 +622,39 @@ guard on every state-changing function.
 
 ## Reference Implementation
 
-To be provided before this HIP moves past Draft:
+A reference implementation is in progress. It is not yet published, and this
+section will link to it once it is.
 
-- Solidity `LightsphereAnchor` implementing `ILightsphereAnchor` and
-  `ILightsphereNetworkAnchor`, with unit and property tests for fund
-  conservation, dispute ordering, and the exit formula.
-- Solidity `LightsphereGateway` for sphere networks, implemented as a CLPR
-  application.
-- A TypeScript client library for EIP-712 state signing, and a reference
-  watchtower.
-- A load harness that produces throughput reports in the format above.
+- **Contracts (Solidity, Foundry).**
+  - `LightsphereAnchor` implements `ILightsphereAnchor` and
+    `ILightsphereNetworkAnchor`.
+  - `LightsphereGateway` is a CLPR application for sphere networks. It
+    maintains a depth-20 positional Merkle tree, hashed with sorted pairs and
+    updated on every balance change, so sending a checkpoint costs the same
+    however many accounts exist.
+  - Tests use mock HTS (`0x167`), Hedera Account Service (`0x16a`) and
+    two-sided CLPR services. The CLPR mock keeps a single ordered queue for
+    initiating messages and Responses.
+  - A stateful fuzz test checks that, after a halt, payouts equal deposits
+    exactly. It found two bugs in an earlier draft of this specification: the
+    double payout fixed by holding withdrawals for a covering checkpoint, and
+    withdrawals counted against the recipient instead of the burning account.
+- **Measured gas** (local EVM, Cancun):
+  - Cooperative close of a 16-participant sphere: about 214,000 gas.
+  - A sphere-local transfer, updating two leaves: about 114,000 gas.
+- **Go load harness.**
+  - `lsvectors` writes cross-language test vectors. The contracts and the
+    TypeScript library both check against them, and the signatures are
+    byte-identical across Go and viem.
+  - `lsbench` measures throughput by the accounting rule above.
+  - `lsverify` re-checks a report's sampled states.
+- **Throughput.** On one Apple M1 Max (10 cores), two-party ED25519 spheres
+  sustained about 46,000 effective transactions per second over 65 seconds,
+  which is about 4,600 per core. Effective throughput scales with the number
+  of machines, because spheres are independent.
+- **TypeScript client (viem).** Provides EIP-712 signing, sphere IDs, and a
+  watchtower. An end-to-end test on a local chain has the watchtower replace a
+  stale close inside the challenge window.
 
 ## Rejected Ideas
 
