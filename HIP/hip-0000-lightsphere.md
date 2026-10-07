@@ -11,7 +11,6 @@ needs-hedera-review: No
 status: Draft
 created: 2026-10-07
 updated: 2026-10-07
-requires: 632
 ---
 
 ## Abstract
@@ -61,9 +60,9 @@ Hiero networks are a good anchor for channels:
   compared with the value it carries.
 - Finality is deterministic and fast (seconds, with no reorgs), so a
   challenge submitted on time cannot be reorged away.
-- The Hedera Account Service system contract
-  ([HIP-632](hip-632.md)) can verify both ECDSA(secp256k1) and ED25519
-  signatures, so accounts with either key type can participate.
+- Every Hiero account type can take part. Each participant names a plain
+  secp256k1 signing key for the sphere, so accounts with ECDSA, ED25519 or
+  threshold keys all join the same way.
 - CLPR, the Cross-Ledger Protocol from LF Decentralized Trust, already moves
   state-proven messages between Hiero networks. A private Hiero network (for
   example, a HashSphere deployment) can
@@ -175,17 +174,18 @@ described in RFC 2119.
 | `MAX_PARTICIPANTS`         | 16            | Signed mode only                           |
 | `MAX_ASSETS`               | 8             | Per sphere                                 |
 | `MIN_CHALLENGE_PERIOD`     | set at deploy | SHOULD be at least 3,600 seconds on public networks |
-| `HAS_ADDRESS`              | `0x16a`       | Hedera Account Service system contract ([HIP-632](hip-632.md)) |
+| `MAX_CHALLENGE_PERIOD`     | 30 days       | Bounds every unilateral close                       |
 
 ### Sphere identity
 
 ```solidity
 struct SphereParams {
     uint8     mode;             // 0 = SIGNED, 1 = NETWORK
-    address[] participants;     // SIGNED: 2..MAX_PARTICIPANTS, no duplicates. NETWORK: empty.
+    address[] participants;     // SIGNED: 2..MAX_PARTICIPANTS accounts, no duplicates. NETWORK: empty.
+    address[] signers;          // SIGNED: one secp256k1 signing address per participant, no duplicates. NETWORK: empty.
     address[] assets;           // 1..MAX_ASSETS, no duplicates. address(0) = HBAR.
     uint256[] initialDeposits;  // SIGNED: participants.length * assets.length entries. NETWORK: empty.
-    uint64    challengePeriod;  // SIGNED: seconds, >= MIN_CHALLENGE_PERIOD. NETWORK: 0.
+    uint64    challengePeriod;  // SIGNED: seconds, MIN_CHALLENGE_PERIOD..MAX_CHALLENGE_PERIOD. NETWORK: 0.
     uint64    fundingDeadline;  // SIGNED: unix seconds. NETWORK: 0.
     bytes     networkConfig;    // NETWORK: abi.encode(NetworkConfig). SIGNED: empty.
     bytes32   salt;
@@ -210,7 +210,7 @@ stateDiagram-v2
     OPEN --> SETTLED: closeCooperative()
     OPEN --> CLOSING: startClose()
     CLOSING --> CLOSING: checkpoint() with higher version
-    CLOSING --> SETTLED: finalizeClose() after window
+    CLOSING --> SETTLED: closeCooperative(), or finalizeClose() after window
     SETTLED --> [*]
     REFUNDED --> [*]
 ```
@@ -228,6 +228,7 @@ EIP712Domain(string name,string version,uint256 chainId,address verifyingContrac
   verifyingContract = the anchor contract address
 
 SphereState(bytes32 sphereId,uint64 version,uint256[] balances,bytes32 appDataHash,bool isFinal)
+JoinSphere(bytes32 sphereId,address participant)
 ```
 
 - `version` MUST increase by at least one for each new state. Participants MUST
@@ -243,24 +244,35 @@ SphereState(bytes32 sphereId,uint64 version,uint256[] balances,bytes32 appDataHa
 The digest that is signed is the standard EIP-712 digest
 `keccak256(0x1901 || domainSeparator || hashStruct(state))`.
 
-#### Signature verification
+#### Signing keys and signature verification
 
-A state is **fully signed** when it carries exactly one signature from each
-participant, in participant order. The anchor contract MUST accept a signature
-exactly when
-`IHederaAccountService(HAS_ADDRESS).isAuthorizedRaw(participant, digest, sig)`
-would return `true`, and MUST reject the state unless every signature is
-accepted. Per HIP-632, a 65-byte signature is checked as ECDSA(secp256k1), and a
-64-byte signature as ED25519 against the account's single ED25519 key. To save
-gas, the anchor MAY first try `ecrecover` on a 65-byte signature and accept it
-if the result equals the participant's EVM address alias. It MUST fall back to
-`isAuthorizedRaw` otherwise, which covers ED25519 keys and long-zero account
-aliases. The anchor contract MUST reject ECDSA signatures with an `s` value in
-the upper half of the curve order.
+Each participant names a **signing address** in `signers`: a secp256k1 key that
+signs that participant's states. For an ECDSA account it is normally the
+account's own EVM address. An account with an ED25519, threshold or key-list key,
+or one named by its long-zero address, names any secp256k1 key it controls.
+Payouts always go to the participant, never to the signing address.
 
-Participants whose accounts have threshold or key-list keys cannot use
-`isAuthorizedRaw`. They SHOULD open spheres from a single-key account. Support
-for complex keys is an open issue.
+A signature is **valid** for signer `x` over digest `d` exactly when it:
+
+- is 65 bytes, `r || s || v`, with `v` in {0, 1, 27, 28},
+- has an `s` in the lower half of the curve order,
+- satisfies `ecrecover(d, v, r, s) == x` (taking `v` as 27 or 28).
+
+The anchor contract MUST apply exactly this rule and no other. A state is
+**fully signed** when it carries exactly one valid signature from each signer,
+in participant order.
+
+When funding, each participant MUST provide a valid signature by its signer over
+the EIP-712 digest of `JoinSphere(sphereId, participant)`. This proves that every
+signing key can sign before anyone's funds depend on it.
+
+The anchor deliberately does not verify signatures against the participant's
+Hiero account keys with HIP-632 `isAuthorizedRaw`. That function checks an
+account's *current* key, so a participant could rotate their key and make every
+state they had signed unusable. It costs about 1.5 million gas per ED25519
+check, which puts large spheres over the 15 million gas transaction limit. And
+it rejects ECDSA signatures for accounts named by their long-zero address.
+Binding a plain signing key into the sphere ID avoids all three problems.
 
 #### Anchor contract interface (signed mode)
 
@@ -289,15 +301,17 @@ interface ILightsphereAnchor {
     /// assets with HTS custom fees, and an existing sphereId.
     function open(SphereParams calldata params) external returns (bytes32 sphereId);
 
-    /// Caller deposits its full initialDeposits row. HBAR via msg.value; HTS tokens
-    /// via transferFrom against a prior allowance. Participants whose row is all zero count as
-    /// funded at open. Moves to OPEN when every participant has funded.
-    function fund(bytes32 sphereId) external payable;
+    /// Caller (a participant) deposits its full initialDeposits row: HBAR via msg.value, tokens
+    /// via transferFrom against a prior allowance. joinSig is its signer's valid signature over
+    /// JoinSphere(sphereId, caller). Every participant MUST fund, even with a zero row. Moves to
+    /// OPEN when every participant has funded.
+    function fund(bytes32 sphereId, bytes calldata joinSig) external payable;
 
     /// After fundingDeadline, while still FUNDING: credits every deposit back to its depositor.
     function reclaimFunding(bytes32 sphereId) external;
 
-    /// Immediate settlement from a fully signed state with isFinal = true.
+    /// Immediate settlement from a fully signed state with isFinal = true. Accepted in OPEN or
+    /// CLOSING (until finalizeClose), if not older than the recorded state.
     function closeCooperative(SphereState calldata state, bytes[] calldata sigs) external;
 
     /// Records a fully signed state if its version is higher than the stored one.
@@ -305,7 +319,8 @@ interface ILightsphereAnchor {
     function checkpoint(SphereState calldata state, bytes[] calldata sigs) external;
 
     /// Participant-only. Moves OPEN -> CLOSING and sets challengeEndsAt = now + challengePeriod.
-    /// MAY include a fully signed state, which is recorded as in checkpoint().
+    /// MAY include a fully signed state, which is recorded if newer than the recorded one and
+    /// ignored otherwise.
     function startClose(bytes32 sphereId, SphereState calldata state, bytes[] calldata sigs) external;
 
     /// After challengeEndsAt: settles on the highest recorded state, or on initialDeposits if none.
@@ -313,6 +328,9 @@ interface ILightsphereAnchor {
 
     /// Pull payment of everything credited to msg.sender for the given asset.
     function withdraw(address asset) external;
+
+    /// As withdraw, paid to `to` (for example when msg.sender cannot receive HBAR).
+    function withdrawTo(address asset, address to) external;
 
     function status(bytes32 sphereId) external view returns (Status);
     function latestState(bytes32 sphereId) external view returns (uint64 version, bytes32 appDataHash);
@@ -333,8 +351,13 @@ Behavior rules:
 4. The anchor contract MUST be associated with every HTS asset before accepting
    it. It SHOULD associate itself during `open` using the HTS system contract,
    or be deployed with enough automatic association slots.
-5. The anchor contract MUST NOT accept HTS tokens that have custom fees,
-   because a fee charged on the payout transfer would break fund conservation.
+5. The anchor contract MUST NOT accept HTS tokens that have custom fees, because
+   a fee charged on a payout transfer would break fund conservation. Because a
+   token's fee schedule can change after `open`, the anchor MUST check again
+   before every token payout and MUST refuse the payout while a custom fee
+   exists. Otherwise a fee charged to the anchor as sender would be paid out of
+   other spheres' escrow. It SHOULD also check that each payout moves exactly
+   the expected amount of the token and no HBAR.
 
 ### Network mode
 
@@ -375,10 +398,9 @@ All network-mode payloads are ABI-encoded as
   `depositId` for the sphere, increments `netDeposited[sphereId][recipient][asset]`,
   and sends a DEPOSIT. The gateway credits `recipient` on the sphere network with
   a sphere-local representation of the asset. When the CLPR Response arrives:
-  - on success, the anchor records the first successful `depositId` for
-    `(sphereId, recipient, asset)` if none is recorded yet;
-  - on failure, the anchor MUST credit the depositor's `claimable` balance and
-    decrement `netDeposited` by the same amount.
+  - on success, nothing changes;
+  - on failure, the anchor MUST credit the depositor's `claimable` balance,
+    decrement `netDeposited` by the same amount, and mark the deposit refunded.
 - **Withdraw.** `account` burns its sphere-local balance through the gateway,
   which sends a WITHDRAW naming `account` and the anchor-ledger `recipient`, and
   tagged with the current `sphereEpoch`. The anchor records it as pending and
@@ -451,13 +473,16 @@ If `block.timestamp > lastHeardAt + haltTimeout`, anyone MAY call
    per asset, and is credited
    `netDeposited[sphereId][account][asset] - withdrawn[sphereId][account][asset]`,
    floored at zero. This is allowed only if no checkpoint was accepted, or if
-   the account's first successful `depositId` for the asset is zero or greater
-   than the checkpoint's `lastAppliedDepositId`. Under that condition the
-   result is never more than the leaf-based amount, so claiming it without a
-   proof cannot overpay. The condition is decidable because CLPR returns
-   Responses in the same ordered queue as the sphere's own messages: by the time
-   a CHECKPOINT arrives, the anchor has seen the Response for every deposit up
-   to its `lastAppliedDepositId`.
+   none of the account's **live** deposits for the asset (sent and not
+   refunded) has a `depositId` at or below the checkpoint's
+   `lastAppliedDepositId`. Under that condition none of them can have been
+   applied by the checkpoint, so the result is never more than the leaf-based
+   amount, and claiming it without a proof cannot overpay. The rule MUST depend
+   only on deposits sent and refunds received, never on a success Response
+   arriving: CLPR delivers Responses best-effort, and a rule that waited for
+   success Responses could be made to overpay by a dropped callback. A lost
+   *failure* Response only leaves a deposit counted as live, which errs towards
+   requiring a leaf.
 
 With an honest sphere network, the total paid out (refunds, released
 withdrawals, and exits) equals the total deposited, whatever messages are in
@@ -539,9 +564,8 @@ compatibility concerns.
 ## Network Optionality
 
 Lightsphere is entirely optional, and no network has to do anything to allow
-it. Any Hiero network with the smart contract service and the Hedera Account
-Service system contract ([HIP-632](hip-632.md)) can host signed-mode anchor
-contracts. Network mode also needs CLPR to be deployed on both the anchor
+it. Any Hiero network with the smart contract service can host signed-mode
+anchor contracts. Network mode also needs CLPR to be deployed on both the anchor
 ledger and the sphere network, with a Channel between them. A network without
 CLPR can still host signed mode. There are no node configuration properties,
 and nothing changes for clients or mirror nodes on networks where nobody
@@ -561,17 +585,33 @@ one anchor contract, and `sphereId` binds it to one sphere. A state signed for
 a testnet sphere cannot be replayed on mainnet, and a state from one sphere
 cannot be replayed on another.
 
-**Signature malleability.** High-`s` ECDSA signatures are rejected so that a
-signature cannot be mutated into a second valid encoding.
+**Signature malleability.** High-`s` signatures and `v` outside {0, 1, 27, 28}
+are rejected, so a signature cannot be mutated into a second valid encoding.
+Clients MUST apply the same rule when checking a counterparty's signature, or a
+participant could accept a signature the anchor will reject.
+
+**Key rotation.** Signatures are checked against the signing addresses bound
+into the sphere ID, not against the participants' Hiero account keys. Rotating
+an account's keys therefore never invalidates a state that was already signed.
 
 **Equivocation.** Signing two states with the same `version` is a participant
 error, and the anchor accepts whichever is submitted first. Implementations
 MUST refuse to sign a second state with a `version` they have already signed.
 
-**HTS token controls.** Freeze, KYC, pause, and wipe keys stay in force on
-tokens held by the anchor contract. A token admin can pause a token and delay
-withdrawals, or wipe the anchor's balance. Participants accept the controls of
-the tokens they deposit. Tokens with custom fees are rejected at open.
+**HTS token controls.** Freeze, KYC, pause, wipe, delete and fee-schedule keys
+stay in force on tokens held by the anchor contract:
+
+- A token admin can pause a token and delay withdrawals.
+- An admin can wipe the anchor's balance, or delete the token, and the escrow in
+  it is lost.
+- An admin can add a custom fee, which pauses payouts in that token until it is
+  removed.
+
+Participants accept the controls of the tokens they deposit. Tokens with custom
+fees are rejected at `open` and re-checked at every payout.
+
+**Bounded windows.** `challengePeriod` is capped at `MAX_CHALLENGE_PERIOD`, so
+no participant can open a sphere whose unilateral close never ends.
 
 **Network mode adds a trust assumption.** In network mode, safety depends on
 the sphere network's consensus. A colluding supermajority of the sphere
@@ -601,9 +641,18 @@ checkpoint. Deployments that need confidentiality SHOULD settle net positions
 through a small set of omnibus accounts, or wait for a future version that
 commits to encrypted or aggregated balances.
 
-**Reentrancy.** HBAR payouts in `withdraw` hand control to the recipient. The
-anchor contract MUST follow checks-effects-interactions and use a reentrancy
-guard on every state-changing function.
+**Reentrancy.** HBAR payouts hand control to the recipient. The anchor contract
+MUST follow checks-effects-interactions and MUST use a reentrancy guard on every
+state-changing function except `onClprResponse`. That function MUST NOT revert,
+and it makes no external calls.
+
+**Lost Responses in network mode.** If CLPR loses the failure Response for a
+DEPOSIT, the anchor never refunds it while the sphere runs. After a halt, the
+deposit returns through the recipient's exit if the recipient has a leaf in the
+last checkpoint, and otherwise stays in escrow. It is never paid twice. A lost
+failure Response for a WITHDRAW leaves the burned balance unrefunded on the
+sphere until a halt, when the exit formula returns it. A timeout-based reclaim
+is an open issue.
 
 ## How to Teach This
 
@@ -622,39 +671,52 @@ guard on every state-changing function.
 
 ## Reference Implementation
 
-A reference implementation is in progress. It is not yet published, and this
-section will link to it once it is.
+The reference implementation is published at
+[github.com/ColdAI-org/lightsphere](https://github.com/ColdAI-org/lightsphere)
+under the Apache 2.0 licence. It has not been audited, and it has run only on
+local networks so far.
 
 - **Contracts (Solidity, Foundry).**
   - `LightsphereAnchor` implements `ILightsphereAnchor` and
     `ILightsphereNetworkAnchor`.
   - `LightsphereGateway` is a CLPR application for sphere networks. It
-    maintains a depth-20 positional Merkle tree, hashed with sorted pairs and
+    maintains a depth-32 positional Merkle tree, hashed with sorted pairs and
     updated on every balance change, so sending a checkpoint costs the same
     however many accounts exist.
-  - Tests use mock HTS (`0x167`), Hedera Account Service (`0x16a`) and
-    two-sided CLPR services. The CLPR mock keeps a single ordered queue for
-    initiating messages and Responses.
-  - A stateful fuzz test checks that, after a halt, payouts equal deposits
-    exactly. It found two bugs in an earlier draft of this specification: the
-    double payout fixed by holding withdrawals for a covering checkpoint, and
-    withdrawals counted against the recipient instead of the burning account.
+  - Tests use a mock HTS system contract (`0x167`) and two-sided CLPR mocks.
+    The CLPR mocks keep a single ordered queue for initiating messages and
+    Responses, and can fail deliveries and drop Response callbacks.
+  - A stateful fuzz test checks that, after a halt, payouts never exceed
+    deposits, and equal them exactly unless a deposit's failure Response was
+    lost.
+- **How it shaped this specification.**
+  - Building it found two bugs in the first draft: the double payout, fixed by
+    holding withdrawals for a covering checkpoint, and withdrawals counted
+    against the recipient instead of the burning account.
+  - An independent review before publication led to four more changes:
+    signing keys in place of HIP-632 account-key checks, re-checking custom fees
+    at payout, a proof-free exit rule that does not depend on success Responses,
+    and the cap on the challenge period.
 - **Measured gas** (local EVM, Cancun):
-  - Cooperative close of a 16-participant sphere: about 214,000 gas.
-  - A sphere-local transfer, updating two leaves: about 114,000 gas.
+  - Cooperative close of a 16-participant sphere: about 213,000 gas.
+  - A sphere-local transfer, updating two leaves of the depth-32 tree: about
+    130,000 gas.
 - **Go load harness.**
   - `lsvectors` writes cross-language test vectors. The contracts and the
     TypeScript library both check against them, and the signatures are
     byte-identical across Go and viem.
   - `lsbench` measures throughput by the accounting rule above.
-  - `lsverify` re-checks a report's sampled states.
-- **Throughput.** On one Apple M1 Max (10 cores), two-party ED25519 spheres
-  sustained about 46,000 effective transactions per second over 65 seconds,
-  which is about 4,600 per core. Effective throughput scales with the number
-  of machines, because spheres are independent.
-- **TypeScript client (viem).** Provides EIP-712 signing, sphere IDs, and a
-  watchtower. An end-to-end test on a local chain has the watchtower replace a
-  stale close inside the challenge window.
+  - `lsverify` re-checks a report's sampled states by the anchor's rules,
+    recomputing each sphere ID from the parameters in the report.
+- **Throughput.** On one Apple M1 Max (10 cores), two-party spheres sustained
+  46,688 effective transactions per second over 65 seconds (peak 48,061),
+  which is about 4,700 per core. Effective throughput scales with the number of
+  machines, because spheres are independent.
+- **TypeScript client (viem).** Provides EIP-712 state and join signing,
+  verification by the anchor's rules, sphere IDs, and a watchtower. The
+  watchtower checks states before guarding them, persists them, replays missed
+  events and sweeps on a timer. End-to-end tests on a local chain cover a stale
+  close, a forged state, and a restart.
 
 ## Rejected Ideas
 
@@ -680,8 +742,8 @@ section will link to it once it is.
 2. **On-ledger adjudicators.** Optional application contracts that can advance a
    disputed state by application rules, as in ForceMove, instead of only
    accepting the highest version.
-3. **Complex keys.** Participants with threshold or key-list accounts, using the
-   HIP-632 `isAuthorized` function instead of `isAuthorizedRaw`.
+3. **Reclaiming lost refunds.** A timeout after which a depositor can reclaim a
+   network-mode deposit whose failure Response was lost.
 4. **Non-fungible assets.** HTS NFTs as sphere assets.
 5. **Cross-ledger anchors.** Spheres whose funds are escrowed on a non-Hiero
    ledger and settled through CLPR, and payment routing across spheres using
@@ -698,7 +760,7 @@ section will link to it once it is.
 ## References
 
 - [HIP-1: Hiero Improvement Proposal Process](hip-1.md)
-- [HIP-632: Hedera Account Service system contract](hip-632.md)
+- [HIP-632: Hedera Account Service system contract](hip-632.md) (considered for signature checks, and not used; see "Signing keys and signature verification")
 - [CLPR specification (LF Decentralized Trust)](https://github.com/LFDT-CLPR/clpr-spec)
 - [EIP-712: Typed structured data hashing and signing](https://eips.ethereum.org/EIPS/eip-712)
 - [Sui: Over 6 Million Transactions Per Second in AI Agent Livestream Experiment](https://www.sui.io/blog/sui-processes-over-6-million-transactions-per-second-in-ai-agent-livestream-experiment)
