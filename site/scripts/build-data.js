@@ -14,6 +14,7 @@ const OUT_DIR = path.resolve('public/data');
 const PUBLIC_ASSETS = path.resolve('public/assets');
 const REPO_OWNER = 'hiero-ledger';
 const REPO_NAME = 'hiero-improvement-proposals';
+const REQUIRE_LIVE_DRAFT_HIPS = process.env.REQUIRE_LIVE_DRAFT_HIPS === 'true';
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
@@ -88,26 +89,39 @@ async function getDraftPRs() {
         },
         body: JSON.stringify({ query }),
       });
-      const json = await res.json();
-      if (json.errors) {
-        console.warn(`  Draft-HIP PR fetch: ${json.errors[0]?.message || 'GraphQL error'} — falling back to committed data`);
-      } else {
-        const nodes = json.data?.repository?.pullRequests?.nodes || [];
-        // Keep only PRs that ADD a new HIP/hip-*.md file — the same filter the
-        // old update-draft-hips.yml workflow used to produce _data/draft_hips.json.
-        const drafts = nodes.filter(pr =>
-          (pr.files?.edges || []).some(e =>
-            e.node.changeType === 'ADDED' &&
-            /^HIP\/hip-[A-Za-z0-9-]+\.md$/.test(e.node.path)
-          )
-        );
-        console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
-        return drafts;
+      if (!res.ok) {
+        throw new Error(`GitHub GraphQL request failed with HTTP ${res.status}`);
       }
+      const json = await res.json();
+      if (json.errors?.length) {
+        throw new Error(json.errors[0]?.message || 'GitHub GraphQL request failed');
+      }
+
+      const nodes = json.data?.repository?.pullRequests?.nodes;
+      if (!Array.isArray(nodes)) {
+        throw new Error('GitHub GraphQL response did not include pull requests');
+      }
+
+      // Keep only PRs that ADD a new HIP/hip-*.md file — the same filter the
+      // old update-draft-hips.yml workflow used to produce _data/draft_hips.json.
+      const drafts = nodes.filter(pr =>
+        (pr.files?.edges || []).some(e =>
+          e.node.changeType === 'ADDED' &&
+          /^HIP\/hip-[A-Za-z0-9-]+\.md$/.test(e.node.path)
+        )
+      );
+      console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
+      return drafts;
     } catch (e) {
+      if (REQUIRE_LIVE_DRAFT_HIPS) {
+        throw new Error(`Required live draft-HIP fetch failed: ${e.message}`);
+      }
       console.warn(`  Draft-HIP PR fetch failed (${e.message}) — falling back to committed data`);
     }
   } else {
+    if (REQUIRE_LIVE_DRAFT_HIPS) {
+      throw new Error('GITHUB_TOKEN is required when REQUIRE_LIVE_DRAFT_HIPS=true');
+    }
     console.log('No GITHUB_TOKEN set — using committed _data/draft_hips.json if present');
   }
 
@@ -404,4 +418,7 @@ async function main() {
   if (Object.keys(prReviews).length) console.log(`  ${Object.keys(prReviews).length} PR review threads cached`);
 }
 
-main();
+main().catch((error) => {
+  console.error(`Site data build failed: ${error.message}`);
+  process.exitCode = 1;
+});
