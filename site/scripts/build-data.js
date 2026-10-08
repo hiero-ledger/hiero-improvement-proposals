@@ -6,6 +6,7 @@ import {
   draftHipNumber,
   replaceHipImages,
 } from './hip-parse.js';
+import { githubTokens } from './github-tokens.js';
 
 const HIP_DIR = path.resolve('../HIP');
 const DATA_DIR = path.resolve('../_data');
@@ -15,6 +16,9 @@ const PUBLIC_ASSETS = path.resolve('public/assets');
 const REPO_OWNER = 'hiero-ledger';
 const REPO_NAME = 'hiero-improvement-proposals';
 const REQUIRE_LIVE_DRAFT_HIPS = process.env.REQUIRE_LIVE_DRAFT_HIPS === 'true';
+// Most generous rate-limit pool first; see github-tokens.js.
+const GITHUB_TOKENS = githubTokens();
+const GITHUB_TOKEN = GITHUB_TOKENS[0] || '';
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
@@ -69,72 +73,83 @@ console.log(`Parsed ${hips.length} merged HIPs`);
 // available (e.g. local dev), preserving the previous behavior.
 const draftHipsPath = path.join(DATA_DIR, 'draft_hips.json');
 
-async function getDraftPRs() {
-  const token = process.env.GITHUB_TOKEN;
-
-  if (token) {
-    const query = `query {
-      repository(owner: "${REPO_OWNER}", name: "${REPO_NAME}") {
-        pullRequests(first: 100, states: [OPEN], orderBy: { field: CREATED_AT, direction: DESC }) {
-          nodes {
-            title
-            number
-            url
-            baseRefName
-            headRefOid
-            headRefName
-            headRepository { name owner { login } }
-            baseRepository { name owner { login } }
-            maintainerCanModify
-            files(first: 100) { edges { node { path changeType additions deletions } } }
-            author { login }
-          }
+async function fetchOpenDraftPrs(token) {
+  const query = `query {
+    repository(owner: "${REPO_OWNER}", name: "${REPO_NAME}") {
+      pullRequests(first: 100, states: [OPEN], orderBy: { field: CREATED_AT, direction: DESC }) {
+        nodes {
+          title
+          number
+          url
+          baseRefName
+          headRefOid
+          headRefName
+          headRepository { name owner { login } }
+          baseRepository { name owner { login } }
+          maintainerCanModify
+          files(first: 100) { edges { node { path changeType additions deletions } } }
+          author { login }
         }
       }
-    }`;
-
-    try {
-      const res = await fetch('https://api.github.com/graphql', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'hips-build',
-        },
-        body: JSON.stringify({ query }),
-      });
-      if (!res.ok) {
-        throw new Error(`GitHub GraphQL request failed with HTTP ${res.status}`);
-      }
-      const json = await res.json();
-      if (json.errors?.length) {
-        throw new Error(json.errors[0]?.message || 'GitHub GraphQL request failed');
-      }
-
-      const nodes = json.data?.repository?.pullRequests?.nodes;
-      if (!Array.isArray(nodes)) {
-        throw new Error('GitHub GraphQL response did not include pull requests');
-      }
-
-      // Keep only PRs that ADD a new HIP/hip-*.md file — the same filter the
-      // old update-draft-hips.yml workflow used to produce _data/draft_hips.json.
-      const drafts = nodes.filter(pr =>
-        (pr.files?.edges || []).some(e =>
-          e.node.changeType === 'ADDED' &&
-          /^HIP\/hip-[A-Za-z0-9-]+\.md$/.test(e.node.path)
-        )
-      );
-      console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
-      return drafts;
-    } catch (e) {
-      if (REQUIRE_LIVE_DRAFT_HIPS) {
-        throw new Error(`Required live draft-HIP fetch failed: ${e.message}`);
-      }
-      console.warn(`  Draft-HIP PR fetch failed (${e.message}) — falling back to committed data`);
     }
+  }`;
+
+  const res = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'hips-build',
+    },
+    body: JSON.stringify({ query }),
+  });
+  if (!res.ok) {
+    throw new Error(`GitHub GraphQL request failed with HTTP ${res.status}`);
+  }
+  const json = await res.json();
+  if (json.errors?.length) {
+    throw new Error(json.errors[0]?.message || 'GitHub GraphQL request failed');
+  }
+
+  const nodes = json.data?.repository?.pullRequests?.nodes;
+  if (!Array.isArray(nodes)) {
+    throw new Error('GitHub GraphQL response did not include pull requests');
+  }
+
+  // Keep only PRs that ADD a new HIP/hip-*.md file — the same filter the
+  // old update-draft-hips.yml workflow used to produce _data/draft_hips.json.
+  const drafts = nodes.filter(pr =>
+    (pr.files?.edges || []).some(e =>
+      e.node.changeType === 'ADDED' &&
+      /^HIP\/hip-[A-Za-z0-9-]+\.md$/.test(e.node.path)
+    )
+  );
+  console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
+  return drafts;
+}
+
+async function getDraftPRs() {
+  if (GITHUB_TOKENS.length) {
+    // Each token has its own rate-limit budget, so a token that is exhausted
+    // (or otherwise rejected) should not fail the deploy while another works.
+    let lastError = null;
+    for (const [index, token] of GITHUB_TOKENS.entries()) {
+      try {
+        return await fetchOpenDraftPrs(token);
+      } catch (e) {
+        lastError = e;
+        if (index < GITHUB_TOKENS.length - 1) {
+          console.warn(`  Draft-HIP PR fetch failed (${e.message}) — retrying with the next token`);
+        }
+      }
+    }
+    if (REQUIRE_LIVE_DRAFT_HIPS) {
+      throw new Error(`Required live draft-HIP fetch failed: ${lastError.message}`);
+    }
+    console.warn(`  Draft-HIP PR fetch failed (${lastError.message}) — falling back to committed data`);
   } else {
     if (REQUIRE_LIVE_DRAFT_HIPS) {
-      throw new Error('GITHUB_TOKEN is required when REQUIRE_LIVE_DRAFT_HIPS=true');
+      throw new Error('GITHUB_TOKEN or GITHUB_DATA_TOKEN is required when REQUIRE_LIVE_DRAFT_HIPS=true');
     }
     console.log('No GITHUB_TOKEN set — using committed _data/draft_hips.json if present');
   }
@@ -238,7 +253,7 @@ async function fetchDraftHips() {
 
 // ---- Fetch discussion comments via GraphQL (requires GITHUB_TOKEN) ----
 async function fetchDiscussions() {
-  const token = process.env.GITHUB_TOKEN;
+  const token = GITHUB_TOKEN;
   if (!token) {
     console.log('No GITHUB_TOKEN set — skipping discussion comment fetch');
     return {};
@@ -341,7 +356,7 @@ async function fetchDiscussions() {
 
 // ---- Fetch PR review comments (including resolved threads) ----
 async function fetchPRReviewComments() {
-  const token = process.env.GITHUB_TOKEN;
+  const token = GITHUB_TOKEN;
   if (!token) {
     console.log('No GITHUB_TOKEN set — skipping PR review comment fetch');
     return {};
