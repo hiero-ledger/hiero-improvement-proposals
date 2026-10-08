@@ -54,6 +54,11 @@ jobs:
         run: npm run build:data
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The data build makes a GraphQL request per HIP, and GITHUB_TOKEN's
+          # 1,000 requests/hour are shared by every workflow run in the repo, so
+          # a few merges in one hour used to fail the deploy. The PAT has its
+          # own 5,000/hour budget and is tried first; GITHUB_TOKEN is the fallback.
+          GITHUB_DATA_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
           REQUIRE_LIVE_DRAFT_HIPS: "true"
 
       - name: Build site

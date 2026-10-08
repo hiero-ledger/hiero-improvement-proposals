@@ -38,6 +38,7 @@ test('the production workflow generates data once with live drafts required', ()
 
   assert.match(dataStep, /run: npm run build:data\s/);
   assert.match(dataStep, /GITHUB_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}/);
+  assert.match(dataStep, /GITHUB_DATA_TOKEN: \$\{\{ secrets\.GH_ACCESS_TOKEN \}\}/);
   assert.match(dataStep, /REQUIRE_LIVE_DRAFT_HIPS: "true"/);
   assert.match(siteStep, /run: npm run build:app\s/);
   assert.doesNotMatch(siteStep, /GITHUB_TOKEN/);
