@@ -2,3 +2,6 @@ node_modules/
 public/data/
 public/assets/
 dist/
+.dev.vars*
+!.dev.vars.example
+.wrangler/
