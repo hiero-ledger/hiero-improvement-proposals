@@ -1,7 +1,7 @@
 ![](./assets/hiero_logo.png)
 
 [![](https://img.shields.io/discord/905194001349627914)](https://discord.com/channels/905194001349627914/1289954446712770600)
-[![](https://img.shields.io/badge/view-published-blue)](https://hips.hedera.org)
+[![](https://img.shields.io/badge/view-published-blue)](https://hips.hedera.com)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-improvement-proposals/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-improvement-proposals)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
 [![License](https://img.shields.io/badge/license-apache2-blue.svg)](LICENSE)
@@ -28,7 +28,28 @@ author is responsible for building consensus within the community and
 documenting dissenting opinions, as well as tracking their HIP through
 the process outlined below.
 
-You can see the list of all HIPs on [the official HIPs site](https://hips.hiero.org).
+You can see the list of all HIPs on [the official HIPs site](https://hips.hedera.com).
+
+## AI-readable site data
+
+The site build publishes static, non-JavaScript resources so search crawlers,
+language models, and other tools can read the complete HIP corpus without
+rendering the interactive application:
+
+- `/llms.txt` is the compact discovery index.
+- `/llms-full.txt` contains every merged HIP and open-pull-request draft in one
+  Markdown document.
+- `/api/hips/index.json` is a metadata-only catalog, while `/api/hips.json` and
+  `/api/hips/{number}.json` include full Markdown content.
+- `/hip/hip-{number}.md` provides one directly fetchable Markdown document.
+- `/sitemap.xml` and `/robots.txt` expose all human and machine-readable URLs to
+  crawlers.
+
+Draft entries carry `isDraft: true`, their pull request URL and commit SHA, and
+an explicit warning that they are not adopted specifications. During deploys,
+`GITHUB_TOKEN` is used to paginate through all open pull requests and fetch the
+draft content pinned to each PR's current commit. `SITE_URL` can override the
+default canonical host (`https://hips.hedera.com`).
 
 ## What is Hiero?
 [Hiero](https://hiero.org) is an open-source distributed ledger project under
