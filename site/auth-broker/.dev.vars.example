@@ -1,0 +1,9 @@
+# Copy to .dev.vars (gitignored) for `npx --yes wrangler@4 dev`.
+# Register a separate GitHub OAuth App for local use with callback URL
+# http://127.0.0.1:8787/callback so production credentials never touch a laptop.
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+# openssl rand -base64 48
+STATE_SIGNING_KEY=
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+BROKER_ORIGIN=http://127.0.0.1:8787
