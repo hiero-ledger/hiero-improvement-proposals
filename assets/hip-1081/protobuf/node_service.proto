@@ -15,6 +15,58 @@ import "services/basic_types.proto";
 message ServerStatusRequest {}
 
 /**
+ * A response to a server status detail request.
+ *
+ * This message SHALL provide a client with extended detail information needed
+ * to successfully query this Block-Node for a block, stream of blocks, or
+ * state snapshot.<br/>
+ * This API SHALL provide detailed range information that describes exactly
+ * which ranges of blocks are available and which are not. This may be a very
+ * large set of data (potentially millions of points in a degenerate case).<br/>
+ * A request for blocks within the `available_ranges` SHALL succeed. Any
+ * request for blocks outside those ranges MAY fail.<br/>
+ * Software version information is provided here to support fine-grain selection
+ * of block nodes based on supported features.
+ */
+message ServerStatusDetailResponse {
+    /**
+     * Version information.<br/>
+     * Versions for the block network address book, block stream protocol
+     * buffer schema, and Block-Node software.
+     */
+    BlockNodeVersions version_information = 1;
+
+    /**
+     * Available block range information.<br/>
+     * A list of available block ranges.
+     */
+    repeated BlockRange available_ranges = 2;
+
+    /**
+     * TSS Data from the block node server.
+     * Ledger Id, wraps validation key, and TssRoster information
+     */
+    TssData tss_data = 3;
+
+    /**
+     * RSA Node Address Book Data from the block node server.
+     * Node Id, rsa public key information
+     */
+    proto.NodeAddressBook node_address_book = 4;
+
+    /**
+     * Stored block range information.<br/>
+     * A list of stored block ranges.
+     */
+    repeated BlockRange stored_ranges = 5;
+
+    /**
+     * Address Book history by block range
+     */
+    RangedAddressBookHistory ranged_address_book_history = 6;
+}
+
+/**
  * A response to a server status request.
  *
  * This message SHALL provide a client with information needed to successfully
@@ -37,7 +89,11 @@ message ServerStatusResponse {
      * The greatest block number available from this Block-Node.
      * <p>
      * Any request for a block with a block number higher than this
-     * value MAY fail.
+     * value MAY fail.<br/>
+     * If this value is `uint64_max` then the Block Node MAY accept the next
+     * block offered from a Publisher, regardless of block number.<br/>
+     * If this value is `uint64_max` then Subscribers SHOULD query the
+     * `serverStatusDetail` API for accurate available block information.
      */
     uint64 last_available_block = 2;
 
@@ -50,33 +106,29 @@ message ServerStatusResponse {
     bool only_latest_state = 3;
 
     /**
-     * Version information.<br/>
-     * Versions for the block network address book, block stream protocol
-     * buffer schema, and Block-Node software.
+     * The next block that this Block-Node expects to receive from a Publisher.
+     *
+     * This value MAY contain `uint64_max` to indicate this Block-Node will accept
+     * any block as the next block. This is most common when a block node is
+     * newly installed or reset and backfilling history while accepting new
+     * blocks.
      */
-    BlockNodeVersions version_information = 4;
+    uint64 next_expected_block = 4;
 }
 
 /**
  * Version information for a Block-Node.
- *
+ * <p>
  * The `stream_proto_version` SHOULD be an officially released Block Stream
- * version.
- * The `address_book_version` SHALL be determined by networks of Block-Nodes.
+ * version.<br/>
  * The `software_version` SHALL be determined by the implementation of this
- * specification.
+ * specification.<br/>
+ * The `installed_plugin_versions` SHALL be determined entirely by the plugins
+ * themselves, and MAY or MAY NOT be provided by any given plugin.<br/>
+ * Regardless if a plugin provides version information, at least the
+ * `plugin_id` field SHALL be populated for every registered plugin.
  */
 message BlockNodeVersions {
-    /**
-     * A version of the Block-Node network address book.<br/>
-     * The address book version describes what version of address book
-     * this Block-Node holds for discovering and identifying other Block-Nodes.
-     * <p>
-     * This version SHALL be specific to each "network" of interconnected
-     * Block-Nodes.
-     */
-    proto.SemanticVersion address_book_version = 1;
-
     /**
      * A version of the Block Stream specification.<br/>
      * This is the Stream version currently supported by this Block-Node.
@@ -86,7 +138,7 @@ message BlockNodeVersions {
      * This version MUST be an officially released Block Stream version if
      * the responding Block-Node is not private.
      */
-    proto.SemanticVersion stream_proto_version = 2;
+    proto.SemanticVersion stream_proto_version = 1;
 
     /**
      * A version of the Block-Node software.<br/>
@@ -95,7 +147,128 @@ message BlockNodeVersions {
      * <p>
      * This value is implementation-defined.
      */
-    proto.SemanticVersion software_version = 3;
+    proto.SemanticVersion block_node_version = 2;
+
+    /**
+     * Version information for each registered plugin.
+     * <p>
+     * This MAY be empty.<br/>
+     * Providing version information is OPTIONAL for each plugin.
+     */
+    repeated PluginVersion installed_plugin_versions = 3;
+
+    /**
+     * Version information for a registered plugin.
+     * <p>
+     * This MAY be empty.<br/>
+     * Providing version information is OPTIONAL for each plugin, but defaults
+     * to the module version information.
+     */
+    message PluginVersion {
+        /**
+         * A plugin identifier.<br/>
+         * This string is provided by the plugin as an identifier for that plugin.
+         * <p>
+         * This value SHALL be the canonical class name of the plugin implementation class
+         * if not provided by the plugin.
+         */
+        string plugin_id = 1;
+        /**
+         * A plugin version.<br/>
+         * Plugin versions follow semantic version format.
+         * <p>
+         * If not set by the plugin this value SHALL be set to the `SemanticVersion` of the
+         * module that provides the plugin.
+         */
+        proto.SemanticVersion plugin_software_version = 2;
+        /**
+         * A set of plugin features.<br/>
+         * This set of one or more string values describes the features provided by the plugin.
+         * <p>
+         * If not set by the plugin, this SHALL NOT be set.
+         */
+        repeated string plugin_feature_names = 3;
+    }
+}
+
+/**
+ * Available block availability information for a Block-Node.
+ *
+ * The `BlockRange` identifies a contiguous set of available blocks starting
+ * with the `range_start` block number and ending at the `range_end` block
+ * number<br/>
+ */
+message BlockRange {
+    /**
+     * The lowest numbered block in this range of available blocks.
+     */
+    uint64 range_start = 1;
+    /**
+     * The greatest numbered block in this range of available blocks.
+     */
+    uint64 range_end = 2;
+}
+
+/**
+ * TSS information<br/>
+ * `TssData` contains the Ledger Id, wraps validation key, and TssRoster information
+ *  It is returned by the serverStatusDetail service
+ *
+ * All fields in this message SHALL be filled in, or none.
+ */
+message TssData {
+    /**
+     * The ledger id
+     */
+    bytes ledger_id = 1;
+    /**
+     * The wraps verification key
+     */
+    bytes wraps_verification_key = 2;
+    /**
+     * The current TSS roster
+     */
+    TssRoster current_roster = 3;
+    /**
+     * The starting block number this TssData is valid from
+     */
+    uint64 valid_from_block = 4;
+}
+
+/**
+ * TSS Roster information.
+ *
+ * `TssRoster` contains a list of roster entry
+ */
+message TssRoster {
+    /**
+     * The list of `RosterEntry`
+     */
+    repeated RosterEntry roster_entries = 1;
+}
+
+/**
+ * A single TSS Roster entry.
+ *
+ * All fields are REQUIRED.<br/>
+ * The `node_id` field SHALL match the same field for an entry in the Node Store
+ * in consensus network state.<br/>
+ * The `schnorr_public_key` MAY be a placeholder value if the associated node failed
+ * to participate in the roster election within the required time limit.
+ */
+message RosterEntry {
+    /**
+     * The node id
+     */
+    uint64 node_id = 1;
+    /**
+     * The node weight
+     */
+    uint64 weight = 2;
+    /**
+     * The schnorr public key
+     */
+    bytes schnorr_public_key = 3;
 }
 
 /**
@@ -109,4 +282,79 @@ service BlockNodeService {
      * data or a state snapshot.
      */
     rpc serverStatus(ServerStatusRequest) returns (ServerStatusResponse);
+
+    /**
+     * Read the detail status of this Block-Node.
+     * <p>
+     * A client SHOULD request detail server status to check block availability
+     * prior to requesting block stream.<br/>
+     * A client MAY request detail server status to check block version
+     * information for compatibility.
+     */
+    rpc serverStatusDetail(ServerStatusRequest) returns (ServerStatusDetailResponse);
 }
+
+/**
+ * An ordered history of node address books, each scoped to a contiguous
+ * block-number range. Used by the Block Node to select the address book
+ * that was in effect when a given block was produced, enabling verification
+ * of historical Wrapped Record Blocks (WRBs) against the correct era's
+ * RSA public keys.
+ *
+ * Entries MUST be ordered by start_block ascending and MUST NOT overlap.
+ * The last entry typically has end_block = -1 (rendered as -1 by PBJ's JSON
+ * codec; equivalently the max uint64 value in wire form), meaning it covers
+ * all block numbers >= start_block with no upper bound (open-ended).
+ *
+ * On-disk format: JSON-serialized via PBJ's RangedAddressBookHistory.JSON
+ * codec, written to the path configured by app.state.rsaAddressBookHistoryFilePath
+ * (default: /opt/hiero/block-node/application-state/rsa-address-book-history.json).
+ *
+ * This format is the input consumed by T3 (CLI push) and produced by operator
+ * tooling that converts the CLI's timestamp-keyed address book history into
+ * block-number ranges.
+ */
+message RangedAddressBookHistory {
+    /**
+     * An ordered list of block-range-scoped address books, from oldest (lowest
+     * start_block) to newest.
+     */
+    repeated RangedNodeAddressBook address_books = 1;
+}
+
+/**
+ * A node address book scoped to a specific block-number range.
+ *
+ * The address book is valid for all blocks whose block number satisfies:
+ *   start_block &le; block_number &le; end_block
+ *
+ * When end_block is -1 (max uint64 in wire form) the entry is open-ended:
+ * it covers all blocks with block number >= start_block. Only the last entry
+ * in a RangedAddressBookHistory should have end_block = -1.
+ */
+message RangedNodeAddressBook {
+    /**
+     * The node address book containing the RSA public keys that were in
+     * effect for this block-number range. Only the nodeId and RSA_PubKey
+     * fields of each NodeAddress entry are used for WRB verification.
+     */
+    proto.NodeAddressBook address_book = 1;
+
+    /**
+     * The first block number for which this address book is valid (inclusive).
+     * Must be &gt; 0 for all entries except a genesis entry which may start at 0.
+     */
+    uint64 start_block = 2;
+
+    /**
+     * The last block number for which this address book is valid (inclusive).
+     * A value of -1 (max uint64 in wire form, rendered as "-1" by PBJ's JSON
+     * codec) is a sentinel meaning open-ended: this address book covers all
+     * blocks with block number &ge; start_block.
+     * Only the last entry in a RangedAddressBookHistory should carry the
+     * open-ended sentinel; every other entry MUST have a finite end_block
+     * &ge; its own start_block.
+     */
+    uint64 end_block = 3;
+}
+

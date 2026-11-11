@@ -8,7 +8,6 @@ discussions-to: <URL of the GitHub Pull Request for this HIP> # This will be fil
 type: <Standards Track | Informational | Process> # Refer to HIP-1 for definitions.
 category: <Core | Service | Mirror | Block Node | Application | Process> # Required for Standards Track and Process HIPs. Refer to HIP-1 for category definitions.
 needs-hiero-approval: Yes # Set to Yes if Hiero Technical Steering Committee (TSC) approval is required (typically for Standards Track & Process HIPs). Set to No for Informational HIPs or if not applicable as per HIP-1.
-needs-hedera-review: No # Set to Yes if the HIP proposes changes for the Hedera network/ecosystem and requires review/acceptance by Hedera (typically Standards Track: Core, Service, Mirror). Refer to HIP-1 for details.
 status: <Draft | Review | Last Call | Approved | Accepted | Final | Active | Deferred | Withdrawn | Stagnant | Rejected | Replaced> # Refer to HIP-1 for status definitions and workflow.
 created: <yyyy-mm-dd> # Date of first submission as a Draft.
 updated: <yyyy-mm-dd> # Date of last modification.
@@ -74,13 +73,25 @@ in [an attached file](assets/hip-0000-template/sample.proto).
 Describe impacts, if any, on the Hiero Mirror node.
 
 ### Impact on SDK
-Describe Impacts, if any, on the Heiro SDKs
+Describe Impacts, if any, on the Hiero SDKs
 
 ## Backwards Compatibility
 All HIPs that introduce backward incompatibilities must include a section
 describing these incompatibilities and their severity. The HIP must explain how
 the author proposes to deal with these incompatibilities. HIP submissions
 without a sufficient backward compatibility treatise may be rejected outright.
+
+## Network Optionality
+Hiero is used by many independent networks - public networks such as Hedera as
+well as other public and private (permissioned) deployments - and each network
+decides on its own whether to adopt this functionality. State whether the
+functionality is mandatory for correct operation of a Hiero network or optional,
+how a network can disable, restrict, or configure it (including defaults), and
+what the observable consequences are for clients, mirror nodes, and other
+components if a network does not enable it. Optionality is a recommendation,
+not a requirement - for many changes (consensus-relevant behavior, protocol or
+state changes, security fixes) it is not achievable. In that case simply say so
+and explain why. Refer to HIP-1, "Networks and HIP Adoption".
 
 ## Security Implications
 If there are security concerns in relation to the HIP, those concerns should be

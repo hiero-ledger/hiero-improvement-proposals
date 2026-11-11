@@ -9,6 +9,7 @@ option java_multiple_files = true;
 
 import "block/stream/block_item.proto";
 import "block/stream/block_proof.proto";
+import "block/stream/state_proof.proto";
 
 /**
  * A request to obtain the proof for block item within a block.
@@ -118,20 +119,35 @@ message BlockContentsProofResponse {
         SUCCESS = 1;
 
         /**
+         * The request cannot be fulfilled.<br/>
+         * The client sent a malformed or structurally incorrect request.
+         * <p>
+         * The client MAY retry the request after correcting the form and
+         * structure.
+         */
+        INVALID_REQUEST = 2;
+
+        /**
+         * The Block-Node had an error and cannot continue processing.<br/>
+         * The client may retry again later.
+         */
+        ERROR = 3;
+
+        /**
          * The specified block item was not found.
          */
-        ITEM_NOT_FOUND = 2;
+        ITEM_NOT_FOUND = 4;
 
         /**
          * The block content proof is not available for the specified block.
          */
-        NOT_AVAILABLE = 3;
+        NOT_AVAILABLE = 5;
 
         /**
          * Duplicate hash items were found, causing ambiguity.
          * Clients MUST use the block item index to resolve the ambiguity.
          */
-        DUPLICATE_HASH_ITEM_FOUND = 4;
+        DUPLICATE_HASH_ITEM_FOUND = 6;
     }
 
     /**
@@ -167,34 +183,11 @@ message StateProofRequest {
     bytes state_key = 2;
 }
 
-message StateProof {
-    /**
-     * The block number at which the proof is requested.
-     */
-    uint64 block_number = 1;
-
-    /**
-     * The value of the state item proved.
-     */
-    bytes value = 2;
-
-    /**
-     * A list of sibling hashes forming the Merkle proof.
-     * <p>
-     * These hashes are used to reconstruct the Merkle root, ensuring the state item
-     * is included in the corresponding Merkle tree.
-     */
-    repeated com.hedera.hapi.block.stream.MerkleSiblingHash sibling_hashes = 3;
-
-    /**
-     * The digital signature over the state proof data.
-     * <p>
-     * This signature confirms the integrity and origin of the state proof.
-     */
-    bytes block_signature = 4;
-}
-
 message StateProofResponse {
+    message StateProofPlaceholder {
+        // Placeholder until the Block Stream definition for StateProof is available.
+    }
+
     enum Code {
         /**
          * The response code is unspecified.
@@ -231,7 +224,7 @@ message StateProofResponse {
      * If the request is successful, this field contains the state item, its
      * Merkle sibling hashes, and the digital signature.
      */
-    StateProof state_proof = 2;
+    StateProofPlaceholder state_proof = 2;
 }
 
 /**

@@ -14,6 +14,7 @@ const OUT_DIR = path.resolve('public/data');
 const PUBLIC_ASSETS = path.resolve('public/assets');
 const REPO_OWNER = 'hiero-ledger';
 const REPO_NAME = 'hiero-improvement-proposals';
+const REQUIRE_LIVE_DRAFT_HIPS = process.env.REQUIRE_LIVE_DRAFT_HIPS === 'true';
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
@@ -39,6 +40,7 @@ if (fs.existsSync(ASSETS_DIR)) {
 const files = fs.readdirSync(HIP_DIR).filter(f => f.endsWith('.md'));
 const hips = [];
 const hipBodies = new Map();
+const hipSources = new Map();
 const mergedHipNumbers = new Set();
 
 for (const file of files) {
@@ -48,6 +50,14 @@ for (const file of files) {
   mergedHipNumbers.add(Number(parsed.data.hip));
   hips.push(extractHip(parsed.data, parsed.content));
   hipBodies.set(String(parsed.data.hip), replaceHipImages(parsed.content));
+  hipSources.set(String(parsed.data.hip), {
+    kind: 'main',
+    owner: REPO_OWNER,
+    repo: REPO_NAME,
+    branch: 'main',
+    path: `HIP/${file}`,
+    raw,
+  });
 }
 
 console.log(`Parsed ${hips.length} merged HIPs`);
@@ -70,7 +80,12 @@ async function getDraftPRs() {
             title
             number
             url
+            baseRefName
             headRefOid
+            headRefName
+            headRepository { name owner { login } }
+            baseRepository { name owner { login } }
+            maintainerCanModify
             files(first: 100) { edges { node { path changeType additions deletions } } }
             author { login }
           }
@@ -88,26 +103,39 @@ async function getDraftPRs() {
         },
         body: JSON.stringify({ query }),
       });
-      const json = await res.json();
-      if (json.errors) {
-        console.warn(`  Draft-HIP PR fetch: ${json.errors[0]?.message || 'GraphQL error'} — falling back to committed data`);
-      } else {
-        const nodes = json.data?.repository?.pullRequests?.nodes || [];
-        // Keep only PRs that ADD a new HIP/hip-*.md file — the same filter the
-        // old update-draft-hips.yml workflow used to produce _data/draft_hips.json.
-        const drafts = nodes.filter(pr =>
-          (pr.files?.edges || []).some(e =>
-            e.node.changeType === 'ADDED' &&
-            /^HIP\/hip-[A-Za-z0-9-]+\.md$/.test(e.node.path)
-          )
-        );
-        console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
-        return drafts;
+      if (!res.ok) {
+        throw new Error(`GitHub GraphQL request failed with HTTP ${res.status}`);
       }
+      const json = await res.json();
+      if (json.errors?.length) {
+        throw new Error(json.errors[0]?.message || 'GitHub GraphQL request failed');
+      }
+
+      const nodes = json.data?.repository?.pullRequests?.nodes;
+      if (!Array.isArray(nodes)) {
+        throw new Error('GitHub GraphQL response did not include pull requests');
+      }
+
+      // Keep only PRs that ADD a new HIP/hip-*.md file — the same filter the
+      // old update-draft-hips.yml workflow used to produce _data/draft_hips.json.
+      const drafts = nodes.filter(pr =>
+        (pr.files?.edges || []).some(e =>
+          e.node.changeType === 'ADDED' &&
+          /^HIP\/hip-[A-Za-z0-9-]+\.md$/.test(e.node.path)
+        )
+      );
+      console.log(`Fetched ${drafts.length} open draft-HIP PRs from GitHub`);
+      return drafts;
     } catch (e) {
+      if (REQUIRE_LIVE_DRAFT_HIPS) {
+        throw new Error(`Required live draft-HIP fetch failed: ${e.message}`);
+      }
       console.warn(`  Draft-HIP PR fetch failed (${e.message}) — falling back to committed data`);
     }
   } else {
+    if (REQUIRE_LIVE_DRAFT_HIPS) {
+      throw new Error('GITHUB_TOKEN is required when REQUIRE_LIVE_DRAFT_HIPS=true');
+    }
     console.log('No GITHUB_TOKEN set — using committed _data/draft_hips.json if present');
   }
 
@@ -169,7 +197,11 @@ async function fetchDraftHips() {
         'discussions-to': parsed.data['discussions-to'] || pr.url || '',
       };
 
-      hips.push(extractHip(data, parsed.content, { prNumber: pr.number }));
+      hips.push(extractHip(data, parsed.content, {
+        prNumber: pr.number,
+        sourceKind: 'pull_request',
+        sourcePath: filePath,
+      }));
       const rawBase = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${pr.headRefOid}`;
       const availableAssets = new Set(
         (pr.files?.edges || [])
@@ -177,6 +209,23 @@ async function fetchDraftHips() {
           .filter(p => p.startsWith('assets/'))
       );
       hipBodies.set(String(hipNum), replaceHipImages(parsed.content, { rawBase, availableAssets }));
+      hipSources.set(String(hipNum), {
+        kind: 'pull_request',
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: filePath,
+        prNumber: pr.number,
+        prUrl: pr.url,
+        headSha: pr.headRefOid,
+        headBranch: pr.headRefName || '',
+        headOwner: pr.headRepository?.owner?.login || REPO_OWNER,
+        headRepo: pr.headRepository?.name || REPO_NAME,
+        baseBranch: pr.baseRefName || 'main',
+        baseOwner: pr.baseRepository?.owner?.login || REPO_OWNER,
+        baseRepo: pr.baseRepository?.name || REPO_NAME,
+        maintainerCanModify: Boolean(pr.maintainerCanModify),
+        raw,
+      });
       fetched++;
       console.log(`  PR-${pr.number}: fetched HIP-${hipNum} "${data.title}"`);
     } catch (e) {
@@ -395,6 +444,7 @@ async function main() {
   const buildHash = crypto.randomBytes(6).toString('hex');
   fs.writeFileSync(path.join(OUT_DIR, `hips.${buildHash}.json`), JSON.stringify(hips, null, 2));
   fs.writeFileSync(path.join(OUT_DIR, `hip-bodies.${buildHash}.json`), JSON.stringify(Object.fromEntries(hipBodies)));
+  fs.writeFileSync(path.join(OUT_DIR, `hip-sources.${buildHash}.json`), JSON.stringify(Object.fromEntries(hipSources)));
   fs.writeFileSync(path.join(OUT_DIR, `discussions.${buildHash}.json`), JSON.stringify(discussions));
   fs.writeFileSync(path.join(OUT_DIR, `pr-reviews.${buildHash}.json`), JSON.stringify(prReviews));
   fs.writeFileSync(path.join(OUT_DIR, 'manifest.json'), JSON.stringify({ buildHash }));
@@ -404,4 +454,7 @@ async function main() {
   if (Object.keys(prReviews).length) console.log(`  ${Object.keys(prReviews).length} PR review threads cached`);
 }
 
-main();
+main().catch((error) => {
+  console.error(`Site data build failed: ${error.message}`);
+  process.exitCode = 1;
+});

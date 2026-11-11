@@ -31,3 +31,14 @@ message BlockItemSet {
      */
     repeated com.hedera.hapi.block.stream.BlockItem block_items = 1;
 }
+
+message BlockEnd {
+    /**
+     * A Block Number.<br/>
+     * This is the block number of the completed block.
+     * <p>
+     * This MUST match the block number of corresponding `BlockHeader` block
+     * item that started this block.
+     */
+    uint64 block_number = 1;
+}
