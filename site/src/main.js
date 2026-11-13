@@ -94,7 +94,9 @@ let viewMode = 'list'; // 'list' | 'grid'
 const REPO_OWNER = 'hiero-ledger';
 const REPO_NAME = 'hiero-improvement-proposals';
 const GITHUB_AUTH_START_URL = import.meta.env.VITE_GITHUB_AUTH_START_URL || '';
-const GITHUB_AUTH_TIMEOUT_MS = 2 * 60 * 1000;
+// Matches the broker's ten-minute sign-in lifetime; GitHub sign-in plus 2FA
+// regularly takes longer than the previous two minutes.
+const GITHUB_AUTH_TIMEOUT_MS = 10 * 60 * 1000;
 
 const STATUS_ORDER = [
   'Last Call', 'Draft', 'Review', 'Approved', 'Accepted',
@@ -1146,6 +1148,12 @@ async function submitEditPr({ hip, source, raw, token, status }) {
     setEditStatusPullRequest(status, safePrUrl);
     window.open(safePrUrl, '_blank', 'noopener');
   } catch (e) {
+    if (e.status === 401) {
+      // The token was revoked or expired; forget it so the next click reconnects.
+      githubSessionToken = '';
+      setEditStatusText(status, 'GitHub no longer accepts this connection. Click Connect GitHub to sign in again.', 'error');
+      return;
+    }
     setEditStatusText(status, e.message || 'GitHub submit failed. Try again.', 'error');
   }
 }
@@ -1281,13 +1289,24 @@ async function requestGitHubToken(status) {
 }
 
 function getGitHubAuthStartUrl() {
-  return window.HIPS_GITHUB_AUTH_START_URL || GITHUB_AUTH_START_URL;
+  // Only a real string counts: rendered HIP markdown can create a same-named
+  // global through DOM clobbering, and that must never redirect the sign-in.
+  const runtime = window.HIPS_GITHUB_AUTH_START_URL;
+  return typeof runtime === 'string' ? runtime : GITHUB_AUTH_START_URL;
 }
 
 function requestGitHubTokenFromPopup(startUrl, status) {
   return new Promise((resolve, reject) => {
     const state = randomState();
-    const authUrl = new URL(startUrl, window.location.href);
+    // The start URL must be absolute and https (http only on loopback for local
+    // development); a relative value would open the site itself in the popup.
+    let authUrl = null;
+    try { authUrl = new URL(startUrl); } catch { /* rejected below */ }
+    const loopback = authUrl && ['localhost', '127.0.0.1', '[::1]'].includes(authUrl.hostname);
+    if (!authUrl || (authUrl.protocol !== 'https:' && !(authUrl.protocol === 'http:' && loopback))) {
+      reject(new Error('GitHub Connect is misconfigured: the sign-in URL must be an absolute https URL.'));
+      return;
+    }
     const allowedOrigin = authUrl.origin;
     authUrl.searchParams.set('state', state);
     authUrl.searchParams.set('origin', window.location.origin);
@@ -1320,7 +1339,8 @@ function requestGitHubTokenFromPopup(startUrl, status) {
     const onMessage = event => {
       const data = event.data || {};
       if (data.type !== 'hips:github-token' || data.state !== state) return;
-      if (event.origin !== window.location.origin && event.origin !== allowedOrigin) return;
+      // Only the popup we opened, and only from the broker's origin, may hand back a token.
+      if (event.source !== popup || event.origin !== allowedOrigin) return;
 
       cleanup();
       const token = normalizeGitHubToken(data);
