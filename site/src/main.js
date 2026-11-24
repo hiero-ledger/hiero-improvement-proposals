@@ -57,6 +57,9 @@ marked.use({
 
 mermaid.initialize({
   startOnLoad: false,
+  // Mermaid 12 changed the default layout and look; keep the pre-12 rendering.
+  layout: 'dagre',
+  look: 'classic',
   theme: 'base',
   themeVariables: {
     primaryColor: '#1a1a2e',
