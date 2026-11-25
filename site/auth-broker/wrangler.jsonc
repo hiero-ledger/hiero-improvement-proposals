@@ -1,0 +1,26 @@
+// Cloudflare Worker configuration for the HIPs GitHub OAuth broker.
+// Deploy from this directory with `npx --yes wrangler@4 deploy` (Node 22+).
+// Secrets (GITHUB_CLIENT_SECRET, STATE_SIGNING_KEY) are never stored here:
+// set them once with `npx --yes wrangler@4 secret put <NAME>`.
+{
+  "name": "hips-github-auth",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-15",
+
+  // Serve from the free *.workers.dev origin until a custom domain is attached.
+  // With a custom domain, set this to false and add:
+  //   "routes": [{ "pattern": "hips-auth.hedera.com", "custom_domain": true }]
+  "workers_dev": true,
+
+  // Keep the one-line JSON logs the README describes in Workers Logs.
+  "observability": { "enabled": true },
+
+  "vars": {
+    // Client ID of the GitHub OAuth App whose callback URL is BROKER_ORIGIN + "/callback".
+    "GITHUB_CLIENT_ID": "replace-with-the-oauth-app-client-id",
+    // Comma-separated site origins that may receive tokens (exact origins, no paths).
+    "ALLOWED_ORIGINS": "https://hips.hedera.com",
+    // The one public origin this Worker is served from; every other hostname answers 404.
+    "BROKER_ORIGIN": "https://hips-github-auth.<your-account>.workers.dev"
+  }
+}
